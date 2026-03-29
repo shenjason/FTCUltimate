@@ -31,9 +31,11 @@ interface MatchState {
   phase: MatchPhase;
   scores: ScoreMap;
   elapsedSeconds: number;
+  strictMode: boolean;
   setPhase: (phase: MatchPhase) => void;
   setScore: (moduleId: string, value: ScoreValue) => void;
   setElapsed: (seconds: number) => void;
+  setStrictMode: (v: boolean) => void;
   resetMatch: () => void;
 }
 
@@ -41,11 +43,13 @@ export const useMatchStore = create<MatchState>((set) => ({
   phase: 'idle',
   scores: {},
   elapsedSeconds: 0,
+  strictMode: true,
   setPhase: (phase) => set({ phase }),
   setScore: (moduleId, value) =>
     set((state) => ({ scores: { ...state.scores, [moduleId]: value } })),
   setElapsed: (elapsedSeconds) => set({ elapsedSeconds }),
-  resetMatch: () => set({ phase: 'idle', scores: {}, elapsedSeconds: 0 }),
+  setStrictMode: (strictMode) => set({ strictMode }),
+  resetMatch: () => set({ phase: 'idle', scores: {}, elapsedSeconds: 0, strictMode: true }),
 }));
 
 // ─── History Store ─────────────────────────────────────────────────

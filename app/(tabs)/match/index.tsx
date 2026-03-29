@@ -25,7 +25,7 @@ import type { ScoreValue } from '../../../types/match';
 
 export default function MatchScreen() {
   const { selectedSeasonId } = useSeasonStore();
-  const { phase, scores, setScore, resetMatch } = useMatchStore();
+  const { phase, scores, setScore, resetMatch, strictMode, setStrictMode } = useMatchStore();
   const { saveMatch } = useHistoryStore();
 
   const [matchNumber, setMatchNumber] = React.useState<number | undefined>();
@@ -81,6 +81,7 @@ export default function MatchScreen() {
   };
 
   const isLocked = (modulePeriod: 'auto' | 'teleop' | undefined, moduleArray: 'auto' | 'teleop') => {
+    if (!strictMode) return false;   // All modules editable in relaxed mode
     if (phase === 'transition') return true;
     if (phase === 'idle' || phase === 'complete') return false;
     if (phase === 'auto') return moduleArray !== 'auto';
@@ -144,6 +145,23 @@ export default function MatchScreen() {
           </View>
         </View>
       )}
+
+      {/* Strict mode toggle */}
+      <View className="flex-row items-center justify-between px-4 mt-1">
+        <Text className="text-[#9CA3AF] text-xs">
+          {strictMode ? 'Strict mode — inputs locked by phase' : 'Relaxed — all inputs editable'}
+        </Text>
+        <TouchableOpacity
+          onPress={() => setStrictMode(!strictMode)}
+          className={`px-3 py-1 rounded-full border ${
+            strictMode ? 'border-[#F59E0B] bg-[#F59E0B]/10' : 'border-[#2A2A2A] bg-[#1A1A1A]'
+          }`}
+        >
+          <Text className={`text-xs font-medium ${strictMode ? 'text-[#F59E0B]' : 'text-[#9CA3AF]'}`}>
+            {strictMode ? 'STRICT' : 'RELAXED'}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Timer + score */}
       <View className="items-center py-4">
