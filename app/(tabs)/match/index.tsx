@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
+  TextInput,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -26,6 +27,9 @@ export default function MatchScreen() {
   const { selectedSeasonId } = useSeasonStore();
   const { phase, scores, setScore, resetMatch } = useMatchStore();
   const { saveMatch } = useHistoryStore();
+
+  const [matchNumber, setMatchNumber] = React.useState<number | undefined>();
+  const [alliance, setAlliance] = React.useState<'red' | 'blue' | undefined>();
 
   const season = getSeasonById(selectedSeasonId);
   const { auto, teleop, total } = computeScore(season, scores);
@@ -67,6 +71,8 @@ export default function MatchScreen() {
       totalScore: total,
       autoScore: auto,
       teleopScore: teleop,
+      matchNumber,
+      alliance,
     });
     Alert.alert('Match Saved', `Total: ${total} pts (Auto: ${auto} | Teleop: ${teleop})`, [
       { text: 'New Match', onPress: resetMatch },
@@ -95,6 +101,47 @@ export default function MatchScreen() {
           <Text className="text-[#F59E0B] text-xs font-medium text-center">
             Provisional scoring — update when official manual releases
           </Text>
+        </View>
+      )}
+
+      {phase === 'idle' && (
+        <View className="flex-row items-center px-4 mt-2 gap-3">
+          {/* Match number */}
+          <View className="flex-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl px-3 py-2">
+            <Text className="text-[#9CA3AF] text-xs mb-1">Match #</Text>
+            <TextInput
+              className="text-[#F5F5F5] text-base"
+              keyboardType="number-pad"
+              placeholder="—"
+              placeholderTextColor="#6B7280"
+              value={matchNumber ? String(matchNumber) : ''}
+              onChangeText={(t) => setMatchNumber(t ? parseInt(t, 10) : undefined)}
+            />
+          </View>
+
+          {/* Alliance toggle */}
+          <View className="flex-row gap-1">
+            <TouchableOpacity
+              onPress={() => setAlliance(alliance === 'red' ? undefined : 'red')}
+              className={`px-4 py-3 rounded-xl border ${
+                alliance === 'red' ? 'bg-[#EF4444] border-[#EF4444]' : 'bg-[#1A1A1A] border-[#2A2A2A]'
+              }`}
+            >
+              <Text className={`font-semibold text-sm ${alliance === 'red' ? 'text-white' : 'text-[#EF4444]'}`}>
+                RED
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setAlliance(alliance === 'blue' ? undefined : 'blue')}
+              className={`px-4 py-3 rounded-xl border ${
+                alliance === 'blue' ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-[#1A1A1A] border-[#2A2A2A]'
+              }`}
+            >
+              <Text className={`font-semibold text-sm ${alliance === 'blue' ? 'text-white' : 'text-[#3B82F6]'}`}>
+                BLUE
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 

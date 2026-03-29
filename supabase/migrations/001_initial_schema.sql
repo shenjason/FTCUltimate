@@ -38,7 +38,9 @@ create table if not exists practice_matches (
   scores        jsonb not null default '{}',
   notes         text,
   tags          text[],
-  synced        boolean not null default false
+  synced        boolean not null default false,
+  match_number  integer,
+  alliance      text check (alliance in ('red', 'blue'))
 );
 
 alter table practice_matches enable row level security;

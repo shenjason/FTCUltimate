@@ -15,6 +15,8 @@ export class PracticeMatch extends Model {
   @field('notes') notes!: string;
   @field('tags') tagsRaw!: string;                // JSON string
   @field('synced') synced!: boolean;
+  @field('match_number') matchNumber!: number | null;
+  @field('alliance') alliance!: string | null;
 
   get allScores() {
     try { return JSON.parse(this.allScoresRaw); } catch { return {}; }

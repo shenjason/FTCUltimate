@@ -75,6 +75,8 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         teleopScore: r.teleopScore,
         notes: r.notes || undefined,
         tags: r.tags,
+        matchNumber: r.matchNumber ?? undefined,
+        alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
     set({ matches });
@@ -94,6 +96,8 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         record.notes = match.notes ?? '';
         record.tagsRaw = JSON.stringify(match.tags ?? []);
         record.synced = false;
+        record.matchNumber = match.matchNumber ?? null;
+        record.alliance = match.alliance ?? null;
       });
     });
     // reload
@@ -110,6 +114,8 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         teleopScore: r.teleopScore,
         notes: r.notes || undefined,
         tags: r.tags,
+        matchNumber: r.matchNumber ?? undefined,
+        alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
     set({ matches });

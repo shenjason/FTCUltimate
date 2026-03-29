@@ -2,7 +2,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 1,
+  version: 2,
   tables: [
     tableSchema({
       name: 'practice_matches',
@@ -17,6 +17,8 @@ export const schema = appSchema({
         { name: 'notes', type: 'string', isOptional: true },
         { name: 'tags', type: 'string', isOptional: true },  // JSON stringified string[]
         { name: 'synced', type: 'boolean' },
+        { name: 'match_number', type: 'number', isOptional: true },
+        { name: 'alliance', type: 'string', isOptional: true },
       ],
     }),
   ],
