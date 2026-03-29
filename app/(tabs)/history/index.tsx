@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useHistoryStore } from '../../../lib/store';
 import { getSeasons } from '../../../lib/seasonLoader';
 import type { SavedMatch } from '../../../types/match';
+import { pushUnsyncedMatches, getUnsyncedCount } from '../../../lib/sync';
 
 function MatchCard({
   match,
@@ -77,11 +78,17 @@ function MatchCard({
 export default function HistoryScreen() {
   const { matches, loadMatches, deleteMatch } = useHistoryStore();
   const [filterSeasonId, setFilterSeasonId] = useState<string | null>(null);
+  const [unsyncedCount, setUnsyncedCount] = React.useState(0);
+  const [syncing, setSyncing] = React.useState(false);
   const seasons = getSeasons();
 
   useEffect(() => {
     loadMatches();
   }, []);
+
+  useEffect(() => {
+    getUnsyncedCount().then(setUnsyncedCount);
+  }, [matches]);
 
   const filtered = filterSeasonId
     ? matches.filter((m) => m.seasonId === filterSeasonId)
@@ -103,6 +110,22 @@ export default function HistoryScreen() {
       ? Math.round(last10.reduce((sum, m) => sum + m.teleopScore, 0) / last10.length)
       : 0;
 
+  const handleSync = async () => {
+    setSyncing(true);
+    const result = await pushUnsyncedMatches();
+    setSyncing(false);
+    setUnsyncedCount(await getUnsyncedCount());
+
+    if (result.errors.length > 0) {
+      Alert.alert(
+        'Sync Partial',
+        `Pushed ${result.pushed} matches.\n${result.errors.length} failed.`
+      );
+    } else {
+      Alert.alert('Synced', `${result.pushed} matches pushed to cloud.`);
+    }
+  };
+
   const handleDelete = (id: string) => {
     Alert.alert('Delete Match', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
@@ -112,8 +135,22 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#0F0F0F]">
-      <View className="px-4 pt-4 pb-2">
+      <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
         <Text className="text-[#F5F5F5] text-xl font-bold">Match History</Text>
+        <TouchableOpacity
+          onPress={handleSync}
+          disabled={syncing || unsyncedCount === 0}
+          className="flex-row items-center gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] px-3 py-1.5 rounded-full"
+        >
+          <Ionicons
+            name={syncing ? 'sync' : 'cloud-upload-outline'}
+            size={14}
+            color={unsyncedCount > 0 ? '#3B82F6' : '#6B7280'}
+          />
+          {unsyncedCount > 0 && (
+            <Text className="text-[#3B82F6] text-xs font-medium">{unsyncedCount}</Text>
+          )}
+        </TouchableOpacity>
       </View>
 
       {/* Stats summary */}
