@@ -54,8 +54,8 @@ export function ModuleRenderer({ module, scores, onChangeScore, disabled, period
       return (
         <SelectorModule
           module={module}
-          value={typeof value === 'string' ? value : null}
-          onChange={(v) => onChangeScore(module.id, v ?? '')}
+          value={typeof value === 'string' && value !== '' ? value : null}
+          onChange={(v) => onChangeScore(module.id, v)}
           disabled={disabled}
         />
       );
