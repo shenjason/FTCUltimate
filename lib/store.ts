@@ -5,6 +5,8 @@ import { database } from './watermelon/database';
 import { PracticeMatch } from './watermelon/models/PracticeMatch';
 import type { SeasonConfig } from '../types/season';
 import type { MatchPhase, SavedMatch, ScoreMap, ScoreValue } from '../types/match';
+import { computeScore } from './scoreEngine';
+export { computeScore };
 
 // ─── Season Store ──────────────────────────────────────────────────
 
@@ -22,11 +24,6 @@ export const useSeasonStore = create<SeasonState>((set) => {
     setSelectedSeason: (id) => set({ selectedSeasonId: id }),
   };
 });
-
-// ─── Score computation ─────────────────────────────────────────────
-
-import { computeScore } from './scoreEngine';
-export { computeScore };
 
 // ─── Match Store ───────────────────────────────────────────────────
 

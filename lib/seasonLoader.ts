@@ -1,5 +1,6 @@
 // lib/seasonLoader.ts
 import type { SeasonConfig, ModuleConfig } from '../types/season';
+import { SCORE_FN_REGISTRY } from './scoreEngine';
 
 // Static import map — add new seasons here when a new JSON file is created.
 // This is the only file that needs updating when a season is added.
@@ -45,6 +46,11 @@ function validateModule(mod: unknown, seasonId: string, index: number): ModuleCo
   if (m.type === 'calculated' && typeof m.scoreFn !== 'string') {
     throw new Error(
       `Season ${seasonId}: calculated module "${m.id}" missing string "scoreFn"`
+    );
+  }
+  if (m.type === 'calculated' && !(m.scoreFn as string in SCORE_FN_REGISTRY)) {
+    throw new Error(
+      `Season ${seasonId}: calculated module "${m.id}" scoreFn "${m.scoreFn as string}" is not registered`
     );
   }
   return mod as ModuleConfig;

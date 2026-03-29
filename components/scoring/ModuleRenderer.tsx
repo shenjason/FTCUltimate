@@ -9,6 +9,7 @@ import { SelectorModule } from './SelectorModule';
 import { MultiBooleanModule } from './MultiBooleanModule';
 import { GridModule } from './GridModule';
 import { CalculatedModule } from './CalculatedModule';
+import { moduleScore } from '../../lib/scoreEngine';
 
 interface Props {
   module: ModuleConfig;
@@ -90,15 +91,8 @@ export function ModuleRenderer({ module, scores, onChangeScore, disabled, period
         />
       );
     case 'calculated': {
-      // Computed value is passed as the numeric score value from the store
-      const computedValue = typeof value === 'number' ? value : 0;
-      return (
-        <CalculatedModule
-          module={module}
-          computedValue={computedValue}
-          disabled={disabled}
-        />
-      );
+      const computedValue = moduleScore(module, scores);
+      return <CalculatedModule module={module} computedValue={computedValue} disabled={disabled} />;
     }
     default:
       return null;
