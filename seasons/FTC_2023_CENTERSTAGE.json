@@ -1,0 +1,114 @@
+{
+  "id": "FTC_2023_CENTERSTAGE",
+  "name": "CENTERSTAGE presented by RTX",
+  "program": "FTC",
+  "year": 2023,
+  "timerDuration": {
+    "autonomous": 30,
+    "transition": 7,
+    "teleop": 120
+  },
+  "autonomous": [
+    {
+      "id": "auto_preloaded_pixel",
+      "label": "Preloaded Pixel on Spike Mark",
+      "type": "boolean",
+      "points": 10,
+      "description": "Preloaded pixel placed on correct spike mark"
+    },
+    {
+      "id": "auto_purple_pixel",
+      "label": "Purple Pixel on Spike Mark",
+      "type": "boolean",
+      "points": 10
+    },
+    {
+      "id": "auto_yellow_pixel",
+      "label": "Yellow Pixel on Backdrop",
+      "type": "boolean",
+      "points": 10
+    },
+    {
+      "id": "auto_extra_pixels_backstage",
+      "label": "Extra Pixels Backstage",
+      "type": "counter",
+      "points": 3,
+      "min": 0,
+      "max": 10,
+      "description": "Each pixel placed in backstage area during auto"
+    },
+    {
+      "id": "auto_parked",
+      "label": "Auto Parking",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "Not Parked", "points": 0 },
+        { "id": "backstage", "label": "Backstage", "points": 5 },
+        { "id": "frontstage", "label": "Frontstage", "points": 3 }
+      ]
+    }
+  ],
+  "teleop": [
+    {
+      "id": "backdrop_pixels",
+      "label": "Backdrop Pixels",
+      "type": "grid",
+      "rows": 6,
+      "cols": 7,
+      "pointsPerCell": 3,
+      "bonuses": [
+        {
+          "id": "mosaic_bonus",
+          "label": "Mosaic Bonus",
+          "description": "3 same-color pixels in a triangle pattern",
+          "type": "manual_boolean",
+          "points": 10
+        },
+        {
+          "id": "set_line_bonus",
+          "label": "Set Line Bonus",
+          "description": "Pixels placed across a set line",
+          "type": "manual_boolean",
+          "points": 10
+        }
+      ]
+    },
+    {
+      "id": "teleop_floor_pixels",
+      "label": "Floor Pixels (Backstage)",
+      "type": "counter",
+      "points": 1,
+      "min": 0
+    },
+    {
+      "id": "drone_launch",
+      "label": "Drone Launched in Landing Zone",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "None / Not Scored", "points": 0 },
+        { "id": "zone1", "label": "Zone 1 (Far)", "points": 30 },
+        { "id": "zone2", "label": "Zone 2 (Mid)", "points": 20 },
+        { "id": "zone3", "label": "Zone 3 (Near)", "points": 10 }
+      ]
+    },
+    {
+      "id": "end_hang",
+      "label": "Endgame Hang",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "None", "points": 0 },
+        { "id": "rigging", "label": "Rigging (Hanging)", "points": 20 }
+      ]
+    },
+    {
+      "id": "end_parked",
+      "label": "Endgame Park",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "None", "points": 0 },
+        { "id": "backstage", "label": "Backstage", "points": 5 },
+        { "id": "frontstage", "label": "Frontstage", "points": 2 }
+      ]
+    }
+  ]
+}

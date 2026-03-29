@@ -1,0 +1,108 @@
+{
+  "id": "FTC_2025_DECODE",
+  "name": "DECODE presented by RTX",
+  "program": "FTC",
+  "year": 2025,
+  "timerDuration": {
+    "autonomous": 30,
+    "transition": 7,
+    "teleop": 120
+  },
+  "autonomous": [
+    {
+      "id": "auto_preloaded_specimen",
+      "label": "Preloaded Specimen Scored",
+      "type": "boolean",
+      "points": 10,
+      "description": "Preloaded specimen placed on chamber during auto"
+    },
+    {
+      "id": "auto_samples_net",
+      "label": "Samples in Net Zone",
+      "type": "counter",
+      "points": 2,
+      "min": 0,
+      "max": 5
+    },
+    {
+      "id": "auto_samples_low_basket",
+      "label": "Samples in Low Basket",
+      "type": "counter",
+      "points": 4,
+      "min": 0,
+      "max": 5
+    },
+    {
+      "id": "auto_samples_high_basket",
+      "label": "Samples in High Basket",
+      "type": "counter",
+      "points": 8,
+      "min": 0,
+      "max": 5
+    },
+    {
+      "id": "auto_specimens",
+      "label": "Additional Specimens on Chamber",
+      "type": "tiered_counter",
+      "tiers": [
+        { "id": "highChamber", "label": "High Chamber", "points": 10 },
+        { "id": "lowChamber", "label": "Low Chamber", "points": 6 }
+      ]
+    },
+    {
+      "id": "auto_observation_zone",
+      "label": "Robot in Observation Zone",
+      "type": "boolean",
+      "points": 3
+    },
+    {
+      "id": "auto_parked",
+      "label": "Robot Parked (other)",
+      "type": "boolean",
+      "points": 3
+    }
+  ],
+  "teleop": [
+    {
+      "id": "teleop_samples_net",
+      "label": "Samples in Net Zone",
+      "type": "counter",
+      "points": 2,
+      "min": 0
+    },
+    {
+      "id": "teleop_samples_low_basket",
+      "label": "Samples in Low Basket",
+      "type": "counter",
+      "points": 4,
+      "min": 0
+    },
+    {
+      "id": "teleop_samples_high_basket",
+      "label": "Samples in High Basket",
+      "type": "counter",
+      "points": 8,
+      "min": 0
+    },
+    {
+      "id": "teleop_specimens",
+      "label": "Specimens on Chamber",
+      "type": "tiered_counter",
+      "tiers": [
+        { "id": "highChamber", "label": "High Chamber", "points": 10 },
+        { "id": "lowChamber", "label": "Low Chamber", "points": 6 }
+      ]
+    },
+    {
+      "id": "ascent_level",
+      "label": "Ascent Level",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "None", "points": 0 },
+        { "id": "level1", "label": "Level 1 (Touch Bar)", "points": 3 },
+        { "id": "level2", "label": "Level 2 (Low Rung)", "points": 15 },
+        { "id": "level3", "label": "Level 3 (High Rung)", "points": 30 }
+      ]
+    }
+  ]
+}

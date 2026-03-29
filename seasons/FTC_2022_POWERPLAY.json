@@ -1,0 +1,108 @@
+{
+  "id": "FTC_2022_POWERPLAY",
+  "name": "POWERPLAY presented by Raytheon Technologies",
+  "program": "FTC",
+  "year": 2022,
+  "timerDuration": {
+    "autonomous": 30,
+    "transition": 7,
+    "teleop": 120
+  },
+  "autonomous": [
+    {
+      "id": "auto_signal_sleeve",
+      "label": "Signal Sleeve Detected",
+      "type": "boolean",
+      "points": 10,
+      "description": "Robot navigated to correct signal zone"
+    },
+    {
+      "id": "auto_preloaded_cone",
+      "label": "Preloaded Cone on Junction",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "Not Scored", "points": 0 },
+        { "id": "ground", "label": "Ground Junction", "points": 2 },
+        { "id": "low", "label": "Low Junction", "points": 3 },
+        { "id": "medium", "label": "Medium Junction", "points": 4 },
+        { "id": "high", "label": "High Junction", "points": 5 }
+      ]
+    },
+    {
+      "id": "auto_parked",
+      "label": "Auto Parking",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "Not Parked", "points": 0 },
+        { "id": "signal_zone", "label": "Signal Zone", "points": 10 },
+        { "id": "other_zone", "label": "Other Zone", "points": 2 }
+      ]
+    },
+    {
+      "id": "auto_terminal_cones",
+      "label": "Cones in Terminal (Auto)",
+      "type": "counter",
+      "points": 1,
+      "min": 0,
+      "max": 20
+    }
+  ],
+  "teleop": [
+    {
+      "id": "junction_cones",
+      "label": "Cones on Junctions",
+      "type": "tiered_counter",
+      "tiers": [
+        { "id": "ground", "label": "Ground", "points": 2 },
+        { "id": "low", "label": "Low", "points": 3 },
+        { "id": "medium", "label": "Medium", "points": 4 },
+        { "id": "high", "label": "High", "points": 5 }
+      ]
+    },
+    {
+      "id": "terminal_cones",
+      "label": "Cones in Terminal",
+      "type": "counter",
+      "points": 1,
+      "min": 0,
+      "max": 40
+    },
+    {
+      "id": "circuit_bonus",
+      "label": "Circuit Bonus",
+      "type": "calculated",
+      "points": 20,
+      "expression": "if(junction_cones.ground >= 1, 1, 0)",
+      "description": "20 pts if robot owns at least one of each junction type and both terminals"
+    },
+    {
+      "id": "ownership_bonus",
+      "label": "Junction Ownership Bonus",
+      "type": "calculated",
+      "points": 3,
+      "expression": "junction_cones.high + junction_cones.medium + junction_cones.low + junction_cones.ground",
+      "description": "3 pts per junction owned (last cone placed)"
+    },
+    {
+      "id": "end_parked",
+      "label": "Endgame Parking",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "None", "points": 0 },
+        { "id": "signal_zone", "label": "Signal Zone", "points": 10 },
+        { "id": "substation_zone", "label": "Substation Zone", "points": 2 }
+      ]
+    },
+    {
+      "id": "conestack_bonus",
+      "label": "Cone Stack Bonus",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "None", "points": 0 },
+        { "id": "top_3", "label": "3 Cones (Top)", "points": 10 },
+        { "id": "top_4", "label": "4 Cones", "points": 20 },
+        { "id": "top_5", "label": "5 Cones (Max)", "points": 30 }
+      ]
+    }
+  ]
+}

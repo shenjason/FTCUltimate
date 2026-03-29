@@ -1,0 +1,98 @@
+{
+  "id": "FTC_2024_INTO_THE_DEEP",
+  "name": "INTO THE DEEP presented by RTX",
+  "program": "FTC",
+  "year": 2024,
+  "timerDuration": {
+    "autonomous": 30,
+    "transition": 7,
+    "teleop": 120
+  },
+  "autonomous": [
+    {
+      "id": "auto_preload_specimen",
+      "label": "Preloaded Specimen on High Chamber",
+      "type": "boolean",
+      "points": 10
+    },
+    {
+      "id": "auto_net_zone_samples",
+      "label": "Samples in Net Zone",
+      "type": "counter",
+      "points": 2,
+      "min": 0,
+      "max": 6
+    },
+    {
+      "id": "auto_low_basket_samples",
+      "label": "Samples in Low Basket",
+      "type": "counter",
+      "points": 4,
+      "min": 0,
+      "max": 6
+    },
+    {
+      "id": "auto_high_basket_samples",
+      "label": "Samples in High Basket",
+      "type": "counter",
+      "points": 8,
+      "min": 0,
+      "max": 6
+    },
+    {
+      "id": "auto_observation_zone",
+      "label": "Robot in Observation Zone",
+      "type": "boolean",
+      "points": 3
+    },
+    {
+      "id": "auto_parked",
+      "label": "Robot Parked (Submersible Area)",
+      "type": "boolean",
+      "points": 3
+    }
+  ],
+  "teleop": [
+    {
+      "id": "teleop_net_zone_samples",
+      "label": "Samples in Net Zone",
+      "type": "counter",
+      "points": 2,
+      "min": 0
+    },
+    {
+      "id": "teleop_low_basket_samples",
+      "label": "Samples in Low Basket",
+      "type": "counter",
+      "points": 4,
+      "min": 0
+    },
+    {
+      "id": "teleop_high_basket_samples",
+      "label": "Samples in High Basket",
+      "type": "counter",
+      "points": 8,
+      "min": 0
+    },
+    {
+      "id": "teleop_specimens",
+      "label": "Specimens on Chamber",
+      "type": "tiered_counter",
+      "tiers": [
+        { "id": "highChamber", "label": "High Chamber", "points": 10 },
+        { "id": "lowChamber", "label": "Low Chamber", "points": 6 }
+      ]
+    },
+    {
+      "id": "teleop_ascent",
+      "label": "End Game Ascent",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "None", "points": 0 },
+        { "id": "level1", "label": "Level 1 (Observation Zone)", "points": 3 },
+        { "id": "level2", "label": "Level 2 (Low Rung)", "points": 15 },
+        { "id": "level3", "label": "Level 3 (High Rung)", "points": 30 }
+      ]
+    }
+  ]
+}
