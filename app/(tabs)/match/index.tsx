@@ -16,6 +16,7 @@ import { ModuleRenderer } from '../../../components/scoring/ModuleRenderer';
 import { SeasonPicker } from '../../../components/ui/SeasonPicker';
 import { ScoreBadge } from '../../../components/ui/ScoreBadge';
 import { PhaseTab } from '../../../components/ui/PhaseTab';
+import { UndoBar } from '../../../components/ui/UndoBar';
 import type { ScoreValue } from '../../../types/match';
 
 export default function MatchScreen() {
@@ -149,6 +150,7 @@ export default function MatchScreen() {
 
       {/* Phase tabs + scoring modules */}
       <View className="flex-1 overflow-hidden">
+        <UndoBar />
         <PhaseTab
           activeTab={activeTab}
           onTabChange={setActiveTab}

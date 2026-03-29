@@ -32,10 +32,14 @@ interface MatchState {
   scores: ScoreMap;
   elapsedSeconds: number;
   strictMode: boolean;
+  undoStack: ScoreMap[];
+  redoStack: ScoreMap[];
   setPhase: (phase: MatchPhase) => void;
   setScore: (moduleId: string, value: ScoreValue) => void;
   setElapsed: (seconds: number) => void;
   setStrictMode: (v: boolean) => void;
+  undo: () => void;
+  redo: () => void;
   resetMatch: () => void;
 }
 
@@ -44,12 +48,45 @@ export const useMatchStore = create<MatchState>((set) => ({
   scores: {},
   elapsedSeconds: 0,
   strictMode: true,
+  undoStack: [],
+  redoStack: [],
+
   setPhase: (phase) => set({ phase }),
+
   setScore: (moduleId, value) =>
-    set((state) => ({ scores: { ...state.scores, [moduleId]: value } })),
+    set((state) => ({
+      undoStack: [...state.undoStack.slice(-30), { ...state.scores }], // Keep max 30
+      redoStack: [],
+      scores: { ...state.scores, [moduleId]: value },
+    })),
+
   setElapsed: (elapsedSeconds) => set({ elapsedSeconds }),
   setStrictMode: (strictMode) => set({ strictMode }),
-  resetMatch: () => set({ phase: 'idle', scores: {}, elapsedSeconds: 0, strictMode: true }),
+
+  undo: () =>
+    set((state) => {
+      if (state.undoStack.length === 0) return state;
+      const prev = state.undoStack[state.undoStack.length - 1];
+      return {
+        undoStack: state.undoStack.slice(0, -1),
+        redoStack: [...state.redoStack, { ...state.scores }],
+        scores: prev,
+      };
+    }),
+
+  redo: () =>
+    set((state) => {
+      if (state.redoStack.length === 0) return state;
+      const next = state.redoStack[state.redoStack.length - 1];
+      return {
+        redoStack: state.redoStack.slice(0, -1),
+        undoStack: [...state.undoStack, { ...state.scores }],
+        scores: next,
+      };
+    }),
+
+  resetMatch: () =>
+    set({ phase: 'idle', scores: {}, elapsedSeconds: 0, strictMode: true, undoStack: [], redoStack: [] }),
 }));
 
 // ─── History Store ─────────────────────────────────────────────────
