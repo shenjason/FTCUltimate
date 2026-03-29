@@ -84,7 +84,7 @@ function validateSeason(raw: unknown): SeasonConfig {
     name: s.name as string,
     program: s.program as 'FTC' | 'FRC',
     year: s.year as number,
-    timerDuration: td as SeasonConfig['timerDuration'],
+    timerDuration: td as unknown as SeasonConfig['timerDuration'],
     autonomous,
     teleop,
   };

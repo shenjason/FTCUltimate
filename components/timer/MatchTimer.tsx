@@ -235,7 +235,7 @@ export function MatchTimer({ season }: MatchTimerProps) {
             fill="none"
             strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
             animatedProps={ringProps}
-            strokeLinecap="round"
+            strokeLinecap={"round" as const}
             rotation="-90"
             origin={`${SIZE / 2}, ${SIZE / 2}`}
           />
