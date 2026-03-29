@@ -120,6 +120,7 @@ export interface SeasonConfig {
   name: string;
   program: 'FTC' | 'FRC';
   year: number;
+  provisional?: boolean;   // ADD THIS LINE
   timerDuration: TimerDuration;
   autonomous: ModuleConfig[];
   teleop: ModuleConfig[];

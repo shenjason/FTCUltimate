@@ -90,6 +90,13 @@ export default function MatchScreen() {
           <SeasonPicker />
         </View>
       </View>
+      {season.provisional && (
+        <View className="mx-4 mt-2 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl px-3 py-2">
+          <Text className="text-[#F59E0B] text-xs font-medium text-center">
+            Provisional scoring — update when official manual releases
+          </Text>
+        </View>
+      )}
 
       {/* Timer + score */}
       <View className="items-center py-4">

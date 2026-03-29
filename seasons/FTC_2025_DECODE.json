@@ -1,8 +1,9 @@
 {
   "id": "FTC_2025_DECODE",
-  "name": "DECODE presented by RTX",
+  "name": "DECODE presented by RTX (PROVISIONAL)",
   "program": "FTC",
   "year": 2025,
+  "provisional": true,
   "timerDuration": {
     "autonomous": 30,
     "transition": 7,
@@ -10,98 +11,50 @@
   },
   "autonomous": [
     {
-      "id": "auto_preloaded_specimen",
-      "label": "Preloaded Specimen Scored",
+      "id": "auto_task_1",
+      "label": "Autonomous Task 1",
       "type": "boolean",
       "points": 10,
-      "description": "Preloaded specimen placed on chamber during auto"
+      "description": "Placeholder — update when Game Manual Part 2 releases"
     },
     {
-      "id": "auto_samples_net",
-      "label": "Samples in Net Zone",
+      "id": "auto_task_2",
+      "label": "Autonomous Scoring",
       "type": "counter",
-      "points": 2,
+      "points": 5,
       "min": 0,
-      "max": 5
+      "max": 10,
+      "description": "Placeholder — update with real scoring elements"
     },
     {
-      "id": "auto_samples_low_basket",
-      "label": "Samples in Low Basket",
-      "type": "counter",
-      "points": 4,
-      "min": 0,
-      "max": 5
-    },
-    {
-      "id": "auto_samples_high_basket",
-      "label": "Samples in High Basket",
-      "type": "counter",
-      "points": 8,
-      "min": 0,
-      "max": 5
-    },
-    {
-      "id": "auto_specimens",
-      "label": "Additional Specimens on Chamber",
-      "type": "tiered_counter",
-      "tiers": [
-        { "id": "highChamber", "label": "High Chamber", "points": 10 },
-        { "id": "lowChamber", "label": "Low Chamber", "points": 6 }
+      "id": "auto_parking",
+      "label": "Auto Parking",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "Not Parked", "points": 0 },
+        { "id": "park_1", "label": "Park Zone 1", "points": 3 },
+        { "id": "park_2", "label": "Park Zone 2", "points": 5 }
       ]
-    },
-    {
-      "id": "auto_observation_zone",
-      "label": "Robot in Observation Zone",
-      "type": "boolean",
-      "points": 3
-    },
-    {
-      "id": "auto_parked",
-      "label": "Robot Parked (other)",
-      "type": "boolean",
-      "points": 3
     }
   ],
   "teleop": [
     {
-      "id": "teleop_samples_net",
-      "label": "Samples in Net Zone",
+      "id": "teleop_scoring",
+      "label": "TeleOp Scoring",
       "type": "counter",
-      "points": 2,
-      "min": 0
+      "points": 5,
+      "min": 0,
+      "description": "Placeholder — update with real scoring elements"
     },
     {
-      "id": "teleop_samples_low_basket",
-      "label": "Samples in Low Basket",
-      "type": "counter",
-      "points": 4,
-      "min": 0
-    },
-    {
-      "id": "teleop_samples_high_basket",
-      "label": "Samples in High Basket",
-      "type": "counter",
-      "points": 8,
-      "min": 0
-    },
-    {
-      "id": "teleop_specimens",
-      "label": "Specimens on Chamber",
-      "type": "tiered_counter",
-      "tiers": [
-        { "id": "highChamber", "label": "High Chamber", "points": 10 },
-        { "id": "lowChamber", "label": "Low Chamber", "points": 6 }
-      ]
-    },
-    {
-      "id": "ascent_level",
-      "label": "Ascent Level",
+      "id": "endgame",
+      "label": "Endgame",
       "type": "selector",
       "options": [
         { "id": "none", "label": "None", "points": 0 },
-        { "id": "level1", "label": "Level 1 (Touch Bar)", "points": 3 },
-        { "id": "level2", "label": "Level 2 (Low Rung)", "points": 15 },
-        { "id": "level3", "label": "Level 3 (High Rung)", "points": 30 }
+        { "id": "level1", "label": "Level 1", "points": 5 },
+        { "id": "level2", "label": "Level 2", "points": 15 },
+        { "id": "level3", "label": "Level 3", "points": 30 }
       ]
     }
   ]

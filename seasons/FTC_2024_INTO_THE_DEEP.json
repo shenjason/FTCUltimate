@@ -40,16 +40,14 @@
       "max": 6
     },
     {
-      "id": "auto_observation_zone",
-      "label": "Robot in Observation Zone",
-      "type": "boolean",
-      "points": 3
-    },
-    {
-      "id": "auto_parked",
-      "label": "Robot Parked (Submersible Area)",
-      "type": "boolean",
-      "points": 3
+      "id": "auto_parking",
+      "label": "Auto Parking",
+      "type": "selector",
+      "options": [
+        { "id": "none", "label": "Not Parked", "points": 0 },
+        { "id": "observation_zone", "label": "Observation Zone", "points": 3 },
+        { "id": "submersible", "label": "Submersible Area", "points": 3 }
+      ]
     }
   ],
   "teleop": [
