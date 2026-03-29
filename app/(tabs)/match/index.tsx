@@ -9,18 +9,13 @@ import {
   SafeAreaView,
   TextInput,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  interpolate,
-} from 'react-native-reanimated';
 import { useSeasonStore, useMatchStore, useHistoryStore, computeScore } from '../../../lib/store';
 import { getSeasonById } from '../../../lib/seasonLoader';
 import { MatchTimer } from '../../../components/timer/MatchTimer';
 import { ModuleRenderer } from '../../../components/scoring/ModuleRenderer';
 import { SeasonPicker } from '../../../components/ui/SeasonPicker';
 import { ScoreBadge } from '../../../components/ui/ScoreBadge';
+import { PhaseTab } from '../../../components/ui/PhaseTab';
 import type { ScoreValue } from '../../../types/match';
 
 export default function MatchScreen() {
@@ -30,37 +25,18 @@ export default function MatchScreen() {
 
   const [matchNumber, setMatchNumber] = React.useState<number | undefined>();
   const [alliance, setAlliance] = React.useState<'red' | 'blue' | undefined>();
+  const [activeTab, setActiveTab] = React.useState<'auto' | 'teleop'>('auto');
 
   const season = getSeasonById(selectedSeasonId);
   const { auto, teleop, total } = computeScore(season, scores);
 
-  // Slide animation: 0 = auto panel visible, 1 = teleop panel visible
-  const slideProgress = useSharedValue(0);
-
   useEffect(() => {
     if (phase === 'teleop' || phase === 'complete') {
-      slideProgress.value = withTiming(1, { duration: 400 });
-    } else {
-      slideProgress.value = withTiming(0, { duration: 400 });
+      setActiveTab('teleop');
+    } else if (phase === 'auto' || phase === 'idle') {
+      setActiveTab('auto');
     }
   }, [phase]);
-
-  const autoStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(slideProgress.value, [0, 1], [0, -400]) }],
-    opacity: interpolate(slideProgress.value, [0, 0.5], [1, 0]),
-    position: 'absolute',
-    width: '100%',
-  }));
-
-  const teleopStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(slideProgress.value, [0, 1], [400, 0]) }],
-    opacity: interpolate(slideProgress.value, [0.5, 1], [0, 1]),
-    position: 'absolute',
-    width: '100%',
-  }));
-
-  const isAutoPhase = phase === 'idle' || phase === 'auto';
-  const isTeleopPhase = phase === 'teleop' || phase === 'complete';
 
   const handleSaveMatch = async () => {
     await saveMatch({
@@ -171,49 +147,41 @@ export default function MatchScreen() {
         </View>
       </View>
 
-      {/* Scoring modules */}
+      {/* Phase tabs + scoring modules */}
       <View className="flex-1 overflow-hidden">
+        <PhaseTab
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          autoScore={auto}
+          teleopScore={teleop}
+        />
         <ScrollView
           className="flex-1 px-4"
           contentContainerStyle={{ paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* AUTO section */}
-          <View className="mb-2">
-            <Text className="text-[#EF4444] text-xs font-bold tracking-widest mb-2">
-              ─ AUTONOMOUS
-            </Text>
-            {season.autonomous.map((module) => (
+          {activeTab === 'auto' &&
+            season.autonomous.map((module) => (
               <ModuleRenderer
                 key={module.id}
                 module={module}
                 scores={scores}
                 onChangeScore={(id, val) => setScore(id, val as ScoreValue)}
                 disabled={isLocked(module.period, 'auto')}
-                period={phase === 'auto' ? 'auto' : phase === 'transition' ? 'transition' : 'teleop'}
+                period="auto"
               />
             ))}
-          </View>
-
-          {/* Divider */}
-          <View className="h-px bg-[#2A2A2A] my-4" />
-
-          {/* TELEOP section */}
-          <View className="mb-2">
-            <Text className="text-[#22C55E] text-xs font-bold tracking-widest mb-2">
-              ─ TELEOP
-            </Text>
-            {season.teleop.map((module) => (
+          {activeTab === 'teleop' &&
+            season.teleop.map((module) => (
               <ModuleRenderer
                 key={module.id}
                 module={module}
                 scores={scores}
                 onChangeScore={(id, val) => setScore(id, val as ScoreValue)}
                 disabled={isLocked(module.period, 'teleop')}
-                period={phase === 'auto' ? 'auto' : phase === 'transition' ? 'transition' : 'teleop'}
+                period="teleop"
               />
             ))}
-          </View>
         </ScrollView>
       </View>
 
