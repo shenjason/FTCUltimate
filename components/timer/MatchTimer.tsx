@@ -35,12 +35,22 @@ const PHASE_COLORS: Record<MatchPhase, string> = {
   complete: '#3B82F6',
 };
 
+// Fix 4: Pure utility — lives outside the component, no dep array needed
+const formatTime = (seconds: number): string => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
 export function MatchTimer({ season }: MatchTimerProps) {
   const { phase, setPhase, setElapsed, resetMatch } = useMatchStore();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseStartRef = useRef<number>(0);    // Date.now() when current phase started
   const pauseOffsetRef = useRef<number>(0);   // accumulated paused time in ms
   const pauseStartRef = useRef<number>(0);    // Date.now() when pause began
+
+  // Fix 1: phaseRef keeps the interval callback from closing over a stale phase
+  const phaseRef = useRef<MatchPhase>(phase);
 
   const progress = useSharedValue(1);
   const pulseOpacity = useSharedValue(1);
@@ -50,11 +60,25 @@ export function MatchTimer({ season }: MatchTimerProps) {
   const [displayTime, setDisplayTime] = React.useState('');
   const [isPaused, setIsPaused] = React.useState(false);
 
-  const formatTime = (seconds: number): string => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
+  // Fix 1: Keep phaseRef in sync whenever phase changes
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+
+  // Fix 3: Start pulse animation once when transition begins; cancel otherwise
+  useEffect(() => {
+    if (phase === 'transition') {
+      pulseOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.3, { duration: 400 }),
+          withTiming(1, { duration: 400 }),
+        ),
+        -1, // infinite repeat
+        false,
+      );
+    } else {
+      cancelAnimation(pulseOpacity);
+      pulseOpacity.value = 1;
+    }
+  }, [phase]);
 
   const getElapsedSeconds = useCallback((): number => {
     if (phaseStartRef.current === 0) return 0;
@@ -63,12 +87,7 @@ export function MatchTimer({ season }: MatchTimerProps) {
     return Math.floor(Math.max(0, rawElapsed) / 1000);
   }, []);
 
-  const getPhaseDuration = useCallback((): number => {
-    if (phase === 'auto') return autonomous;
-    if (phase === 'transition') return transition;
-    if (phase === 'teleop') return teleop;
-    return 0;
-  }, [phase, autonomous, transition, teleop]);
+  // Fix 2: Removed dead getPhaseDuration useCallback
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -77,6 +96,7 @@ export function MatchTimer({ season }: MatchTimerProps) {
     }
   }, []);
 
+  // Fix 4: formatTime is now module-level, no longer needs to be in deps
   const startPhaseTimer = useCallback((phaseDuration: number) => {
     phaseStartRef.current = Date.now();
     pauseOffsetRef.current = 0;
@@ -108,27 +128,21 @@ export function MatchTimer({ season }: MatchTimerProps) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         progress.value = 0;
 
-        if (phase === 'auto') {
+        // Fix 1: Use phaseRef.current to avoid stale closure
+        if (phaseRef.current === 'auto') {
           setPhase('transition');
-        } else if (phase === 'transition') {
+        } else if (phaseRef.current === 'transition') {
           setPhase('teleop');
-        } else if (phase === 'teleop') {
+        } else if (phaseRef.current === 'teleop') {
           setPhase('complete');
         }
         return;
       }
 
       // Update display
-      if (phase === 'transition') {
+      // Fix 1 & Fix 3: Use phaseRef.current; pulseOpacity animation removed from here
+      if (phaseRef.current === 'transition') {
         setDisplayTime(remaining.toString());
-        pulseOpacity.value = withRepeat(
-          withSequence(
-            withTiming(0.3, { duration: 300 }),
-            withTiming(1, { duration: 300 }),
-          ),
-          1,
-          false,
-        );
       } else {
         setDisplayTime(formatTime(remaining));
       }
