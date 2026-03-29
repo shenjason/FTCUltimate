@@ -99,7 +99,7 @@ export interface CalculatedModule {
   label: string;
   type: 'calculated';
   points: number;
-  expression: string;
+  scoreFn: string;          // references a named function in the registry
   period?: 'auto' | 'teleop';
   description?: string;
 }

@@ -42,6 +42,11 @@ function validateModule(mod: unknown, seasonId: string, index: number): ModuleCo
         `Valid types: ${VALID_MODULE_TYPES.join(', ')}`
     );
   }
+  if (m.type === 'calculated' && typeof m.scoreFn !== 'string') {
+    throw new Error(
+      `Season ${seasonId}: calculated module "${m.id}" missing string "scoreFn"`
+    );
+  }
   return mod as ModuleConfig;
 }
 

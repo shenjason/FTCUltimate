@@ -72,16 +72,16 @@
       "label": "Circuit Bonus",
       "type": "calculated",
       "points": 20,
-      "expression": "if(junction_cones.ground >= 1, 1, 0)",
-      "description": "20 pts if robot owns at least one of each junction type and both terminals"
+      "scoreFn": "powerplay_circuit_bonus",
+      "description": "20 pts if robot owns ≥1 of each junction type and ≥1 terminal cone"
     },
     {
       "id": "ownership_bonus",
       "label": "Junction Ownership Bonus",
       "type": "calculated",
       "points": 3,
-      "expression": "junction_cones.high + junction_cones.medium + junction_cones.low + junction_cones.ground",
-      "description": "3 pts per junction owned (last cone placed)"
+      "scoreFn": "powerplay_ownership_bonus",
+      "description": "3 pts per junction tier with at least one cone placed"
     },
     {
       "id": "end_parked",
