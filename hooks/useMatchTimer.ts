@@ -121,8 +121,8 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
 
     return () => clearTimer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]); // Intentionally re-runs only on phase change; refs (clearTimer, getElapsedSeconds,
-               // startPhaseTimer, setPhase, setElapsed) are stable across renders.
+  }, [phase, autonomous, transition, teleop]); // Re-runs when phase or season durations change;
+               // refs (clearTimer, getElapsedSeconds, startPhaseTimer, setPhase, setElapsed) are stable across renders.
 
   // ─── Public actions ────────────────────────────────────────────────
 

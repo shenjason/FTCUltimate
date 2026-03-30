@@ -60,10 +60,10 @@ export function MatchTimer({ season }: MatchTimerProps) {
         -1, // infinite repeat
         false,
       );
-    } else {
-      cancelAnimation(pulseOpacity);
-      pulseOpacity.value = 1;
+      return () => cancelAnimation(pulseOpacity);
     }
+    cancelAnimation(pulseOpacity);
+    pulseOpacity.value = 1;
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cancel any in-flight progress animation before reset to avoid stale animation frames.
