@@ -1,20 +1,14 @@
 // app/(tabs)/history/index.tsx
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useHistoryStore } from '../../../lib/store';
-import { getSeasons } from '../../../lib/seasonLoader';
-import type { SavedMatch } from '../../../types/match';
-import { pushUnsyncedMatches, getUnsyncedCount } from '../../../lib/sync';
-import { exportMatchesCSV } from '../../../lib/csvExport';
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, TouchableOpacity, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useHistoryStore } from "../../../lib/store";
+import { getSeasons } from "../../../lib/seasonLoader";
+import type { SavedMatch } from "../../../types/match";
+import { pushUnsyncedMatches, getUnsyncedCount } from "../../../lib/sync";
+import { exportMatchesCSV } from "../../../lib/csvExport";
 
 function MatchCard({
   match,
@@ -35,15 +29,24 @@ function MatchCard({
     >
       <View className="flex-row items-start justify-between">
         <View className="flex-1">
-          <Text className="text-[#F5F5F5] font-semibold text-sm" numberOfLines={1}>
+          <Text
+            className="text-[#F5F5F5] font-semibold text-sm"
+            numberOfLines={1}
+          >
             {season?.name ?? match.seasonId}
           </Text>
           <Text className="text-[#9CA3AF] text-xs mt-0.5">
-            {date.toLocaleDateString()} · {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {date.toLocaleDateString()} ·{" "}
+            {date.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </Text>
         </View>
         <View className="items-end">
-          <Text className="text-[#F5F5F5] text-2xl font-bold">{match.totalScore}</Text>
+          <Text className="text-[#F5F5F5] text-2xl font-bold">
+            {match.totalScore}
+          </Text>
           <Text className="text-[#9CA3AF] text-xs">pts</Text>
         </View>
       </View>
@@ -54,7 +57,9 @@ function MatchCard({
         </View>
         <View className="flex-row items-center gap-1">
           <View className="w-2 h-2 rounded-full bg-[#22C55E]" />
-          <Text className="text-[#9CA3AF] text-xs">TELEOP {match.teleopScore}</Text>
+          <Text className="text-[#9CA3AF] text-xs">
+            TELEOP {match.teleopScore}
+          </Text>
         </View>
         {match.tags && match.tags.length > 0 && (
           <View className="flex-row gap-1 flex-wrap">
@@ -99,16 +104,23 @@ export default function HistoryScreen() {
   const last10 = filtered.slice(0, 10);
   const avgScore =
     last10.length > 0
-      ? Math.round(last10.reduce((sum, m) => sum + m.totalScore, 0) / last10.length)
+      ? Math.round(
+          last10.reduce((sum, m) => sum + m.totalScore, 0) / last10.length,
+        )
       : 0;
-  const bestMatch = filtered.length > 0 ? Math.max(...filtered.map((m) => m.totalScore)) : 0;
+  const bestMatch =
+    filtered.length > 0 ? Math.max(...filtered.map((m) => m.totalScore)) : 0;
   const avgAuto =
     last10.length > 0
-      ? Math.round(last10.reduce((sum, m) => sum + m.autoScore, 0) / last10.length)
+      ? Math.round(
+          last10.reduce((sum, m) => sum + m.autoScore, 0) / last10.length,
+        )
       : 0;
   const avgTeleop =
     last10.length > 0
-      ? Math.round(last10.reduce((sum, m) => sum + m.teleopScore, 0) / last10.length)
+      ? Math.round(
+          last10.reduce((sum, m) => sum + m.teleopScore, 0) / last10.length,
+        )
       : 0;
 
   const handleSync = async () => {
@@ -119,18 +131,18 @@ export default function HistoryScreen() {
 
     if (result.errors.length > 0) {
       Alert.alert(
-        'Sync Partial',
-        `Pushed ${result.pushed} matches.\n${result.errors.length} failed.`
+        "Sync Partial",
+        `Pushed ${result.pushed} matches.\n${result.errors.length} failed.`,
       );
     } else {
-      Alert.alert('Synced', `${result.pushed} matches pushed to cloud.`);
+      Alert.alert("Synced", `${result.pushed} matches pushed to cloud.`);
     }
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert('Delete Match', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteMatch(id) },
+    Alert.alert("Delete Match", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deleteMatch(id) },
     ]);
   };
 
@@ -145,12 +157,14 @@ export default function HistoryScreen() {
             className="flex-row items-center gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] px-3 py-1.5 rounded-full"
           >
             <Ionicons
-              name={syncing ? 'sync' : 'cloud-upload-outline'}
+              name={syncing ? "sync" : "cloud-upload-outline"}
               size={14}
-              color={unsyncedCount > 0 ? '#3B82F6' : '#6B7280'}
+              color={unsyncedCount > 0 ? "#3B82F6" : "#6B7280"}
             />
             {unsyncedCount > 0 && (
-              <Text className="text-[#3B82F6] text-xs font-medium">{unsyncedCount}</Text>
+              <Text className="text-[#3B82F6] text-xs font-medium">
+                {unsyncedCount}
+              </Text>
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -161,9 +175,11 @@ export default function HistoryScreen() {
             <Ionicons
               name="download-outline"
               size={14}
-              color={filtered.length > 0 ? '#22C55E' : '#6B7280'}
+              color={filtered.length > 0 ? "#22C55E" : "#6B7280"}
             />
-            <Text className={`text-xs font-medium ${filtered.length > 0 ? 'text-[#22C55E]' : 'text-[#6B7280]'}`}>
+            <Text
+              className={`text-xs font-medium ${filtered.length > 0 ? "text-[#22C55E]" : "text-[#6B7280]"}`}
+            >
               CSV
             </Text>
           </TouchableOpacity>
@@ -178,19 +194,27 @@ export default function HistoryScreen() {
           </Text>
           <View className="flex-row justify-between">
             <View className="items-center">
-              <Text className="text-[#F5F5F5] text-xl font-bold">{avgScore}</Text>
+              <Text className="text-[#F5F5F5] text-xl font-bold">
+                {avgScore}
+              </Text>
               <Text className="text-[#9CA3AF] text-xs">Avg</Text>
             </View>
             <View className="items-center">
-              <Text className="text-[#F5F5F5] text-xl font-bold">{bestMatch}</Text>
+              <Text className="text-[#F5F5F5] text-xl font-bold">
+                {bestMatch}
+              </Text>
               <Text className="text-[#9CA3AF] text-xs">Best</Text>
             </View>
             <View className="items-center">
-              <Text className="text-[#EF4444] text-xl font-bold">{avgAuto}</Text>
+              <Text className="text-[#EF4444] text-xl font-bold">
+                {avgAuto}
+              </Text>
               <Text className="text-[#9CA3AF] text-xs">Avg Auto</Text>
             </View>
             <View className="items-center">
-              <Text className="text-[#22C55E] text-xl font-bold">{avgTeleop}</Text>
+              <Text className="text-[#22C55E] text-xl font-bold">
+                {avgTeleop}
+              </Text>
               <Text className="text-[#9CA3AF] text-xs">Avg Teleop</Text>
             </View>
           </View>
@@ -200,22 +224,28 @@ export default function HistoryScreen() {
       {/* Season filter */}
       <View className="px-4 mb-3">
         <FlatList
-          data={[{ id: null, name: 'All Seasons' } as { id: string | null; name: string }, ...seasons.map((s) => ({ id: s.id, name: s.name }))]}
+          data={[
+            { id: null, name: "All Seasons" } as {
+              id: string | null;
+              name: string;
+            },
+            ...seasons.map((s) => ({ id: s.id, name: s.name })),
+          ]}
           horizontal
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id ?? 'all'}
+          keyExtractor={(item) => item.id ?? "all"}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => setFilterSeasonId(item.id)}
               className={`mr-2 px-3 py-1.5 rounded-full border ${
                 filterSeasonId === item.id
-                  ? 'bg-[#3B82F6] border-[#3B82F6]'
-                  : 'bg-[#1A1A1A] border-[#2A2A2A]'
+                  ? "bg-[#3B82F6] border-[#3B82F6]"
+                  : "bg-[#1A1A1A] border-[#2A2A2A]"
               }`}
             >
               <Text
                 className={`text-xs font-medium ${
-                  filterSeasonId === item.id ? 'text-white' : 'text-[#9CA3AF]'
+                  filterSeasonId === item.id ? "text-white" : "text-[#9CA3AF]"
                 }`}
                 numberOfLines={1}
               >
@@ -229,7 +259,9 @@ export default function HistoryScreen() {
       {filtered.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <Ionicons name="time-outline" size={48} color="#2A2A2A" />
-          <Text className="text-[#9CA3AF] text-sm mt-3">No matches saved yet</Text>
+          <Text className="text-[#9CA3AF] text-sm mt-3">
+            No matches saved yet
+          </Text>
         </View>
       ) : (
         <FlatList
