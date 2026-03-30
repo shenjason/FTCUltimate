@@ -14,6 +14,9 @@ interface ModuleCardProps {
 export function ModuleCard({ label, description, disabled, children, variant = 'default', alliance }: ModuleCardProps) {
   const isCompact = variant === 'compact';
 
+  // Alliance tinting is intentionally scoped to the card container (border + background) only.
+  // Interactive elements (buttons, etc.) inside modules are NOT tinted — this was not requested
+  // and would conflict with their fixed blue/neutral color semantics.
   const borderColor = isCompact && alliance === 'blue'
     ? '#1E3A5F'
     : isCompact && alliance === 'red'

@@ -35,6 +35,7 @@ export function CounterModule({ module, value, onChange, disabled, variant, alli
           <TouchableOpacity
             onPress={decrement}
             disabled={disabled || count <= module.min}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="w-8 h-8 rounded-lg bg-[#0F0F0F] border border-[#2A2A2A] items-center justify-center"
           >
             <Text className="text-[#F5F5F5] text-base font-bold">−</Text>
@@ -42,12 +43,13 @@ export function CounterModule({ module, value, onChange, disabled, variant, alli
 
           <View className="items-center">
             <Text className="text-[#F5F5F5] text-lg font-bold">{count}</Text>
-            <Text className="text-[#9CA3AF] text-[10px]">{count * module.points}pts</Text>
+            <Text className="text-[#9CA3AF] text-[10px]">{count * module.points} pts</Text>
           </View>
 
           <TouchableOpacity
             onPress={increment}
             disabled={disabled || (module.max !== undefined && count >= module.max)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="w-8 h-8 rounded-lg bg-[#3B82F6] items-center justify-center"
           >
             <Text className="text-white text-base font-bold">+</Text>

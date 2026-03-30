@@ -36,6 +36,7 @@ export function TieredCounterModule({ module, value, onChange, disabled, variant
                 <TouchableOpacity
                   onPress={() => adjust(tier.id, -1)}
                   disabled={disabled || count <= 0}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   className="w-6 h-6 rounded bg-[#0F0F0F] border border-[#2A2A2A] items-center justify-center"
                 >
                   <Text className="text-[#F5F5F5] text-xs font-bold">−</Text>
@@ -44,6 +45,7 @@ export function TieredCounterModule({ module, value, onChange, disabled, variant
                 <TouchableOpacity
                   onPress={() => adjust(tier.id, 1)}
                   disabled={disabled}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   className="w-6 h-6 rounded bg-[#3B82F6] items-center justify-center"
                 >
                   <Text className="text-white text-xs font-bold">+</Text>
