@@ -8,6 +8,7 @@ import Animated, {
   withSequence,
   cancelAnimation,
   useSharedValue,
+  type SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import { useMatchTimer } from '../../hooks/useMatchTimer';
@@ -34,8 +35,17 @@ const PHASE_COLORS: Record<MatchPhase, string> = {
 };
 
 export function MatchTimer({ season }: MatchTimerProps) {
-  const { displayTime, phase, isPaused, progress, start, pause, reset } =
+  const { displayTime, phase, isPaused, progressFraction, start, pause, resume, reset } =
     useMatchTimer(season);
+
+  // This component owns the SharedValue so Reanimated can drive the ring on the UI thread.
+  const progress: SharedValue<number> = useSharedValue(1);
+
+  // Sync progressFraction (plain JS number from hook) into the SharedValue via withTiming
+  // so the ring animates smoothly between ticks.
+  useEffect(() => {
+    progress.value = withTiming(progressFraction, { duration: 200 });
+  }, [progressFraction]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pulse opacity animation — lives in the component because it drives SVG/Animated.View
   const pulseOpacity = useSharedValue(1);
@@ -54,10 +64,9 @@ export function MatchTimer({ season }: MatchTimerProps) {
       cancelAnimation(pulseOpacity);
       pulseOpacity.value = 1;
     }
-  }, [phase]);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Cancel progress animation when resetting (reset() sets progress.value = 1 directly,
-  // but we also cancel any in-flight withTiming to avoid stale animation frames)
+  // Cancel any in-flight progress animation before reset to avoid stale animation frames.
   const handleReset = () => {
     cancelAnimation(progress);
     reset();
@@ -137,7 +146,7 @@ export function MatchTimer({ season }: MatchTimerProps) {
       {phase !== 'idle' && phase !== 'complete' && (
         <View className="flex-row gap-3 mt-3">
           <TouchableOpacity
-            onPress={pause}
+            onPress={isPaused ? resume : pause}
             className="bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 rounded-xl"
           >
             <Text className="text-[#F5F5F5] text-sm">{isPaused ? 'RESUME' : 'PAUSE'}</Text>

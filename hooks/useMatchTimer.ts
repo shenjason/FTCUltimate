@@ -1,6 +1,5 @@
 // hooks/useMatchTimer.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSharedValue, withTiming } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useMatchStore } from '../lib/store';
 import type { MatchPhase } from '../types/match';
@@ -18,10 +17,11 @@ export interface UseMatchTimerResult {
   displayTime: string;
   phase: MatchPhase;
   isPaused: boolean;
-  /** SharedValue<number> from react-native-reanimated; 1.0 = full, 0.0 = empty */
-  progress: ReturnType<typeof useSharedValue<number>>;
+  /** Plain JS number 0.0–1.0; 1.0 = full, 0.0 = empty. Drive a SharedValue from this in the component. */
+  progressFraction: number;
   start: () => void;
   pause: () => void;
+  resume: () => void;
   reset: () => void;
 }
 
@@ -36,12 +36,11 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
   // Keep phaseRef in sync so interval callback never closes over a stale phase
   const phaseRef = useRef<MatchPhase>(phase);
 
-  const progress = useSharedValue(1);
-
   const { autonomous, transition, teleop } = season.timerDuration;
 
   const [displayTime, setDisplayTime] = useState<string>('');
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [progressFraction, setProgressFraction] = useState<number>(1);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -68,9 +67,9 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
       setDisplayTime(
         phaseDuration <= 10 ? phaseDuration.toString() : formatTime(phaseDuration),
       );
-      progress.value = 1;
+      setProgressFraction(1);
     },
-    [progress],
+    [],
   );
 
   // Single consolidated tick effect — only re-runs when phase changes
@@ -97,7 +96,7 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
       if (remaining <= 0) {
         clearTimer();
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        progress.value = 0;
+        setProgressFraction(0);
 
         // Use phaseRef.current to avoid stale closure
         if (phaseRef.current === 'auto') {
@@ -117,11 +116,13 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
         setDisplayTime(formatTime(remaining));
       }
 
-      progress.value = withTiming(remaining / duration, { duration: TICK_INTERVAL_MS });
+      setProgressFraction(remaining / duration);
     }, TICK_INTERVAL_MS);
 
     return () => clearTimer();
-  }, [phase]); // Only re-run when phase changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]); // Intentionally re-runs only on phase change; refs (clearTimer, getElapsedSeconds,
+               // startPhaseTimer, setPhase, setElapsed) are stable across renders.
 
   // ─── Public actions ────────────────────────────────────────────────
 
@@ -131,38 +132,38 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
   }, [phase, setPhase]);
 
   const pause = useCallback(() => {
-    if (pauseStartRef.current > 0) {
-      // Resume: add paused duration to offset
-      pauseOffsetRef.current += Date.now() - pauseStartRef.current;
-      pauseStartRef.current = 0;
-      setIsPaused(false);
-    } else {
-      // Pause
-      pauseStartRef.current = Date.now();
-      setIsPaused(true);
-    }
+    if (pauseStartRef.current > 0) return; // already paused
+    pauseStartRef.current = Date.now();
+    setIsPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (pauseStartRef.current === 0) return; // not paused
+    pauseOffsetRef.current += Date.now() - pauseStartRef.current;
+    pauseStartRef.current = 0;
+    setIsPaused(false);
   }, []);
 
   const reset = useCallback(() => {
     clearTimer();
-    // cancelAnimation is imported in MatchTimer for the progress SharedValue;
-    // we reset the value directly here — the component owns the animation cancel.
-    progress.value = 1;
+    // MatchTimer owns the progress SharedValue and calls cancelAnimation before reset().
     phaseStartRef.current = 0;
     pauseOffsetRef.current = 0;
     pauseStartRef.current = 0;
     setIsPaused(false);
+    setProgressFraction(1);
     resetMatch();
     setDisplayTime('');
-  }, [clearTimer, progress, resetMatch]);
+  }, [clearTimer, resetMatch]);
 
   return {
     displayTime,
     phase,
     isPaused,
-    progress,
+    progressFraction,
     start,
     pause,
+    resume,
     reset,
   };
 }
