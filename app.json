@@ -3,7 +3,7 @@
     "name": "ScoutOps",
     "slug": "scoutops",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "scheme": "scoutops",
     "userInterfaceStyle": "dark",
     "assetBundlePatterns": ["**/*"],
@@ -17,10 +17,7 @@
       },
       "package": "com.scoutops.app"
     },
-    "plugins": [
-      "expo-router",
-      "expo-haptics"
-    ],
+    "plugins": ["expo-router", "expo-screen-orientation"],
     "experiments": {
       "typedRoutes": true
     }

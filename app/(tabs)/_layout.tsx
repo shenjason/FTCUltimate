@@ -1,16 +1,32 @@
 // app/(tabs)/_layout.tsx
+import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import { useMatchStore } from '../../lib/store';
 
 export default function TabLayout() {
+  const matchStarted = useMatchStore((s) => s.matchStarted);
+  const matchType = useMatchStore((s) => s.matchType);
+
+  // Lock to portrait on mount
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+  }, []);
+
+  const isLandscapeMatch =
+    matchStarted && (matchType === 'solo' || matchType === 'full');
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#0F0F0F',
-          borderTopColor: '#2A2A2A',
-        },
+        tabBarStyle: isLandscapeMatch
+          ? { display: 'none' }
+          : {
+              backgroundColor: '#0F0F0F',
+              borderTopColor: '#2A2A2A',
+            },
         tabBarActiveTintColor: '#3B82F6',
         tabBarInactiveTintColor: '#9CA3AF',
       }}
