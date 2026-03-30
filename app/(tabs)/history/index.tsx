@@ -14,6 +14,7 @@ import { useHistoryStore } from '../../../lib/store';
 import { getSeasons } from '../../../lib/seasonLoader';
 import type { SavedMatch } from '../../../types/match';
 import { pushUnsyncedMatches, getUnsyncedCount } from '../../../lib/sync';
+import { exportMatchesCSV } from '../../../lib/csvExport';
 
 function MatchCard({
   match,
@@ -137,20 +138,36 @@ export default function HistoryScreen() {
     <SafeAreaView className="flex-1 bg-[#0F0F0F]">
       <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
         <Text className="text-[#F5F5F5] text-xl font-bold">Match History</Text>
-        <TouchableOpacity
-          onPress={handleSync}
-          disabled={syncing || unsyncedCount === 0}
-          className="flex-row items-center gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] px-3 py-1.5 rounded-full"
-        >
-          <Ionicons
-            name={syncing ? 'sync' : 'cloud-upload-outline'}
-            size={14}
-            color={unsyncedCount > 0 ? '#3B82F6' : '#6B7280'}
-          />
-          {unsyncedCount > 0 && (
-            <Text className="text-[#3B82F6] text-xs font-medium">{unsyncedCount}</Text>
-          )}
-        </TouchableOpacity>
+        <View className="flex-row gap-2">
+          <TouchableOpacity
+            onPress={handleSync}
+            disabled={syncing || unsyncedCount === 0}
+            className="flex-row items-center gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] px-3 py-1.5 rounded-full"
+          >
+            <Ionicons
+              name={syncing ? 'sync' : 'cloud-upload-outline'}
+              size={14}
+              color={unsyncedCount > 0 ? '#3B82F6' : '#6B7280'}
+            />
+            {unsyncedCount > 0 && (
+              <Text className="text-[#3B82F6] text-xs font-medium">{unsyncedCount}</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => exportMatchesCSV(filtered)}
+            disabled={filtered.length === 0}
+            className="flex-row items-center gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] px-3 py-1.5 rounded-full"
+          >
+            <Ionicons
+              name="download-outline"
+              size={14}
+              color={filtered.length > 0 ? '#22C55E' : '#6B7280'}
+            />
+            <Text className={`text-xs font-medium ${filtered.length > 0 ? 'text-[#22C55E]' : 'text-[#6B7280]'}`}>
+              CSV
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Stats summary */}
