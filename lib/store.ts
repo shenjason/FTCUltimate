@@ -4,7 +4,7 @@ import { getSeasons } from './seasonLoader';
 import { database } from './watermelon/database';
 import { PracticeMatch } from './watermelon/models/PracticeMatch';
 import type { SeasonConfig } from '../types/season';
-import type { MatchPhase, SavedMatch, ScoreMap, ScoreValue } from '../types/match';
+import type { MatchPhase, MatchType, SavedMatch, ScoreMap, ScoreValue } from '../types/match';
 import { computeScore } from './scoreEngine';
 export { computeScore };
 
@@ -29,35 +29,59 @@ export const useSeasonStore = create<SeasonState>((set) => {
 
 interface MatchState {
   phase: MatchPhase;
+  matchType: MatchType;
+  matchStarted: boolean;
   scores: ScoreMap;
+  redScores: ScoreMap;
   elapsedSeconds: number;
   strictMode: boolean;
   undoStack: ScoreMap[];
   redoStack: ScoreMap[];
+  redUndoStack: ScoreMap[];
+  redRedoStack: ScoreMap[];
   setPhase: (phase: MatchPhase) => void;
+  setMatchType: (matchType: MatchType) => void;
+  setMatchStarted: (started: boolean) => void;
   setScore: (moduleId: string, value: ScoreValue) => void;
+  setRedScore: (moduleId: string, value: ScoreValue) => void;
   setElapsed: (seconds: number) => void;
   setStrictMode: (v: boolean) => void;
   undo: () => void;
   redo: () => void;
+  undoRed: () => void;
+  redoRed: () => void;
   resetMatch: () => void;
 }
 
 export const useMatchStore = create<MatchState>((set) => ({
   phase: 'idle',
+  matchType: 'solo',
+  matchStarted: false,
   scores: {},
+  redScores: {},
   elapsedSeconds: 0,
   strictMode: true,
   undoStack: [],
   redoStack: [],
+  redUndoStack: [],
+  redRedoStack: [],
 
   setPhase: (phase) => set({ phase }),
+  setMatchType: (matchType) => set({ matchType }),
+  setMatchStarted: (matchStarted) => set({ matchStarted }),
 
   setScore: (moduleId, value) =>
     set((state) => ({
       undoStack: [...state.undoStack.slice(-30), { ...state.scores }], // Keep max 30
       redoStack: [],
       scores: { ...state.scores, [moduleId]: value },
+    })),
+
+  setRedScore: (moduleId, value) =>
+    set((state) => ({
+      redUndoStack: [...state.redUndoStack.slice(-30), { ...state.redScores }],
+      redRedoStack: [],
+      redScores: { ...state.redScores, [moduleId]: value },
     })),
 
   setElapsed: (elapsedSeconds) => set({ elapsedSeconds }),
@@ -85,8 +109,42 @@ export const useMatchStore = create<MatchState>((set) => ({
       };
     }),
 
+  undoRed: () =>
+    set((state) => {
+      if (state.redUndoStack.length === 0) return state;
+      const prev = state.redUndoStack[state.redUndoStack.length - 1];
+      return {
+        redUndoStack: state.redUndoStack.slice(0, -1),
+        redRedoStack: [...state.redRedoStack, { ...state.redScores }],
+        redScores: prev,
+      };
+    }),
+
+  redoRed: () =>
+    set((state) => {
+      if (state.redRedoStack.length === 0) return state;
+      const next = state.redRedoStack[state.redRedoStack.length - 1];
+      return {
+        redRedoStack: state.redRedoStack.slice(0, -1),
+        redUndoStack: [...state.redUndoStack, { ...state.redScores }],
+        redScores: next,
+      };
+    }),
+
   resetMatch: () =>
-    set({ phase: 'idle', scores: {}, elapsedSeconds: 0, strictMode: true, undoStack: [], redoStack: [] }),
+    set((state) => ({
+      phase: 'idle',
+      matchStarted: false,
+      scores: {},
+      redScores: {},
+      elapsedSeconds: 0,
+      strictMode: true,
+      undoStack: [],
+      redoStack: [],
+      redUndoStack: [],
+      redRedoStack: [],
+      matchType: state.matchType, // preserve matchType
+    })),
 }));
 
 // ─── History Store ─────────────────────────────────────────────────
@@ -118,6 +176,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         tags: r.tags,
         matchNumber: r.matchNumber ?? undefined,
         alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
+        matchType: (r.matchType as MatchType | null) ?? undefined,
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
     set({ matches });
@@ -139,6 +198,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         record.synced = false;
         record.matchNumber = match.matchNumber ?? null;
         record.alliance = match.alliance ?? null;
+        record.matchType = match.matchType ?? null;
       });
     });
     // reload
@@ -157,6 +217,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         tags: r.tags,
         matchNumber: r.matchNumber ?? undefined,
         alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
+        matchType: (r.matchType as MatchType | null) ?? undefined,
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
     set({ matches });

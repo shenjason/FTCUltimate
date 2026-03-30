@@ -2,7 +2,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 2,
+  version: 3,
   tables: [
     tableSchema({
       name: 'practice_matches',
@@ -10,7 +10,7 @@ export const schema = appSchema({
         { name: 'season_id', type: 'string' },
         { name: 'timestamp', type: 'number' },
         { name: 'duration_seconds', type: 'number' },
-        { name: 'all_scores', type: 'string' },   // JSON stringified ScoreMap
+        { name: 'all_scores', type: 'string' },   // JSON stringified ScoreMap or DualScoreMap
         { name: 'total_score', type: 'number' },
         { name: 'auto_score', type: 'number' },
         { name: 'teleop_score', type: 'number' },
@@ -19,6 +19,7 @@ export const schema = appSchema({
         { name: 'synced', type: 'boolean' },
         { name: 'match_number', type: 'number', isOptional: true },
         { name: 'alliance', type: 'string', isOptional: true },
+        { name: 'match_type', type: 'string', isOptional: true },
       ],
     }),
   ],

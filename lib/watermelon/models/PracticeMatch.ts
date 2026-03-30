@@ -17,6 +17,7 @@ export class PracticeMatch extends Model {
   @field('synced') synced!: boolean;
   @field('match_number') matchNumber!: number | null;
   @field('alliance') alliance!: string | null;
+  @field('match_type') matchType!: string | null;
 
   get allScores() {
     try { return JSON.parse(this.allScoresRaw); } catch { return {}; }

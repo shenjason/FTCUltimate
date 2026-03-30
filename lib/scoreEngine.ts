@@ -75,6 +75,20 @@ export function computeScore(
   return { auto, teleop, total: auto + teleop };
 }
 
+export function computeDualScore(
+  season: SeasonConfig,
+  blueScores: ScoreMap,
+  redScores: ScoreMap,
+): {
+  blue: { auto: number; teleop: number; total: number };
+  red: { auto: number; teleop: number; total: number };
+} {
+  return {
+    blue: computeScore(season, blueScores),
+    red: computeScore(season, redScores),
+  };
+}
+
 // ─── Named score function registry ────────────────────────────────
 //
 // Each function receives the full ScoreMap and the module's base points value.
