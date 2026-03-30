@@ -9,10 +9,13 @@ interface Props {
   value: Record<string, number>;
   onChange: (v: Record<string, number>) => void;
   disabled: boolean;
+  variant?: 'default' | 'compact';
+  alliance?: 'red' | 'blue';
 }
 
-export function TieredCounterModule({ module, value, onChange, disabled }: Props) {
+export function TieredCounterModule({ module, value, onChange, disabled, variant, alliance }: Props) {
   const tiers = value ?? {};
+  const isCompact = variant === 'compact';
 
   const adjust = (tierId: string, delta: number) => {
     if (disabled) return;
@@ -20,6 +23,38 @@ export function TieredCounterModule({ module, value, onChange, disabled }: Props
     const next = Math.max(0, current + delta);
     onChange({ ...tiers, [tierId]: next });
   };
+
+  if (isCompact) {
+    return (
+      <ModuleCard label={module.label} disabled={disabled} variant="compact" alliance={alliance}>
+        {module.tiers.map((tier) => {
+          const count = typeof tiers[tier.id] === 'number' ? tiers[tier.id] : 0;
+          return (
+            <View key={tier.id} className="flex-row items-center justify-between mb-1">
+              <Text className="text-[#F5F5F5] text-[10px] flex-1" numberOfLines={1}>{tier.label}</Text>
+              <View className="flex-row items-center gap-1">
+                <TouchableOpacity
+                  onPress={() => adjust(tier.id, -1)}
+                  disabled={disabled || count <= 0}
+                  className="w-6 h-6 rounded bg-[#0F0F0F] border border-[#2A2A2A] items-center justify-center"
+                >
+                  <Text className="text-[#F5F5F5] text-xs font-bold">−</Text>
+                </TouchableOpacity>
+                <Text className="text-[#F5F5F5] text-sm font-bold w-5 text-center">{count}</Text>
+                <TouchableOpacity
+                  onPress={() => adjust(tier.id, 1)}
+                  disabled={disabled}
+                  className="w-6 h-6 rounded bg-[#3B82F6] items-center justify-center"
+                >
+                  <Text className="text-white text-xs font-bold">+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+      </ModuleCard>
+    );
+  }
 
   return (
     <ModuleCard label={module.label} description={module.description} disabled={disabled}>

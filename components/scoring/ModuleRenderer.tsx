@@ -17,9 +17,11 @@ interface Props {
   onChangeScore: (moduleId: string, value: ScoreValue) => void;
   disabled: boolean;
   period: 'auto' | 'transition' | 'teleop';
+  variant?: 'default' | 'compact';
+  alliance?: 'red' | 'blue';
 }
 
-export function ModuleRenderer({ module, scores, onChangeScore, disabled, period }: Props) {
+export function ModuleRenderer({ module, scores, onChangeScore, disabled, period, variant, alliance }: Props) {
   const value = scores[module.id];
 
   switch (module.type) {
@@ -30,6 +32,8 @@ export function ModuleRenderer({ module, scores, onChangeScore, disabled, period
           value={value === true}
           onChange={(v) => onChangeScore(module.id, v)}
           disabled={disabled}
+          variant={variant}
+          alliance={alliance}
         />
       );
     case 'counter':
@@ -39,6 +43,8 @@ export function ModuleRenderer({ module, scores, onChangeScore, disabled, period
           value={typeof value === 'number' ? value : 0}
           onChange={(v) => onChangeScore(module.id, v)}
           disabled={disabled}
+          variant={variant}
+          alliance={alliance}
         />
       );
     case 'tiered_counter':
@@ -48,6 +54,8 @@ export function ModuleRenderer({ module, scores, onChangeScore, disabled, period
           value={(value as Record<string, number>) ?? {}}
           onChange={(v) => onChangeScore(module.id, v)}
           disabled={disabled}
+          variant={variant}
+          alliance={alliance}
         />
       );
     case 'selector':
@@ -57,6 +65,8 @@ export function ModuleRenderer({ module, scores, onChangeScore, disabled, period
           value={typeof value === 'string' && value !== '' ? value : null}
           onChange={(v) => onChangeScore(module.id, v)}
           disabled={disabled}
+          variant={variant}
+          alliance={alliance}
         />
       );
     case 'multi_boolean':
@@ -66,6 +76,8 @@ export function ModuleRenderer({ module, scores, onChangeScore, disabled, period
           value={(value as Record<string, boolean>) ?? {}}
           onChange={(v) => onChangeScore(module.id, v)}
           disabled={disabled}
+          variant={variant}
+          alliance={alliance}
         />
       );
     case 'grid':
@@ -88,11 +100,21 @@ export function ModuleRenderer({ module, scores, onChangeScore, disabled, period
             onChangeScore(`${module.id}_bonus_${bonusId}`, v)
           }
           disabled={disabled}
+          variant={variant}
+          alliance={alliance}
         />
       );
     case 'calculated': {
       const computedValue = moduleScore(module, scores);
-      return <CalculatedModule module={module} computedValue={computedValue} disabled={disabled} />;
+      return (
+        <CalculatedModule
+          module={module}
+          computedValue={computedValue}
+          disabled={disabled}
+          variant={variant}
+          alliance={alliance}
+        />
+      );
     }
     default:
       return null;

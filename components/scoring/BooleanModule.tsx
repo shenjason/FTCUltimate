@@ -9,10 +9,34 @@ interface Props {
   value: boolean;
   onChange: (v: boolean) => void;
   disabled: boolean;
+  variant?: 'default' | 'compact';
+  alliance?: 'red' | 'blue';
 }
 
-export function BooleanModule({ module, value, onChange, disabled }: Props) {
+export function BooleanModule({ module, value, onChange, disabled, variant, alliance }: Props) {
   const active = value === true;
+  const isCompact = variant === 'compact';
+
+  if (isCompact) {
+    return (
+      <ModuleCard label={module.label} disabled={disabled} variant="compact" alliance={alliance}>
+        <TouchableOpacity
+          onPress={() => !disabled && onChange(!active)}
+          disabled={disabled}
+          className={`w-full rounded-lg py-1.5 items-center justify-center border ${
+            active
+              ? 'bg-[#3B82F6] border-[#3B82F6]'
+              : 'bg-[#0F0F0F] border-[#2A2A2A]'
+          }`}
+        >
+          <Text className={`font-semibold text-xs ${active ? 'text-white' : 'text-[#9CA3AF]'}`}>
+            {active ? `YES +${module.points}` : 'NO'}
+          </Text>
+        </TouchableOpacity>
+      </ModuleCard>
+    );
+  }
+
   return (
     <ModuleCard label={module.label} description={module.description} disabled={disabled}>
       <TouchableOpacity
