@@ -5,15 +5,38 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { useMatchStore } from '../../lib/store';
 
+// Issue 4: module-level const avoids inline object recreation on every render
+const TAB_BAR_STYLE_VISIBLE = {
+  backgroundColor: '#0F0F0F',
+  borderTopColor: '#2A2A2A',
+} as const;
+
 export default function TabLayout() {
   const matchStarted = useMatchStore((s) => s.matchStarted);
   const matchType = useMatchStore((s) => s.matchType);
 
-  // Lock to portrait on mount
+  // Lock to portrait on mount as the baseline orientation.
+  // Note: the match screen itself will call lockAsync(LANDSCAPE) when a match
+  // starts and unlock/re-lock portrait when it ends — this layout only
+  // establishes the default portrait lock.
   useEffect(() => {
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    // Issue 1: handle promise rejection so unhandled rejections don't surface
+    ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.PORTRAIT_UP,
+    ).catch((err) => {
+      console.warn('[TabLayout] Failed to lock orientation to portrait:', err);
+    });
+
+    // Issue 3: release the lock if this layout ever unmounts
+    return () => {
+      ScreenOrientation.unlockAsync().catch((err) => {
+        console.warn('[TabLayout] Failed to unlock orientation on unmount:', err);
+      });
+    };
   }, []);
 
+  // Issue 5: timer_only is excluded because that mode keeps portrait layout
+  // with the tab bar visible; only solo and full matches go landscape/fullscreen
   const isLandscapeMatch =
     matchStarted && (matchType === 'solo' || matchType === 'full');
 
@@ -21,12 +44,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: isLandscapeMatch
-          ? { display: 'none' }
-          : {
-              backgroundColor: '#0F0F0F',
-              borderTopColor: '#2A2A2A',
-            },
+        tabBarStyle: isLandscapeMatch ? { display: 'none' } : TAB_BAR_STYLE_VISIBLE,
         tabBarActiveTintColor: '#3B82F6',
         tabBarInactiveTintColor: '#9CA3AF',
       }}
