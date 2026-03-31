@@ -54,8 +54,6 @@ export function LandscapeMatch({
   const {
     displayTime,
     isPaused,
-    isCountingDown,
-    countdownValue,
     start,
     pause,
     resume,
@@ -64,7 +62,7 @@ export function LandscapeMatch({
 
   const completeFiredRef = useRef(false);
   const isSolo = matchType === "solo";
-  const disabled = phase === "idle" || phase === "complete";
+  const disabled = phase === "idle" || phase === "complete" || phase === "pre_auto" || phase === "pre_teleop";
   const modules = resolveModules(season, phase);
 
   // Auto-select first module when modules change (phase change)
@@ -219,15 +217,9 @@ export function LandscapeMatch({
               <View className="flex-1 flex-row gap-1">
                 {/* Timer */}
                 <View className="flex-1 bg-white rounded-lg items-center justify-center">
-                  {isCountingDown ? (
-                    <Text className="text-black text-3xl font-bold">
-                      {countdownValue}
-                    </Text>
-                  ) : (
-                    <Text className="text-black text-3xl font-bold font-mono">
-                      {displayTime}
-                    </Text>
-                  )}
+                  <Text className="text-black text-3xl font-bold font-mono">
+                    {displayTime}
+                  </Text>
                   {isPaused && (
                     <TouchableOpacity onPress={resume}>
                       <Text className="text-transition text-xs">PAUSED</Text>
@@ -319,15 +311,9 @@ export function LandscapeMatch({
             </TouchableOpacity>
 
             <View className="bg-white px-6 py-2 rounded-full">
-              {isCountingDown ? (
-                <Text className="text-black text-2xl font-bold">
-                  {countdownValue}
-                </Text>
-              ) : (
-                <Text className="text-black text-2xl font-bold font-mono">
-                  {displayTime}
-                </Text>
-              )}
+              <Text className="text-black text-2xl font-bold font-mono">
+                {displayTime}
+              </Text>
             </View>
 
             {isPaused && (

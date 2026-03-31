@@ -6,6 +6,7 @@ import type { MatchPhase } from '../types/match';
 import type { SeasonConfig } from '../types/season';
 
 const TICK_INTERVAL_MS = 200; // Update 5x/sec for smooth display, drift-proof
+const COUNTDOWN_DURATION = 3;
 
 const formatTime = (seconds: number): string => {
   const m = Math.floor(seconds / 60);
@@ -19,8 +20,6 @@ export interface UseMatchTimerResult {
   isPaused: boolean;
   /** Plain JS number 0.0–1.0; 1.0 = full, 0.0 = empty. Drive a SharedValue from this in the component. */
   progressFraction: number;
-  isCountingDown: boolean;
-  countdownValue: number;
   start: () => void;
   pause: () => void;
   resume: () => void;
@@ -43,9 +42,6 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
   const [displayTime, setDisplayTime] = useState<string>('');
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [progressFraction, setProgressFraction] = useState<number>(1);
-  const [isCountingDown, setIsCountingDown] = useState<boolean>(false);
-  const [countdownValue, setCountdownValue] = useState<number>(3);
-  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -79,11 +75,49 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
 
   // Single consolidated tick effect — only re-runs when phase changes
   useEffect(() => {
-    if (phase !== 'auto' && phase !== 'transition' && phase !== 'teleop') {
+    if (
+      phase !== 'pre_auto' &&
+      phase !== 'pre_teleop' &&
+      phase !== 'auto' &&
+      phase !== 'transition' &&
+      phase !== 'teleop'
+    ) {
       clearTimer();
       return;
     }
 
+    // Countdown phases
+    if (phase === 'pre_auto' || phase === 'pre_teleop') {
+      const duration = COUNTDOWN_DURATION;
+      startPhaseTimer(duration);
+
+      intervalRef.current = setInterval(() => {
+        if (pauseStartRef.current > 0) return;
+
+        const elapsed = getElapsedSeconds();
+        const remaining = duration - elapsed;
+
+        if (remaining <= 0) {
+          clearTimer();
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          setProgressFraction(0);
+
+          if (phaseRef.current === 'pre_auto') {
+            setPhase('auto');
+          } else if (phaseRef.current === 'pre_teleop') {
+            setPhase('teleop');
+          }
+          return;
+        }
+
+        setDisplayTime(remaining.toString());
+        setProgressFraction(remaining / duration);
+      }, TICK_INTERVAL_MS);
+
+      return () => clearTimer();
+    }
+
+    // Active match phases
     const duration =
       phase === 'auto' ? autonomous : phase === 'transition' ? transition : teleop;
 
@@ -134,25 +168,8 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
   const start = useCallback(() => {
     if (phase !== 'idle' && phase !== 'complete') return;
 
-    setIsCountingDown(true);
-    setCountdownValue(3);
-
-    let count = 3;
-    countdownIntervalRef.current = setInterval(() => {
-      count -= 1;
-      if (count <= 0) {
-        clearInterval(countdownIntervalRef.current!);
-        countdownIntervalRef.current = null;
-        setIsCountingDown(false);
-
-        // Determine starting phase based on startMode
-        const startMode = useMatchStore.getState().startMode;
-        const startingPhase: MatchPhase = startMode === 'teleop_only' ? 'teleop' : 'auto';
-        setPhase(startingPhase);
-      } else {
-        setCountdownValue(count);
-      }
-    }, 1000);
+    const startMode = useMatchStore.getState().startMode;
+    setPhase(startMode === 'teleop_only' ? 'pre_teleop' : 'pre_auto');
   }, [phase, setPhase]);
 
   const pause = useCallback(() => {
@@ -170,12 +187,6 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
 
   const reset = useCallback(() => {
     clearTimer();
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-    setIsCountingDown(false);
-    setCountdownValue(3);
     // MatchTimer owns the progress SharedValue and calls cancelAnimation before reset().
     phaseStartRef.current = 0;
     pauseOffsetRef.current = 0;
@@ -191,8 +202,6 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
     phase,
     isPaused,
     progressFraction,
-    isCountingDown,
-    countdownValue,
     start,
     pause,
     resume,
