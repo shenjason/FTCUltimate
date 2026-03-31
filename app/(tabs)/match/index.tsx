@@ -12,7 +12,7 @@ import { getSeasonById } from '../../../lib/seasonLoader';
 import { MatchSetup } from '../../../components/match/MatchSetup';
 import { TimerOnlyMatch } from '../../../components/match/TimerOnlyMatch';
 import { LandscapeMatch } from '../../../components/match/LandscapeMatch';
-import type { ScoreMap, MatchType } from '../../../types/match';
+import type { ScoreMap, MatchType, StartMode } from '../../../types/match';
 
 type ScreenState = 'setup' | 'active';
 
@@ -22,7 +22,6 @@ export default function MatchScreen() {
   const { saveMatch } = useHistoryStore();
 
   const [screenState, setScreenState] = useState<ScreenState>('setup');
-  const [matchNumber, setMatchNumber] = useState<number | undefined>();
   const [alliance, setAlliance] = useState<'red' | 'blue' | undefined>();
 
   const season = getSeasonById(selectedSeasonId);
@@ -34,11 +33,13 @@ export default function MatchScreen() {
 
   const handleStart = async (
     type: MatchType,
-    number: number | undefined,
+    matchName: string,
     selectedAlliance: 'red' | 'blue',
+    startMode: StartMode,
   ) => {
+    useMatchStore.getState().setStartMode(startMode);
+    useMatchStore.getState().setMatchName(matchName);
     setMatchType(type);
-    setMatchNumber(number);
     setAlliance(type === 'full' ? undefined : selectedAlliance);
     setMatchStarted(true);
 
@@ -55,7 +56,6 @@ export default function MatchScreen() {
   const handleExit = async () => {
     await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
     resetMatch();
-    setMatchNumber(undefined);
     setAlliance(undefined);
     setScreenState('setup');
   };
@@ -100,7 +100,8 @@ export default function MatchScreen() {
         totalScore,
         autoScore,
         teleopScore,
-        matchNumber,
+        matchName: useMatchStore.getState().matchName,
+        startMode: useMatchStore.getState().startMode,
         alliance,
         matchType,
       });
