@@ -1,4 +1,5 @@
 // lib/csvExport.ts
+import { Platform } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import type { SavedMatch } from "../types/match";
@@ -51,6 +52,18 @@ export async function exportMatchesCSV(matches: SavedMatch[]): Promise<void> {
     .join("\n");
 
   const filename = `ftcultimate_export_${Date.now()}.csv`;
+
+  if (Platform.OS === "web") {
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    return;
+  }
+
   const filepath = `${FileSystem.documentDirectory}${filename}`;
 
   await FileSystem.writeAsStringAsync(filepath, csv, {
