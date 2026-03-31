@@ -48,19 +48,18 @@ export function LandscapeMatch({
     setScore,
     setRedScore,
     fouls,
-    resetMatch,
   } = useMatchStore();
 
   const {
     displayTime,
     isPaused,
     start,
-    pause,
     resume,
     reset,
   } = useMatchTimer(season);
 
   const completeFiredRef = useRef(false);
+  const justResetRef = useRef(false); // guards against double-fire on reset (TouchableOpacity re-render race)
   const isSolo = matchType === "solo";
   const disabled = phase === "idle" || phase === "complete" || phase === "pre_auto" || phase === "pre_teleop";
   const modules = resolveModules(season, phase);
@@ -134,9 +133,11 @@ export function LandscapeMatch({
 
   const handleStartReset = () => {
     if (phase === "idle" || phase === "complete") {
+      if (justResetRef.current) { justResetRef.current = false; return; }
       completeFiredRef.current = false;
       start();
     } else {
+      justResetRef.current = true;
       reset();
     }
   };

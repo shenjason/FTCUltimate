@@ -88,16 +88,6 @@ export function MatchTimer({ season }: MatchTimerProps) {
         </TouchableOpacity>
       );
     }
-    if (phase === 'pre_auto' || phase === 'pre_teleop') {
-      return (
-        <View className="items-center">
-          <Text className={`font-bold text-xs ${phase === 'pre_auto' ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}>
-            {phase === 'pre_auto' ? 'AUTONOMOUS' : 'TELEOP'}
-          </Text>
-          <Text className="text-[#F5F5F5] font-bold text-4xl">{displayTime}</Text>
-        </View>
-      );
-    }
     if (phase === 'complete') {
       return (
         <View className="items-center">
@@ -114,12 +104,12 @@ export function MatchTimer({ season }: MatchTimerProps) {
         </Animated.View>
       );
     }
+    // pre_auto, pre_teleop, auto, teleop — all share the same label/time layout
+    const isAuto = phase === 'pre_auto' || phase === 'auto';
     return (
       <View className="items-center">
-        <Text
-          className={`font-bold text-xs ${phase === 'auto' ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}
-        >
-          {phase === 'auto' ? 'AUTONOMOUS' : 'TELEOP'}
+        <Text className={`font-bold text-xs ${isAuto ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}>
+          {isAuto ? 'AUTONOMOUS' : 'TELEOP'}
         </Text>
         <Text className="text-[#F5F5F5] font-bold text-4xl">{displayTime}</Text>
       </View>
