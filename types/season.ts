@@ -15,6 +15,7 @@ export interface BooleanModule {
   points: number;
   period?: 'auto' | 'teleop';
   description?: string;
+  showPreview?: boolean;
 }
 
 export interface CounterModule {
@@ -27,6 +28,7 @@ export interface CounterModule {
   step?: number;
   period?: 'auto' | 'teleop';
   description?: string;
+  showPreview?: boolean;
 }
 
 export interface TierConfig {
@@ -57,6 +59,7 @@ export interface SelectorModule {
   options: OptionConfig[];
   period?: 'auto' | 'teleop';
   description?: string;
+  showPreview?: boolean;
 }
 
 export interface MultiBooleanItem {
@@ -124,4 +127,8 @@ export interface SeasonConfig {
   timerDuration: TimerDuration;
   autonomous: ModuleConfig[];
   teleop: ModuleConfig[];
+  foulPoints?: {
+    minor: number;
+    major: number;
+  };
 }

@@ -2,6 +2,7 @@
 
 export type MatchPhase = 'idle' | 'auto' | 'transition' | 'teleop' | 'complete';
 export type MatchType = 'timer_only' | 'solo' | 'full';
+export type StartMode = "auto_teleop" | "teleop_only";
 
 // ScoreMap keys are moduleId strings.
 // Values: number for counter/selector/tiered, boolean for boolean/multi_boolean,
@@ -31,7 +32,8 @@ export interface SavedMatch {
   teleopScore: number;
   notes?: string;
   tags?: string[];
-  matchNumber?: number;
+  matchName?: string;
+  startMode?: StartMode;
   alliance?: 'red' | 'blue';
   matchType?: MatchType;
 }
