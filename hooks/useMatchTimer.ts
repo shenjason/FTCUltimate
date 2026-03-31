@@ -141,7 +141,7 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
         if (phaseRef.current === 'auto') {
           setPhase('transition');
         } else if (phaseRef.current === 'transition') {
-          setPhase('teleop');
+          setPhase('teleop'); // pre_teleop only fires from start() in teleop_only mode, not after transition
         } else if (phaseRef.current === 'teleop') {
           setPhase('complete');
         }
@@ -173,6 +173,7 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
   }, [phase, setPhase]);
 
   const pause = useCallback(() => {
+    if (phaseRef.current === 'pre_auto' || phaseRef.current === 'pre_teleop') return; // no pause during countdown
     if (pauseStartRef.current > 0) return; // already paused
     pauseStartRef.current = Date.now();
     setIsPaused(true);
