@@ -25,8 +25,8 @@ function resolveModules(
   season: SeasonConfig,
   phase: MatchPhase
 ): ModuleConfig[] {
-  if (phase === "auto" || phase === "transition") return season.autonomous;
-  if (phase === "teleop" || phase === "complete") return season.teleop;
+  if (phase === "pre_auto" || phase === "auto" || phase === "transition") return season.autonomous;
+  if (phase === "pre_teleop" || phase === "teleop" || phase === "complete") return season.teleop;
   return [];
 }
 
@@ -60,6 +60,7 @@ export function LandscapeMatch({
 
   const completeFiredRef = useRef(false);
   const justResetRef = useRef(false); // guards against double-fire on reset (TouchableOpacity re-render race)
+  const justResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSolo = matchType === "solo";
   const disabled = phase === "idle" || phase === "complete" || phase === "pre_auto" || phase === "pre_teleop";
   const modules = resolveModules(season, phase);
@@ -133,11 +134,13 @@ export function LandscapeMatch({
 
   const handleStartReset = () => {
     if (phase === "idle" || phase === "complete") {
-      if (justResetRef.current) { justResetRef.current = false; return; }
+      if (justResetRef.current) return;
       completeFiredRef.current = false;
       start();
     } else {
       justResetRef.current = true;
+      if (justResetTimerRef.current) clearTimeout(justResetTimerRef.current);
+      justResetTimerRef.current = setTimeout(() => { justResetRef.current = false; }, 300);
       reset();
     }
   };
