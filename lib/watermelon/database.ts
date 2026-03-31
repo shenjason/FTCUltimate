@@ -1,21 +1,35 @@
-// lib/watermelon/database.ts
+import { Platform } from "react-native";
 import { Database } from "@nozbe/watermelondb";
-import SQLiteAdapter from "@nozbe/watermelondb/adapters/sqlite";
 import { schema } from "./schema";
 import { migrations } from "./migrations";
 import { PracticeMatch } from "./models/PracticeMatch";
 
-const adapter = new SQLiteAdapter({
-  schema,
-  migrations,
-  dbName: "scoutops",
-  jsi: true, // <--- Change this from false to true when not using with Expo Go
-  onSetUpError: (error) => {
-    console.error("WatermelonDB setup error:", error);
-  },
-});
+function createAdapter() {
+  if (Platform.OS === "web") {
+    const LokiJSAdapter =
+      require("@nozbe/watermelondb/adapters/lokijs").default;
+    return new LokiJSAdapter({
+      schema,
+      migrations,
+      useWebWorker: false,
+      useIncrementalIndexedDB: true,
+    });
+  }
+
+  const SQLiteAdapter =
+    require("@nozbe/watermelondb/adapters/sqlite").default;
+  return new SQLiteAdapter({
+    schema,
+    migrations,
+    dbName: "scoutops",
+    jsi: true,
+    onSetUpError: (error: any) => {
+      console.error("WatermelonDB setup error:", error);
+    },
+  });
+}
 
 export const database = new Database({
-  adapter,
+  adapter: createAdapter(),
   modelClasses: [PracticeMatch],
 });
