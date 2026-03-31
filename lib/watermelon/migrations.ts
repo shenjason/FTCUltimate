@@ -4,6 +4,18 @@ import { schemaMigrations, addColumns } from '@nozbe/watermelondb/Schema/migrati
 export const migrations = schemaMigrations({
   migrations: [
     {
+      toVersion: 4,
+      steps: [
+        addColumns({
+          table: 'practice_matches',
+          columns: [
+            { name: 'match_name', type: 'string', isOptional: true },
+            { name: 'start_mode', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    {
       toVersion: 3,
       steps: [
         addColumns({

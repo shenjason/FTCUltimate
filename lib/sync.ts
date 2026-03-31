@@ -41,6 +41,8 @@ export async function pushUnsyncedMatches(): Promise<SyncResult> {
         match_number: record.matchNumber ?? null,
         alliance: record.alliance ?? null,
         match_type: record.matchType ?? null,
+        match_name: record.matchName ?? null,
+        start_mode: record.startMode ?? null,
         duration_seconds: record.durationSeconds ?? null,
         synced: true,
       });

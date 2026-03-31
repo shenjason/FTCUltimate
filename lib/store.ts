@@ -215,9 +215,10 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         teleopScore: r.teleopScore,
         notes: r.notes || undefined,
         tags: r.tags,
-        matchName: r.matchNumber != null ? String(r.matchNumber) : undefined,
+        matchName: r.matchName ?? undefined,
         alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
         matchType: (r.matchType as MatchType | null) ?? undefined,
+        startMode: r.startMode as StartMode | undefined,
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
     set({ matches });
@@ -237,9 +238,11 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         record.notes = match.notes ?? '';
         record.tagsRaw = JSON.stringify(match.tags ?? []);
         record.synced = false;
-        record.matchNumber = match.matchName != null ? null : null; // matchName stored as string; DB migration pending
+        record.matchNumber = null;
         record.alliance = match.alliance ?? null;
         record.matchType = match.matchType ?? null;
+        record.set('matchName', match.matchName ?? '');
+        record.set('startMode', match.startMode ?? 'auto_teleop');
       });
     });
     // reload
@@ -256,9 +259,10 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         teleopScore: r.teleopScore,
         notes: r.notes || undefined,
         tags: r.tags,
-        matchName: r.matchNumber != null ? String(r.matchNumber) : undefined,
+        matchName: r.matchName ?? undefined,
         alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
         matchType: (r.matchType as MatchType | null) ?? undefined,
+        startMode: r.startMode as StartMode | undefined,
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
     set({ matches });

@@ -18,6 +18,8 @@ export class PracticeMatch extends Model {
   @field('match_number') matchNumber!: number | null;
   @field('alliance') alliance!: string | null;
   @field('match_type') matchType!: string | null;
+  @field('match_name') matchName!: string | null;
+  @field('start_mode') startMode!: string | null;
 
   get allScores() {
     try { return JSON.parse(this.allScoresRaw); } catch { return {}; }
