@@ -19,6 +19,8 @@ export interface UseMatchTimerResult {
   isPaused: boolean;
   /** Plain JS number 0.0–1.0; 1.0 = full, 0.0 = empty. Drive a SharedValue from this in the component. */
   progressFraction: number;
+  isCountingDown: boolean;
+  countdownValue: number;
   start: () => void;
   pause: () => void;
   resume: () => void;
@@ -41,6 +43,9 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
   const [displayTime, setDisplayTime] = useState<string>('');
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [progressFraction, setProgressFraction] = useState<number>(1);
+  const [isCountingDown, setIsCountingDown] = useState<boolean>(false);
+  const [countdownValue, setCountdownValue] = useState<number>(3);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -128,7 +133,26 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
 
   const start = useCallback(() => {
     if (phase !== 'idle' && phase !== 'complete') return;
-    setPhase('auto');
+
+    setIsCountingDown(true);
+    setCountdownValue(3);
+
+    let count = 3;
+    countdownIntervalRef.current = setInterval(() => {
+      count -= 1;
+      if (count <= 0) {
+        clearInterval(countdownIntervalRef.current!);
+        countdownIntervalRef.current = null;
+        setIsCountingDown(false);
+
+        // Determine starting phase based on startMode
+        const startMode = useMatchStore.getState().startMode;
+        const startingPhase: MatchPhase = startMode === 'teleop_only' ? 'teleop' : 'auto';
+        setPhase(startingPhase);
+      } else {
+        setCountdownValue(count);
+      }
+    }, 1000);
   }, [phase, setPhase]);
 
   const pause = useCallback(() => {
@@ -146,6 +170,12 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
 
   const reset = useCallback(() => {
     clearTimer();
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setIsCountingDown(false);
+    setCountdownValue(3);
     // MatchTimer owns the progress SharedValue and calls cancelAnimation before reset().
     phaseStartRef.current = 0;
     pauseOffsetRef.current = 0;
@@ -161,6 +191,8 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
     phase,
     isPaused,
     progressFraction,
+    isCountingDown,
+    countdownValue,
     start,
     pause,
     resume,
