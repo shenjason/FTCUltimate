@@ -22,8 +22,8 @@ export function LandscapeHeader({
   onToggleStartMode,
   canChangeStartMode,
 }: LandscapeHeaderProps) {
-  const isAuto = phase === "auto" || phase === "transition";
-  const isTeleop = phase === "teleop" || phase === "complete";
+  const isAuto = phase === "pre_auto" || phase === "auto" || phase === "transition";
+  const isTeleop = phase === "pre_teleop" || phase === "teleop" || phase === "complete";
 
   return (
     <View className="flex-row items-center px-3 py-2 border-b border-border gap-3">
