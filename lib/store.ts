@@ -152,7 +152,6 @@ export const useMatchStore = create<MatchState>((set) => ({
   resetMatch: () =>
     set((state) => ({
       phase: 'idle',
-      matchStarted: false,
       scores: {},
       redScores: {},
       elapsedSeconds: 0,
