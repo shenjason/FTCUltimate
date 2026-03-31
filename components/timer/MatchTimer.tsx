@@ -28,8 +28,10 @@ interface MatchTimerProps {
 
 const PHASE_COLORS: Record<MatchPhase, string> = {
   idle: '#3B82F6',
+  pre_auto: '#EF4444',
   auto: '#EF4444',
   transition: '#F59E0B',
+  pre_teleop: '#22C55E',
   teleop: '#22C55E',
   complete: '#3B82F6',
 };
@@ -84,6 +86,16 @@ export function MatchTimer({ season }: MatchTimerProps) {
         <TouchableOpacity onPress={start} className="bg-[#3B82F6] px-6 py-3 rounded-2xl">
           <Text className="text-white font-bold text-lg">START</Text>
         </TouchableOpacity>
+      );
+    }
+    if (phase === 'pre_auto' || phase === 'pre_teleop') {
+      return (
+        <View className="items-center">
+          <Text className={`font-bold text-xs ${phase === 'pre_auto' ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}>
+            {phase === 'pre_auto' ? 'AUTONOMOUS' : 'TELEOP'}
+          </Text>
+          <Text className="text-[#F5F5F5] font-bold text-4xl">{displayTime}</Text>
+        </View>
       );
     }
     if (phase === 'complete') {
@@ -145,12 +157,14 @@ export function MatchTimer({ season }: MatchTimerProps) {
 
       {phase !== 'idle' && phase !== 'complete' && (
         <View className="flex-row gap-3 mt-3">
-          <TouchableOpacity
-            onPress={isPaused ? resume : pause}
-            className="bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 rounded-xl"
-          >
-            <Text className="text-[#F5F5F5] text-sm">{isPaused ? 'RESUME' : 'PAUSE'}</Text>
-          </TouchableOpacity>
+          {phase !== 'pre_auto' && phase !== 'pre_teleop' && (
+            <TouchableOpacity
+              onPress={isPaused ? resume : pause}
+              className="bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 rounded-xl"
+            >
+              <Text className="text-[#F5F5F5] text-sm">{isPaused ? 'RESUME' : 'PAUSE'}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             onPress={handleReset}
             className="bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 rounded-xl"
