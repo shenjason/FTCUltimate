@@ -1,6 +1,6 @@
 // app/(tabs)/history/index.tsx
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,6 +9,9 @@ import { getSeasons } from "../../../lib/seasonLoader";
 import type { SavedMatch } from "../../../types/match";
 import { pushUnsyncedMatches, getUnsyncedCount } from "../../../lib/sync";
 import { exportMatchesCSV } from "../../../lib/csvExport";
+import { MatchTypeBadge } from "../../../components/ui/MatchTypeBadge";
+
+const stripSuffix = (name: string) => name.replace(/\s*presented by.*/i, "");
 
 function MatchCard({
   match,
@@ -21,6 +24,7 @@ function MatchCard({
   const seasons = getSeasons();
   const season = seasons.find((s) => s.id === match.seasonId);
   const date = new Date(match.timestamp);
+  const seasonDisplayName = season ? stripSuffix(season.name) : match.seasonId;
 
   return (
     <TouchableOpacity
@@ -29,19 +33,29 @@ function MatchCard({
     >
       <View className="flex-row items-start justify-between">
         <View className="flex-1">
-          <Text
-            className="text-[#F5F5F5] font-semibold text-sm"
-            numberOfLines={1}
-          >
-            {season?.name ?? match.seasonId}
-          </Text>
-          <Text className="text-[#9CA3AF] text-xs mt-0.5">
-            {date.toLocaleDateString()} ·{" "}
-            {date.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
+          <View className="flex-row items-center gap-2 flex-wrap">
+            <Text
+              className="text-[#F5F5F5] font-semibold text-sm"
+              numberOfLines={1}
+            >
+              {match.matchName ?? `Match #${match.matchNumber ?? "?"}`}
+            </Text>
+            <MatchTypeBadge matchType={match.matchType} />
+          </View>
+          <View className="flex-row items-center gap-2 mt-0.5 flex-wrap">
+            <View className="bg-[#2A2A2A] px-2 py-0.5 rounded-full">
+              <Text className="text-[#9CA3AF] text-xs" numberOfLines={1}>
+                {seasonDisplayName}
+              </Text>
+            </View>
+            <Text className="text-[#9CA3AF] text-xs">
+              {date.toLocaleDateString()} ·{" "}
+              {date.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+          </View>
         </View>
         <View className="items-end">
           <Text className="text-[#F5F5F5] text-2xl font-bold">
@@ -84,6 +98,8 @@ function MatchCard({
 export default function HistoryScreen() {
   const { matches, loadMatches, deleteMatch } = useHistoryStore();
   const [filterSeasonId, setFilterSeasonId] = useState<string | null>(null);
+  const [matchTypeFilter, setMatchTypeFilter] = useState<"all" | "solo" | "full">("all");
+  const [startModeFilter, setStartModeFilter] = useState<"all" | "auto_teleop" | "teleop_only">("all");
   const [unsyncedCount, setUnsyncedCount] = React.useState(0);
   const [syncing, setSyncing] = React.useState(false);
   const seasons = getSeasons();
@@ -96,9 +112,12 @@ export default function HistoryScreen() {
     getUnsyncedCount().then(setUnsyncedCount);
   }, [matches]);
 
-  const filtered = filterSeasonId
-    ? matches.filter((m) => m.seasonId === filterSeasonId)
-    : matches;
+  const filtered = matches.filter((m) => {
+    if (filterSeasonId && m.seasonId !== filterSeasonId) return false;
+    if (matchTypeFilter !== "all" && m.matchType !== matchTypeFilter) return false;
+    if (startModeFilter !== "all" && m.startMode !== startModeFilter) return false;
+    return true;
+  });
 
   // Stats
   const last10 = filtered.slice(0, 10);
@@ -222,18 +241,19 @@ export default function HistoryScreen() {
       )}
 
       {/* Season filter */}
-      <View className="px-4 mb-3">
+      <View className="mb-2">
         <FlatList
           data={[
             { id: null, name: "All Seasons" } as {
               id: string | null;
               name: string;
             },
-            ...seasons.map((s) => ({ id: s.id, name: s.name })),
+            ...seasons.map((s) => ({ id: s.id, name: stripSuffix(s.name) })),
           ]}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id ?? "all"}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => setFilterSeasonId(item.id)}
@@ -255,6 +275,36 @@ export default function HistoryScreen() {
           )}
         />
       </View>
+
+      {/* Match Type Filter */}
+      <ScrollView horizontal className="mb-2" contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }} showsHorizontalScrollIndicator={false}>
+        {(["all", "solo", "full"] as const).map((type) => (
+          <TouchableOpacity
+            key={type}
+            onPress={() => setMatchTypeFilter(type)}
+            className={`px-3 py-1 rounded-full ${matchTypeFilter === type ? "bg-[#3B82F6]" : "bg-[#1A1A1A]"}`}
+          >
+            <Text className={`text-sm ${matchTypeFilter === type ? "text-white" : "text-[#9CA3AF]"}`}>
+              {type === "all" ? "All Types" : type.charAt(0).toUpperCase() + type.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Start Mode Filter */}
+      <ScrollView horizontal className="mb-3" contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }} showsHorizontalScrollIndicator={false}>
+        {(["all", "auto_teleop", "teleop_only"] as const).map((mode) => (
+          <TouchableOpacity
+            key={mode}
+            onPress={() => setStartModeFilter(mode)}
+            className={`px-3 py-1 rounded-full ${startModeFilter === mode ? "bg-[#3B82F6]" : "bg-[#1A1A1A]"}`}
+          >
+            <Text className={`text-sm ${startModeFilter === mode ? "text-white" : "text-[#9CA3AF]"}`}>
+              {mode === "all" ? "All Modes" : mode === "auto_teleop" ? "Auto + Teleop" : "Teleop Only"}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       {filtered.length === 0 ? (
         <View className="flex-1 items-center justify-center">
