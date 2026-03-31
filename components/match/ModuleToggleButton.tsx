@@ -59,7 +59,7 @@ export function ModuleToggleButton({
       } ${disabled ? "opacity-50" : ""}`}
     >
       <Text
-        className={`flex-1 font-semibold text-sm ${
+        className={`font-semibold text-sm ${
           isSelected ? "text-black" : "text-text-primary"
         }`}
       >

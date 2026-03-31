@@ -37,6 +37,7 @@ export function HamburgerMenu({
         visible={visible}
         transparent
         animationType="fade"
+        supportedOrientations={["portrait", "landscape"]}
         onRequestClose={() => setVisible(false)}
       >
         <TouchableOpacity

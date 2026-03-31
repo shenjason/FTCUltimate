@@ -1,19 +1,24 @@
 // app/(tabs)/history/[id].tsx
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useHistoryStore } from "../../../lib/store";
-import { getSeasonById } from "../../../lib/seasonLoader";
+import { getSeasons } from "../../../lib/seasonLoader";
 import { ModuleRenderer } from "../../../components/scoring/ModuleRenderer";
-import type { ScoreValue } from "../../../types/match";
+import type { ScoreMap, DualScoreMap } from "../../../types/match";
+import { isDualScoreMap } from "../../../types/match";
+import { MatchTypeBadge } from "../../../components/ui/MatchTypeBadge";
+
+type Alliance = "blue" | "red";
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { matches } = useHistoryStore();
   const match = matches.find((m) => m.id === id);
+  const [activeTab, setActiveTab] = useState<Alliance>("blue");
 
   if (!match) {
     return (
@@ -23,8 +28,15 @@ export default function MatchDetailScreen() {
     );
   }
 
-  const season = getSeasonById(match.seasonId);
+  const seasons = getSeasons();
+  const season = seasons.find((s) => s.id === match.seasonId);
   const date = new Date(match.timestamp);
+  const isFull = isDualScoreMap(match.allScores);
+
+  // Scores for the current view — always a plain ScoreMap for ModuleRenderer
+  const activeScores: ScoreMap = isFull
+    ? (match.allScores as DualScoreMap)[activeTab]
+    : (match.allScores as ScoreMap);
 
   return (
     <SafeAreaView className="flex-1 bg-[#0F0F0F]">
@@ -34,12 +46,15 @@ export default function MatchDetailScreen() {
           <Ionicons name="arrow-back" size={22} color="#F5F5F5" />
         </TouchableOpacity>
         <View className="flex-1">
-          <Text
-            className="text-[#F5F5F5] font-bold text-base"
-            numberOfLines={1}
-          >
-            {season.name}
-          </Text>
+          <View className="flex-row items-center gap-2">
+            <Text
+              className="text-[#F5F5F5] font-bold text-base flex-shrink"
+              numberOfLines={1}
+            >
+              {season?.name ?? match.seasonId}
+            </Text>
+            <MatchTypeBadge matchType={match.matchType} />
+          </View>
           <Text className="text-[#9CA3AF] text-xs">
             {date.toLocaleDateString()} ·{" "}
             {date.toLocaleTimeString([], {
@@ -55,6 +70,40 @@ export default function MatchDetailScreen() {
           <Text className="text-[#9CA3AF] text-xs">pts</Text>
         </View>
       </View>
+
+      {/* Alliance tab bar — only shown for Full mode */}
+      {isFull && (
+        <View className="flex-row mx-4 mt-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
+          <TouchableOpacity
+            onPress={() => setActiveTab("blue")}
+            className={`flex-1 items-center py-2 rounded-lg ${
+              activeTab === "blue" ? "bg-[#1D4ED8]" : ""
+            }`}
+          >
+            <Text
+              className={`text-xs font-bold tracking-wide ${
+                activeTab === "blue" ? "text-white" : "text-[#6B7280]"
+              }`}
+            >
+              BLUE
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setActiveTab("red")}
+            className={`flex-1 items-center py-2 rounded-lg ${
+              activeTab === "red" ? "bg-[#B91C1C]" : ""
+            }`}
+          >
+            <Text
+              className={`text-xs font-bold tracking-wide ${
+                activeTab === "red" ? "text-white" : "text-[#6B7280]"
+              }`}
+            >
+              RED
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView
         className="flex-1 px-4"
@@ -88,11 +137,11 @@ export default function MatchDetailScreen() {
         <Text className="text-[#EF4444] text-xs font-bold tracking-widest mb-2">
           ─ AUTONOMOUS
         </Text>
-        {season.autonomous.map((module) => (
+        {(season?.autonomous ?? []).map((module) => (
           <ModuleRenderer
             key={module.id}
             module={module}
-            scores={match.allScores}
+            scores={activeScores}
             onChangeScore={() => {}}
             disabled={true}
             period="auto"
@@ -105,11 +154,11 @@ export default function MatchDetailScreen() {
         <Text className="text-[#22C55E] text-xs font-bold tracking-widest mb-2">
           ─ TELEOP
         </Text>
-        {season.teleop.map((module) => (
+        {(season?.teleop ?? []).map((module) => (
           <ModuleRenderer
             key={module.id}
             module={module}
-            scores={match.allScores}
+            scores={activeScores}
             onChangeScore={() => {}}
             disabled={true}
             period="teleop"

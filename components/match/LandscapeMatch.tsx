@@ -23,7 +23,7 @@ const FOULS_MODULE_ID = "__fouls__";
 
 function resolveModules(
   season: SeasonConfig,
-  phase: MatchPhase
+  phase: MatchPhase,
 ): ModuleConfig[] {
   if (phase === "auto" || phase === "transition") return season.autonomous;
   if (phase === "teleop" || phase === "complete") return season.teleop;
@@ -158,7 +158,10 @@ export function LandscapeMatch({
 
         <View className="flex-1">
           {/* Module toggle buttons (top, wrapping) */}
-          <ScrollView className="p-2" contentContainerClassName="flex-row flex-wrap gap-2">
+          <ScrollView
+            className="p-2"
+            contentContainerClassName="flex-row flex-wrap gap-2"
+          >
             {modules.map((mod) => (
               <ModuleToggleButton
                 key={mod.id}
@@ -201,6 +204,7 @@ export function LandscapeMatch({
                   onChange={(val) => setScore(selectedModule.id, val)}
                   alliance={alliance}
                   disabled={disabled}
+                  layout="horizontal"
                 />
               ) : null}
             </View>
@@ -212,7 +216,9 @@ export function LandscapeMatch({
                 className="bg-[#B8860B] py-2 rounded-lg"
               >
                 <Text className="text-white font-bold text-center">
-                  {phase === "idle" || phase === "complete" ? "▶ Start" : "⟳ Reset"}
+                  {phase === "idle" || phase === "complete"
+                    ? "▶ Start"
+                    : "⟳ Reset"}
                 </Text>
               </TouchableOpacity>
 
@@ -252,7 +258,11 @@ export function LandscapeMatch({
     );
   }
 
-  // Full mode
+  // Full mode — split modules evenly between left and right columns
+  const mid = Math.ceil(modules.length / 2);
+  const leftModules = modules.slice(0, mid);
+  const rightModules = modules.slice(mid);
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <LandscapeHeader
@@ -266,9 +276,9 @@ export function LandscapeMatch({
       />
 
       <View className="flex-1 flex-row">
-        {/* Left column: Red alliance modules */}
+        {/* Left column: first half of modules + Fouls */}
         <ScrollView className="flex-1 p-1" contentContainerClassName="gap-1">
-          {modules.map((mod) => (
+          {leftModules.map((mod) => (
             <ModuleToggleButton
               key={mod.id}
               module={mod}
@@ -311,20 +321,22 @@ export function LandscapeMatch({
           <View className="items-center gap-2">
             <TouchableOpacity
               onPress={handleStartReset}
-              className="bg-[#B8860B] px-6 py-2 rounded-full"
+              className="bg-[#B8860B] px-6 py-2 rounded-lg"
             >
-              <Text className="text-white font-bold">
-                {phase === "idle" || phase === "complete" ? "▶ Start" : "⟳ Reset"}
+              <Text className="text-white font-bold text-xl">
+                {phase === "idle" || phase === "complete"
+                  ? "▶ Start"
+                  : "⟳ Reset"}
               </Text>
             </TouchableOpacity>
 
-            <View className="bg-white px-6 py-2 rounded-full">
+            <View className="bg-white px-6 py-2 rounded-sm">
               {isCountingDown ? (
-                <Text className="text-black text-2xl font-bold">
+                <Text className="text-black text-4xl font-bold">
                   {countdownValue}
                 </Text>
               ) : (
-                <Text className="text-black text-2xl font-bold font-mono">
+                <Text className="text-black text-4xl font-bold font-mono">
                   {displayTime}
                 </Text>
               )}
@@ -352,9 +364,9 @@ export function LandscapeMatch({
           </View>
         </View>
 
-        {/* Right column: Blue alliance modules */}
+        {/* Right column: second half of modules */}
         <ScrollView className="flex-1 p-1" contentContainerClassName="gap-1">
-          {modules.map((mod) => (
+          {rightModules.map((mod) => (
             <ModuleToggleButton
               key={mod.id}
               module={mod}
@@ -366,27 +378,11 @@ export function LandscapeMatch({
               disabled={disabled}
             />
           ))}
-          <TouchableOpacity
-            onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
-            className={`flex-row items-center px-3 py-2 rounded-lg ${
-              isFoulsSelected
-                ? "bg-white border-2 border-white"
-                : "bg-surface border border-border"
-            }`}
-          >
-            <Text
-              className={`font-semibold text-sm ${
-                isFoulsSelected ? "text-black" : "text-text-primary"
-              }`}
-            >
-              Fouls
-            </Text>
-          </TouchableOpacity>
         </ScrollView>
       </View>
 
       {/* Bottom control panels */}
-      <View className="flex-row h-28">
+      <View className="flex-row h-36">
         {/* Red controls (bottom-left) */}
         <View className="flex-1">
           {isFoulsSelected ? (

@@ -9,6 +9,7 @@ interface BottomControlPanelProps {
   onChange: (value: ScoreValue) => void;
   alliance: "blue" | "red";
   disabled?: boolean;
+  layout?: "vertical" | "horizontal";
 }
 
 export function BottomControlPanel({
@@ -17,6 +18,7 @@ export function BottomControlPanel({
   onChange,
   alliance,
   disabled = false,
+  layout = "vertical",
 }: BottomControlPanelProps) {
   const bgClass = alliance === "blue" ? "bg-[#080818]" : "bg-[#1a0808]";
 
@@ -25,7 +27,7 @@ export function BottomControlPanel({
       <Text className="text-xs text-text-secondary mb-2 uppercase">
         {module.label}
       </Text>
-      {renderControls(module, value, onChange, disabled)}
+      {renderControls(module, value, onChange, disabled, layout)}
     </View>
   );
 }
@@ -34,7 +36,8 @@ function renderControls(
   module: ModuleConfig,
   value: ScoreValue,
   onChange: (value: ScoreValue) => void,
-  disabled: boolean
+  disabled: boolean,
+  layout: "vertical" | "horizontal" = "vertical"
 ) {
   switch (module.type) {
     case "boolean":
@@ -82,6 +85,27 @@ function renderControls(
       const min = (module as any).min ?? 0;
       const max = (module as any).max;
       const step = (module as any).step ?? 1;
+      if (layout === "horizontal") {
+        return (
+          <View className="flex-row items-center gap-4">
+            <TouchableOpacity
+              onPress={() => onChange(Math.max(count - step, min))}
+              disabled={disabled || count <= min}
+              className="bg-surface px-6 py-3 rounded-lg"
+            >
+              <Text className="text-text-primary text-lg font-bold">−</Text>
+            </TouchableOpacity>
+            <Text className="text-text-primary text-3xl font-bold w-12 text-center">{count}</Text>
+            <TouchableOpacity
+              onPress={() => onChange(max !== undefined ? Math.min(count + step, max) : count + step)}
+              disabled={disabled || (max !== undefined && count >= max)}
+              className="bg-surface px-6 py-3 rounded-lg"
+            >
+              <Text className="text-text-primary text-lg font-bold">+</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      }
       return (
         <View className="items-center gap-1">
           <TouchableOpacity
