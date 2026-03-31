@@ -4,7 +4,7 @@ import { getSeasons } from './seasonLoader';
 import { database } from './watermelon/database';
 import { PracticeMatch } from './watermelon/models/PracticeMatch';
 import type { SeasonConfig } from '../types/season';
-import type { MatchPhase, MatchType, SavedMatch, ScoreMap, ScoreValue } from '../types/match';
+import type { MatchPhase, MatchType, SavedMatch, ScoreMap, ScoreValue, StartMode } from '../types/match';
 import { computeScore } from './scoreEngine';
 export { computeScore };
 
@@ -39,6 +39,15 @@ interface MatchState {
   redoStack: ScoreMap[];
   redUndoStack: ScoreMap[];
   redRedoStack: ScoreMap[];
+  startMode: StartMode;
+  matchName: string;
+  selectedModuleId: string | null;
+  fouls: {
+    redMinor: number;
+    redMajor: number;
+    blueMinor: number;
+    blueMajor: number;
+  };
   setPhase: (phase: MatchPhase) => void;
   setMatchType: (matchType: MatchType) => void;
   setMatchStarted: (started: boolean) => void;
@@ -51,6 +60,11 @@ interface MatchState {
   undoRed: () => void;
   redoRed: () => void;
   resetMatch: () => void;
+  setStartMode: (mode: StartMode) => void;
+  setMatchName: (name: string) => void;
+  setSelectedModuleId: (id: string | null) => void;
+  incrementFoul: (alliance: "red" | "blue", severity: "minor" | "major") => void;
+  decrementFoul: (alliance: "red" | "blue", severity: "minor" | "major") => void;
 }
 
 export const useMatchStore = create<MatchState>((set) => ({
@@ -65,6 +79,10 @@ export const useMatchStore = create<MatchState>((set) => ({
   redoStack: [],
   redUndoStack: [],
   redRedoStack: [],
+  startMode: "auto_teleop",
+  matchName: "",
+  selectedModuleId: null,
+  fouls: { redMinor: 0, redMajor: 0, blueMinor: 0, blueMajor: 0 },
 
   setPhase: (phase) => set({ phase }),
   setMatchType: (matchType) => set({ matchType }),
@@ -144,7 +162,30 @@ export const useMatchStore = create<MatchState>((set) => ({
       redUndoStack: [],
       redRedoStack: [],
       matchType: state.matchType, // preserve matchType
+      selectedModuleId: null,
+      fouls: { redMinor: 0, redMajor: 0, blueMinor: 0, blueMajor: 0 },
     })),
+
+  setStartMode: (mode) => set({ startMode: mode }),
+  setMatchName: (name) => set({ matchName: name }),
+  setSelectedModuleId: (id) => set({ selectedModuleId: id }),
+
+  incrementFoul: (alliance, severity) =>
+    set((state) => {
+      const key = `${alliance}${severity.charAt(0).toUpperCase() + severity.slice(1)}` as keyof typeof state.fouls;
+      return { fouls: { ...state.fouls, [key]: state.fouls[key] + 1 } };
+    }),
+
+  decrementFoul: (alliance, severity) =>
+    set((state) => {
+      const key = `${alliance}${severity.charAt(0).toUpperCase() + severity.slice(1)}` as keyof typeof state.fouls;
+      return {
+        fouls: {
+          ...state.fouls,
+          [key]: Math.max(0, state.fouls[key] - 1),
+        },
+      };
+    }),
 }));
 
 // ─── History Store ─────────────────────────────────────────────────
@@ -174,7 +215,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         teleopScore: r.teleopScore,
         notes: r.notes || undefined,
         tags: r.tags,
-        matchNumber: r.matchNumber ?? undefined,
+        matchName: r.matchNumber != null ? String(r.matchNumber) : undefined,
         alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
         matchType: (r.matchType as MatchType | null) ?? undefined,
       }))
@@ -196,7 +237,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         record.notes = match.notes ?? '';
         record.tagsRaw = JSON.stringify(match.tags ?? []);
         record.synced = false;
-        record.matchNumber = match.matchNumber ?? null;
+        record.matchNumber = match.matchName != null ? null : null; // matchName stored as string; DB migration pending
         record.alliance = match.alliance ?? null;
         record.matchType = match.matchType ?? null;
       });
@@ -215,7 +256,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         teleopScore: r.teleopScore,
         notes: r.notes || undefined,
         tags: r.tags,
-        matchNumber: r.matchNumber ?? undefined,
+        matchName: r.matchNumber != null ? String(r.matchNumber) : undefined,
         alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
         matchType: (r.matchType as MatchType | null) ?? undefined,
       }))
