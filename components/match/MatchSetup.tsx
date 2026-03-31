@@ -11,12 +11,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SeasonPicker } from '../ui/SeasonPicker';
-import type { MatchType } from '../../types/match';
+import { useHistoryStore } from '../../lib/store';
+import type { MatchType, StartMode } from '../../types/match';
 import type { SeasonConfig } from '../../types/season';
 
 interface MatchSetupProps {
   season: SeasonConfig;
-  onStart: (matchType: MatchType, matchNumber: number | undefined, alliance: 'red' | 'blue') => void;
+  onStart: (matchType: MatchType, matchName: string, alliance: 'red' | 'blue', startMode: StartMode) => void;
 }
 
 const MATCH_TYPE_CARDS: { type: MatchType; title: string; description: string; icon: string }[] = [
@@ -41,13 +42,22 @@ const MATCH_TYPE_CARDS: { type: MatchType; title: string; description: string; i
 ];
 
 export function MatchSetup({ season, onStart }: MatchSetupProps) {
+  const { matches } = useHistoryStore();
+  const today = new Date();
+  const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(
+    today.getDate()
+  ).padStart(2, "0")}/${today.getFullYear()}`;
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const todayMatchCount = matches.filter((m) => m.timestamp >= todayStart).length;
+  const defaultMatchName = `Match #${todayMatchCount + 1} at ${dateStr}`;
+
   const [selectedType, setSelectedType] = useState<MatchType>('solo');
-  const [matchNumberText, setMatchNumberText] = useState('');
+  const [matchName, setMatchName] = useState(defaultMatchName);
   const [alliance, setAlliance] = useState<'red' | 'blue'>('blue');
+  const [selectedStartMode, setSelectedStartMode] = useState<StartMode>("auto_teleop");
 
   const handleStart = () => {
-    const matchNumber = matchNumberText.trim() !== '' ? parseInt(matchNumberText, 10) : undefined;
-    onStart(selectedType, matchNumber, alliance);
+    onStart(selectedType, matchName, alliance, selectedStartMode);
   };
 
   return (
@@ -68,18 +78,16 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
         <Text className="text-[#9CA3AF] text-xs uppercase tracking-widest mb-2">Season</Text>
         <SeasonPicker />
 
-        {/* Match number */}
+        {/* Match name */}
         <Text className="text-[#9CA3AF] text-xs uppercase tracking-widest mt-5 mb-2">
-          Match Number <Text className="text-[#9CA3AF] normal-case">(optional)</Text>
+          Match Name
         </Text>
         <TextInput
           className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl px-3 py-2 text-[#F5F5F5] text-sm"
-          placeholder="e.g. 12"
+          placeholder="e.g. Match #1 at 01/15/2026"
           placeholderTextColor="#4B5563"
-          keyboardType="number-pad"
-          value={matchNumberText}
-          onChangeText={setMatchNumberText}
-          maxLength={4}
+          value={matchName}
+          onChangeText={setMatchName}
         />
 
         {/* Match type cards */}
@@ -169,10 +177,45 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
           </>
         )}
 
+        {/* Start mode selector */}
+        <Text className="text-[#9CA3AF] text-xs uppercase tracking-widest mt-5 mb-2">Start Mode</Text>
+        <View className="flex-row gap-2 mb-4">
+          <TouchableOpacity
+            onPress={() => setSelectedStartMode("auto_teleop")}
+            className={`flex-1 p-3 rounded-xl border ${
+              selectedStartMode === "auto_teleop"
+                ? "border-[#3B82F6] bg-[#3B82F6]/20"
+                : "border-[#2A2A2A] bg-[#1A1A1A]"
+            }`}
+          >
+            <Text className={`font-bold text-center ${selectedStartMode === "auto_teleop" ? "text-[#3B82F6]" : "text-[#9CA3AF]"}`}>
+              Auto + Teleop
+            </Text>
+            <Text className="text-[#9CA3AF] text-xs text-center mt-1">
+              Full match flow
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSelectedStartMode("teleop_only")}
+            className={`flex-1 p-3 rounded-xl border ${
+              selectedStartMode === "teleop_only"
+                ? "border-[#3B82F6] bg-[#3B82F6]/20"
+                : "border-[#2A2A2A] bg-[#1A1A1A]"
+            }`}
+          >
+            <Text className={`font-bold text-center ${selectedStartMode === "teleop_only" ? "text-[#3B82F6]" : "text-[#9CA3AF]"}`}>
+              Teleop Only
+            </Text>
+            <Text className="text-[#9CA3AF] text-xs text-center mt-1">
+              Skip autonomous
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Start button */}
         <TouchableOpacity
           onPress={handleStart}
-          className="mt-8 bg-[#3B82F6] rounded-2xl py-4 items-center"
+          className="mt-4 bg-[#3B82F6] rounded-2xl py-4 items-center"
         >
           <Text className="text-white font-bold text-base">Start Match</Text>
         </TouchableOpacity>
