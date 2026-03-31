@@ -62,7 +62,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-[#0F0F0F]"
+      className="flex-1 bg-background"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -71,19 +71,19 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <Text className="text-[#F5F5F5] text-2xl font-bold mb-1">New Match</Text>
-        <Text className="text-[#9CA3AF] text-sm mb-6">Configure and start a practice match</Text>
+        <Text className="text-text-primary text-2xl font-bold mb-1">New Match</Text>
+        <Text className="text-text-secondary text-sm mb-6">Configure and start a practice match</Text>
 
         {/* Season picker */}
-        <Text className="text-[#9CA3AF] text-xs uppercase tracking-widest mb-2">Season</Text>
+        <Text className="text-text-secondary text-xs font-semibold uppercase tracking-wider mb-2">Season</Text>
         <SeasonPicker />
 
         {/* Match name */}
-        <Text className="text-[#9CA3AF] text-xs uppercase tracking-widest mt-5 mb-2">
+        <Text className="text-text-secondary text-xs font-semibold uppercase tracking-wider mt-5 mb-2">
           Match Name
         </Text>
         <TextInput
-          className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl px-3 py-2 text-[#F5F5F5] text-sm"
+          className="bg-surface border border-border rounded-xl px-3 py-3 text-text-primary text-sm"
           placeholder="e.g. Match #1 at 01/15/2026"
           placeholderTextColor="#4B5563"
           value={matchName}
@@ -91,7 +91,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
         />
 
         {/* Match type cards */}
-        <Text className="text-[#9CA3AF] text-xs uppercase tracking-widest mt-5 mb-3">
+        <Text className="text-text-secondary text-xs font-semibold uppercase tracking-wider mt-5 mb-3">
           Match Type
         </Text>
         <View className="gap-3">
@@ -101,13 +101,13 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
               <TouchableOpacity
                 key={card.type}
                 onPress={() => setSelectedType(card.type)}
-                className={`flex-row items-center bg-[#1A1A1A] rounded-2xl p-4 border ${
-                  isSelected ? 'border-[#3B82F6]' : 'border-[#2A2A2A]'
+                className={`flex-row items-center bg-surface rounded-2xl p-4 border ${
+                  isSelected ? 'border-primary' : 'border-border'
                 }`}
               >
                 <View
                   className={`w-10 h-10 rounded-xl items-center justify-center mr-3 ${
-                    isSelected ? 'bg-[#3B82F6]/20' : 'bg-[#2A2A2A]'
+                    isSelected ? 'bg-primary/20' : 'bg-surface-light'
                   }`}
                 >
                   <Ionicons
@@ -119,12 +119,12 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
                 <View className="flex-1">
                   <Text
                     className={`font-semibold text-sm ${
-                      isSelected ? 'text-[#F5F5F5]' : 'text-[#9CA3AF]'
+                      isSelected ? 'text-text-primary' : 'text-text-secondary'
                     }`}
                   >
                     {card.title}
                   </Text>
-                  <Text className="text-[#9CA3AF] text-xs mt-0.5">{card.description}</Text>
+                  <Text className="text-text-secondary text-xs mt-0.5">{card.description}</Text>
                 </View>
                 {isSelected && (
                   <Ionicons name="checkmark-circle" size={20} color="#3B82F6" />
@@ -137,7 +137,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
         {/* Alliance selector — hidden for 'full' mode */}
         {selectedType === 'solo' && (
           <>
-            <Text className="text-[#9CA3AF] text-xs uppercase tracking-widest mt-5 mb-3">
+            <Text className="text-text-secondary text-xs font-semibold uppercase tracking-wider mt-5 mb-3">
               Alliance
             </Text>
             <View className="flex-row gap-3">
@@ -145,13 +145,13 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
                 onPress={() => setAlliance('blue')}
                 className={`flex-1 py-3 rounded-xl border items-center ${
                   alliance === 'blue'
-                    ? 'bg-[#3B82F6]/20 border-[#3B82F6]'
-                    : 'bg-[#1A1A1A] border-[#2A2A2A]'
+                    ? 'bg-primary/20 border-primary'
+                    : 'bg-surface border-border'
                 }`}
               >
                 <Text
                   className={`font-semibold text-sm ${
-                    alliance === 'blue' ? 'text-[#3B82F6]' : 'text-[#9CA3AF]'
+                    alliance === 'blue' ? 'text-primary' : 'text-text-secondary'
                   }`}
                 >
                   Blue
@@ -161,13 +161,13 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
                 onPress={() => setAlliance('red')}
                 className={`flex-1 py-3 rounded-xl border items-center ${
                   alliance === 'red'
-                    ? 'bg-[#EF4444]/20 border-[#EF4444]'
-                    : 'bg-[#1A1A1A] border-[#2A2A2A]'
+                    ? 'bg-auto/20 border-auto'
+                    : 'bg-surface border-border'
                 }`}
               >
                 <Text
                   className={`font-semibold text-sm ${
-                    alliance === 'red' ? 'text-[#EF4444]' : 'text-[#9CA3AF]'
+                    alliance === 'red' ? 'text-auto' : 'text-text-secondary'
                   }`}
                 >
                   Red
@@ -178,20 +178,20 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
         )}
 
         {/* Start mode selector */}
-        <Text className="text-[#9CA3AF] text-xs uppercase tracking-widest mt-5 mb-2">Start Mode</Text>
+        <Text className="text-text-secondary text-xs font-semibold uppercase tracking-wider mt-5 mb-2">Start Mode</Text>
         <View className="flex-row gap-2 mb-4">
           <TouchableOpacity
             onPress={() => setSelectedStartMode("auto_teleop")}
             className={`flex-1 p-3 rounded-xl border ${
               selectedStartMode === "auto_teleop"
-                ? "border-[#3B82F6] bg-[#3B82F6]/20"
-                : "border-[#2A2A2A] bg-[#1A1A1A]"
+                ? "border-primary bg-primary/20"
+                : "border-border bg-surface"
             }`}
           >
-            <Text className={`font-bold text-center ${selectedStartMode === "auto_teleop" ? "text-[#3B82F6]" : "text-[#9CA3AF]"}`}>
+            <Text className={`font-bold text-center ${selectedStartMode === "auto_teleop" ? "text-primary" : "text-text-secondary"}`}>
               Auto + Teleop
             </Text>
-            <Text className="text-[#9CA3AF] text-xs text-center mt-1">
+            <Text className="text-text-secondary text-xs text-center mt-1">
               Full match flow
             </Text>
           </TouchableOpacity>
@@ -199,14 +199,14 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
             onPress={() => setSelectedStartMode("teleop_only")}
             className={`flex-1 p-3 rounded-xl border ${
               selectedStartMode === "teleop_only"
-                ? "border-[#3B82F6] bg-[#3B82F6]/20"
-                : "border-[#2A2A2A] bg-[#1A1A1A]"
+                ? "border-primary bg-primary/20"
+                : "border-border bg-surface"
             }`}
           >
-            <Text className={`font-bold text-center ${selectedStartMode === "teleop_only" ? "text-[#3B82F6]" : "text-[#9CA3AF]"}`}>
+            <Text className={`font-bold text-center ${selectedStartMode === "teleop_only" ? "text-primary" : "text-text-secondary"}`}>
               Teleop Only
             </Text>
-            <Text className="text-[#9CA3AF] text-xs text-center mt-1">
+            <Text className="text-text-secondary text-xs text-center mt-1">
               Skip autonomous
             </Text>
           </TouchableOpacity>
