@@ -1,252 +1,142 @@
 // app/(tabs)/match/index.tsx
-import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  TextInput,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  useSeasonStore,
-  useMatchStore,
-  useHistoryStore,
-  computeScore,
-} from "../../../lib/store";
-import { getSeasonById } from "../../../lib/seasonLoader";
-import { MatchTimer } from "../../../components/timer/MatchTimer";
-import { ModuleRenderer } from "../../../components/scoring/ModuleRenderer";
-import { SeasonPicker } from "../../../components/ui/SeasonPicker";
-import { ScoreBadge } from "../../../components/ui/ScoreBadge";
-import { PhaseTab } from "../../../components/ui/PhaseTab";
-import { UndoBar } from "../../../components/ui/UndoBar";
-import type { ScoreValue } from "../../../types/match";
+import React, { useState, useEffect } from 'react';
+import { Alert, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+const ScreenOrientation = Platform.OS !== "web"
+  ? require("expo-screen-orientation")
+  : null;
+import * as Haptics from 'expo-haptics';
+import { useSeasonStore, useMatchStore, useHistoryStore } from '../../../lib/store';
+import { computeScore } from '../../../lib/scoreEngine';
+import { getSeasonById } from '../../../lib/seasonLoader';
+import { MatchSetup } from '../../../components/match/MatchSetup';
+import { TimerOnlyMatch } from '../../../components/match/TimerOnlyMatch';
+import { LandscapeMatch } from '../../../components/match/LandscapeMatch';
+import type { ScoreMap, MatchType } from '../../../types/match';
+
+type ScreenState = 'setup' | 'active';
 
 export default function MatchScreen() {
   const { selectedSeasonId } = useSeasonStore();
-  const { phase, scores, setScore, resetMatch, strictMode, setStrictMode } =
-    useMatchStore();
+  const { matchType, setMatchType, setMatchStarted, resetMatch } = useMatchStore();
   const { saveMatch } = useHistoryStore();
 
-  const [matchNumber, setMatchNumber] = React.useState<number | undefined>();
-  const [alliance, setAlliance] = React.useState<"red" | "blue" | undefined>();
-  const [activeTab, setActiveTab] = React.useState<"auto" | "teleop">("auto");
+  const [screenState, setScreenState] = useState<ScreenState>('setup');
+  const [matchNumber, setMatchNumber] = useState<number | undefined>();
+  const [alliance, setAlliance] = useState<'red' | 'blue' | undefined>();
 
   const season = getSeasonById(selectedSeasonId);
-  const { auto, teleop, total } = computeScore(season, scores);
 
+  // Lock to portrait on initial mount (setup state)
   useEffect(() => {
-    if (phase === "teleop" || phase === "complete") {
-      setActiveTab("teleop");
-    } else if (phase === "auto" || phase === "idle") {
-      setActiveTab("auto");
-    }
-  }, [phase]);
+    ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
+  }, []);
 
-  const handleSaveMatch = async () => {
-    await saveMatch({
-      seasonId: season.id,
-      timestamp: Date.now(),
-      durationSeconds:
-        season.timerDuration.autonomous +
-        season.timerDuration.transition +
-        season.timerDuration.teleop,
-      allScores: scores,
-      totalScore: total,
-      autoScore: auto,
-      teleopScore: teleop,
-      matchNumber,
-      alliance,
-    });
-    Alert.alert(
-      "Match Saved",
-      `Total: ${total} pts (Auto: ${auto} | Teleop: ${teleop})`,
-      [
-        { text: "New Match", onPress: resetMatch },
-        { text: "Keep", style: "cancel" },
-      ],
-    );
-  };
-
-  const isLocked = (
-    modulePeriod: "auto" | "teleop" | undefined,
-    moduleArray: "auto" | "teleop",
+  const handleStart = async (
+    type: MatchType,
+    number: number | undefined,
+    selectedAlliance: 'red' | 'blue',
   ) => {
-    if (!strictMode) return false; // All modules editable in relaxed mode
-    if (phase === "transition") return true;
-    if (phase === "idle" || phase === "complete") return false;
-    if (phase === "auto") return moduleArray !== "auto";
-    if (phase === "teleop") return moduleArray !== "teleop";
-    return false;
+    setMatchType(type);
+    setMatchNumber(number);
+    setAlliance(type === 'full' ? undefined : selectedAlliance);
+    setMatchStarted(true);
+
+    if (type === 'solo' || type === 'full') {
+      await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)?.catch(() => {});
+    } else {
+      // timer_only stays portrait
+      await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
+    }
+
+    setScreenState('active');
   };
 
+  const handleExit = async () => {
+    await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
+    resetMatch();
+    setMatchNumber(undefined);
+    setAlliance(undefined);
+    setScreenState('setup');
+  };
+
+  const handleMatchComplete = async (
+    blueScore: number,
+    redScore: number,
+    blueScores: ScoreMap,
+    redScores: ScoreMap,
+  ) => {
+    let totalScore: number;
+    let autoScore: number;
+    let teleopScore: number;
+    let allScores: ScoreMap | { blue: ScoreMap; red: ScoreMap };
+
+    if (matchType === 'solo') {
+      const allianceScores = alliance === 'red' ? redScores : blueScores;
+      const result = computeScore(season, allianceScores);
+      totalScore = result.total;
+      autoScore = result.auto;
+      teleopScore = result.teleop;
+      allScores = allianceScores;
+    } else {
+      // full mode
+      const blueResult = computeScore(season, blueScores);
+      const redResult = computeScore(season, redScores);
+      totalScore = blueScore + redScore;
+      autoScore = blueResult.auto + redResult.auto;
+      teleopScore = blueResult.teleop + redResult.teleop;
+      allScores = { blue: blueScores, red: redScores };
+    }
+
+    try {
+      await saveMatch({
+        seasonId: season.id,
+        timestamp: Date.now(),
+        durationSeconds:
+          season.timerDuration.autonomous +
+          season.timerDuration.transition +
+          season.timerDuration.teleop,
+        allScores,
+        totalScore,
+        autoScore,
+        teleopScore,
+        matchNumber,
+        alliance,
+        matchType,
+      });
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert('Match Saved', `Total: ${totalScore} pts`);
+    } catch (err) {
+      console.error('Failed to save match:', err);
+      Alert.alert('Save Failed', 'Could not save match. Please try again.');
+    }
+  };
+
+  if (screenState === 'setup') {
+    return (
+      <SafeAreaView className="flex-1 bg-[#0F0F0F]">
+        <MatchSetup season={season} onStart={handleStart} />
+      </SafeAreaView>
+    );
+  }
+
+  // active state
+  if (matchType === 'timer_only') {
+    return (
+      <SafeAreaView className="flex-1 bg-[#0F0F0F]">
+        <TimerOnlyMatch season={season} onBack={handleExit} />
+      </SafeAreaView>
+    );
+  }
+
+  // solo or full — landscape
   return (
-    <SafeAreaView className="flex-1 bg-[#0F0F0F]">
-      {/* Top bar */}
-      <View className="flex-row items-center px-4 pt-3 pb-2 gap-3">
-        <View className="flex-1">
-          <SeasonPicker />
-        </View>
-      </View>
-      {season.provisional && (
-        <View className="mx-4 mt-2 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl px-3 py-2">
-          <Text className="text-[#F59E0B] text-xs font-medium text-center">
-            Provisional scoring — update when official manual releases
-          </Text>
-        </View>
-      )}
-
-      {phase === "idle" && (
-        <View className="flex-row items-center px-4 mt-2 gap-3">
-          {/* Match number */}
-          <View className="flex-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl px-3 py-2">
-            <Text className="text-[#9CA3AF] text-xs mb-1">Match #</Text>
-            <TextInput
-              className="text-[#F5F5F5] text-base"
-              keyboardType="number-pad"
-              placeholder="—"
-              placeholderTextColor="#6B7280"
-              value={matchNumber ? String(matchNumber) : ""}
-              onChangeText={(t) =>
-                setMatchNumber(t ? parseInt(t, 10) : undefined)
-              }
-            />
-          </View>
-
-          {/* Alliance toggle */}
-          <View className="flex-row gap-1">
-            <TouchableOpacity
-              onPress={() =>
-                setAlliance(alliance === "red" ? undefined : "red")
-              }
-              className={`px-4 py-3 rounded-xl border ${
-                alliance === "red"
-                  ? "bg-[#EF4444] border-[#EF4444]"
-                  : "bg-[#1A1A1A] border-[#2A2A2A]"
-              }`}
-            >
-              <Text
-                className={`font-semibold text-sm ${alliance === "red" ? "text-white" : "text-[#EF4444]"}`}
-              >
-                RED
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                setAlliance(alliance === "blue" ? undefined : "blue")
-              }
-              className={`px-4 py-3 rounded-xl border ${
-                alliance === "blue"
-                  ? "bg-[#3B82F6] border-[#3B82F6]"
-                  : "bg-[#1A1A1A] border-[#2A2A2A]"
-              }`}
-            >
-              <Text
-                className={`font-semibold text-sm ${alliance === "blue" ? "text-white" : "text-[#3B82F6]"}`}
-              >
-                BLUE
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* Strict mode toggle */}
-      <View className="flex-row items-center justify-between px-4 mt-1">
-        <Text className="text-[#9CA3AF] text-xs">
-          {strictMode
-            ? "Strict mode — inputs locked by phase"
-            : "Relaxed — all inputs editable"}
-        </Text>
-        <TouchableOpacity
-          onPress={() => setStrictMode(!strictMode)}
-          className={`px-3 py-1 rounded-full border ${
-            strictMode
-              ? "border-[#F59E0B] bg-[#F59E0B]/10"
-              : "border-[#2A2A2A] bg-[#1A1A1A]"
-          }`}
-        >
-          <Text
-            className={`text-xs font-medium ${strictMode ? "text-[#F59E0B]" : "text-[#9CA3AF]"}`}
-          >
-            {strictMode ? "STRICT" : "RELAXED"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Timer + score */}
-      <View className="items-center py-4">
-        <MatchTimer season={season} />
-        <View className="mt-4">
-          <ScoreBadge total={total} auto={auto} teleop={teleop} />
-        </View>
-      </View>
-
-      {/* Phase tabs + scoring modules */}
-      <View className="flex-1 overflow-hidden">
-        <UndoBar />
-        <PhaseTab
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          autoScore={auto}
-          teleopScore={teleop}
-        />
-        <ScrollView
-          className="flex-1 px-4"
-          contentContainerStyle={{ paddingBottom: 120 }}
-          showsVerticalScrollIndicator={false}
-        >
-          {activeTab === "auto" &&
-            season.autonomous.map((module) => (
-              <ModuleRenderer
-                key={module.id}
-                module={module}
-                scores={scores}
-                onChangeScore={(id, val) => setScore(id, val as ScoreValue)}
-                disabled={isLocked(module.period, "auto")}
-                period="auto"
-              />
-            ))}
-          {activeTab === "teleop" &&
-            season.teleop.map((module) => (
-              <ModuleRenderer
-                key={module.id}
-                module={module}
-                scores={scores}
-                onChangeScore={(id, val) => setScore(id, val as ScoreValue)}
-                disabled={isLocked(module.period, "teleop")}
-                period="teleop"
-              />
-            ))}
-        </ScrollView>
-      </View>
-
-      {/* Bottom action bar */}
-      <View className="px-4 pb-6 pt-3 flex-row gap-3 bg-[#0F0F0F] border-t border-[#2A2A2A]">
-        <TouchableOpacity
-          onPress={resetMatch}
-          className="flex-1 py-3 rounded-xl border border-[#2A2A2A] items-center"
-        >
-          <Text className="text-[#9CA3AF] font-semibold">Reset</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleSaveMatch}
-          disabled={phase !== "complete"}
-          className={`flex-2 px-6 py-3 rounded-xl items-center ${
-            phase === "complete"
-              ? "bg-[#3B82F6]"
-              : "bg-[#1A1A1A] border border-[#2A2A2A]"
-          }`}
-        >
-          <Text
-            className={`font-semibold ${phase === "complete" ? "text-white" : "text-[#9CA3AF]"}`}
-          >
-            {phase === "complete" ? `Save Match  ${total}pts` : "Save Match"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <LandscapeMatch
+      season={season}
+      matchType={matchType as 'solo' | 'full'}
+      alliance={alliance}
+      onExit={handleExit}
+      onMatchComplete={handleMatchComplete}
+    />
   );
 }

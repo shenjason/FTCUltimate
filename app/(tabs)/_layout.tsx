@@ -2,7 +2,10 @@
 import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as ScreenOrientation from 'expo-screen-orientation';
+import { Platform } from 'react-native';
+const ScreenOrientation = Platform.OS !== "web"
+  ? require("expo-screen-orientation")
+  : null;
 import { useMatchStore } from '../../lib/store';
 
 // Issue 4: module-level const avoids inline object recreation on every render
@@ -21,15 +24,15 @@ export default function TabLayout() {
   // establishes the default portrait lock.
   useEffect(() => {
     // Issue 1: handle promise rejection so unhandled rejections don't surface
-    ScreenOrientation.lockAsync(
+    ScreenOrientation?.lockAsync(
       ScreenOrientation.OrientationLock.PORTRAIT_UP,
-    ).catch((err) => {
+    )?.catch((err: any) => {
       console.warn('[TabLayout] Failed to lock orientation to portrait:', err);
     });
 
     // Issue 3: release the lock if this layout ever unmounts
     return () => {
-      ScreenOrientation.unlockAsync().catch((err) => {
+      ScreenOrientation?.unlockAsync()?.catch((err: any) => {
         console.warn('[TabLayout] Failed to unlock orientation on unmount:', err);
       });
     };
