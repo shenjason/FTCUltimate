@@ -10,8 +10,9 @@ import { useMatchStore } from '../../lib/store';
 
 // Issue 4: module-level const avoids inline object recreation on every render
 const TAB_BAR_STYLE_VISIBLE = {
-  backgroundColor: '#0F0F0F',
-  borderTopColor: '#2A2A2A',
+  backgroundColor: "#0A0F1E",
+  borderTopColor: "#1E293B",
+  borderTopWidth: 1,
 } as const;
 
 export default function TabLayout() {
