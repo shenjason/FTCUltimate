@@ -1,3 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .glass-card {
+    @apply bg-surface border border-border rounded-2xl;
+  }
+
+  .glass-card-accent-green {
+    @apply bg-surface border border-border rounded-2xl border-b-2 border-b-accent-green;
+  }
+
+  .glass-card-accent-blue {
+    @apply bg-surface border border-border rounded-2xl border-b-2 border-b-accent-blue;
+  }
+
+  .glass-card-accent-yellow {
+    @apply bg-surface border border-border rounded-2xl border-b-2 border-b-accent-yellow;
+  }
+
+  .glass-card-accent-purple {
+    @apply bg-surface border border-border rounded-2xl border-b-2 border-b-accent-purple;
+  }
+
+  .filter-pill {
+    @apply px-3 py-1 rounded-full text-sm;
+  }
+
+  .filter-pill-active {
+    @apply px-3 py-1 rounded-full text-sm bg-primary text-white;
+  }
+
+  .filter-pill-inactive {
+    @apply px-3 py-1 rounded-full text-sm bg-surface text-text-secondary;
+  }
+
+  .section-header {
+    @apply text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2;
+  }
+
+  .stat-card {
+    @apply bg-surface border border-border rounded-2xl p-3 items-center;
+  }
+}
