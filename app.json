@@ -1,21 +1,21 @@
 {
   "expo": {
-    "name": "ScoutOps",
-    "slug": "scoutops",
+    "name": "FTCUltimate",
+    "slug": "ftcultimate",
     "version": "1.0.0",
     "orientation": "default",
-    "scheme": "scoutops",
+    "scheme": "ftcultimate",
     "userInterfaceStyle": "dark",
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.scoutops.app"
+      "bundleIdentifier": "com.ftcultimate.app"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0F0F0F"
       },
-      "package": "com.scoutops.app"
+      "package": "com.ftcultimate.app"
     },
     "plugins": ["expo-router", "expo-screen-orientation"],
     "experiments": {

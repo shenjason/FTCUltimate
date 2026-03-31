@@ -1,4 +1,4 @@
-# ScoutOps
+# FTCUltimate
 
 Cross-season FTC/FRC scouting and practice match logging app.
 

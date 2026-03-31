@@ -50,7 +50,7 @@ export async function exportMatchesCSV(matches: SavedMatch[]): Promise<void> {
     .map((row) => row.map((cell) => `"${cell}"`).join(","))
     .join("\n");
 
-  const filename = `scoutops_export_${Date.now()}.csv`;
+  const filename = `ftcultimate_export_${Date.now()}.csv`;
   const filepath = `${FileSystem.documentDirectory}${filename}`;
 
   await FileSystem.writeAsStringAsync(filepath, csv, {
