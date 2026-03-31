@@ -79,13 +79,46 @@ export function computeDualScore(
   season: SeasonConfig,
   blueScores: ScoreMap,
   redScores: ScoreMap,
+  fouls: { redMinor: number; redMajor: number; blueMinor: number; blueMajor: number } = { redMinor: 0, redMajor: 0, blueMinor: 0, blueMajor: 0 },
 ): {
   blue: { auto: number; teleop: number; total: number };
   red: { auto: number; teleop: number; total: number };
 } {
+  const foulPts = season.foulPoints ?? { minor: 5, major: 15 };
+
+  const blueBase = computeScore(season, blueScores);
+  const redBase = computeScore(season, redScores);
+
+  // Fouls add to OPPOSING alliance's score
+  const blueFoulBonus = fouls.redMinor * foulPts.minor + fouls.redMajor * foulPts.major;
+  const redFoulBonus = fouls.blueMinor * foulPts.minor + fouls.blueMajor * foulPts.major;
+
   return {
-    blue: computeScore(season, blueScores),
-    red: computeScore(season, redScores),
+    blue: {
+      auto: blueBase.auto,
+      teleop: blueBase.teleop,
+      total: blueBase.total + blueFoulBonus,
+    },
+    red: {
+      auto: redBase.auto,
+      teleop: redBase.teleop,
+      total: redBase.total + redFoulBonus,
+    },
+  };
+}
+
+export function computeSoloScore(
+  season: SeasonConfig,
+  scores: ScoreMap,
+  fouls: { minor: number; major: number },
+) {
+  const foulPts = season.foulPoints ?? { minor: 5, major: 15 };
+  const base = computeScore(season, scores);
+  const foulBonus = fouls.minor * foulPts.minor + fouls.major * foulPts.major;
+  return {
+    auto: base.auto,
+    teleop: base.teleop,
+    total: base.total + foulBonus,
   };
 }
 
