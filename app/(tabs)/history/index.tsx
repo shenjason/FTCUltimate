@@ -29,13 +29,13 @@ function MatchCard({
   return (
     <TouchableOpacity
       onPress={() => router.push(`/history/${match.id}`)}
-      className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl p-4 mb-3 mx-4"
+      className="bg-surface border border-border rounded-2xl p-4 mb-3 mx-4"
     >
       <View className="flex-row items-start justify-between">
         <View className="flex-1">
           <View className="flex-row items-center gap-2 flex-wrap">
             <Text
-              className="text-[#F5F5F5] font-semibold text-sm"
+              className="text-text-primary font-semibold text-sm"
               numberOfLines={1}
             >
               {match.matchName ?? `Match #${match.matchNumber ?? "?"}`}
@@ -43,12 +43,12 @@ function MatchCard({
             <MatchTypeBadge matchType={match.matchType} />
           </View>
           <View className="flex-row items-center gap-2 mt-0.5 flex-wrap">
-            <View className="bg-[#2A2A2A] px-2 py-0.5 rounded-full">
-              <Text className="text-[#9CA3AF] text-xs" numberOfLines={1}>
+            <View className="bg-surface-light px-2 py-0.5 rounded-full">
+              <Text className="text-text-secondary text-xs" numberOfLines={1}>
                 {seasonDisplayName}
               </Text>
             </View>
-            <Text className="text-[#9CA3AF] text-xs">
+            <Text className="text-text-secondary text-xs">
               {date.toLocaleDateString()} ·{" "}
               {date.toLocaleTimeString([], {
                 hour: "2-digit",
@@ -58,28 +58,28 @@ function MatchCard({
           </View>
         </View>
         <View className="items-end">
-          <Text className="text-[#F5F5F5] text-2xl font-bold">
+          <Text className="text-text-primary text-2xl font-bold">
             {match.totalScore}
           </Text>
-          <Text className="text-[#9CA3AF] text-xs">pts</Text>
+          <Text className="text-text-secondary text-xs">pts</Text>
         </View>
       </View>
       <View className="flex-row gap-4 mt-3">
         <View className="flex-row items-center gap-1">
-          <View className="w-2 h-2 rounded-full bg-[#EF4444]" />
-          <Text className="text-[#9CA3AF] text-xs">AUTO {match.autoScore}</Text>
+          <View className="w-2 h-2 rounded-full bg-auto" />
+          <Text className="text-text-secondary text-xs">AUTO {match.autoScore}</Text>
         </View>
         <View className="flex-row items-center gap-1">
-          <View className="w-2 h-2 rounded-full bg-[#22C55E]" />
-          <Text className="text-[#9CA3AF] text-xs">
+          <View className="w-2 h-2 rounded-full bg-teleop" />
+          <Text className="text-text-secondary text-xs">
             TELEOP {match.teleopScore}
           </Text>
         </View>
         {match.tags && match.tags.length > 0 && (
           <View className="flex-row gap-1 flex-wrap">
             {match.tags.map((tag) => (
-              <View key={tag} className="bg-[#2A2A2A] px-2 py-0.5 rounded-full">
-                <Text className="text-[#9CA3AF] text-xs">{tag}</Text>
+              <View key={tag} className="bg-surface-light px-2 py-0.5 rounded-full">
+                <Text className="text-text-secondary text-xs">{tag}</Text>
               </View>
             ))}
           </View>
@@ -166,14 +166,14 @@ export default function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0F0F0F]">
+    <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
-        <Text className="text-[#F5F5F5] text-xl font-bold">Match History</Text>
+        <Text className="text-text-primary text-xl font-bold">Match History</Text>
         <View className="flex-row gap-2">
           <TouchableOpacity
             onPress={handleSync}
             disabled={syncing || unsyncedCount === 0}
-            className="flex-row items-center gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] px-3 py-1.5 rounded-full"
+            className="flex-row items-center gap-1.5 bg-surface border border-border px-3 py-1.5 rounded-full"
           >
             <Ionicons
               name={syncing ? "sync" : "cloud-upload-outline"}
@@ -181,7 +181,7 @@ export default function HistoryScreen() {
               color={unsyncedCount > 0 ? "#3B82F6" : "#6B7280"}
             />
             {unsyncedCount > 0 && (
-              <Text className="text-[#3B82F6] text-xs font-medium">
+              <Text className="text-primary text-xs font-medium">
                 {unsyncedCount}
               </Text>
             )}
@@ -189,7 +189,7 @@ export default function HistoryScreen() {
           <TouchableOpacity
             onPress={() => exportMatchesCSV(filtered)}
             disabled={filtered.length === 0}
-            className="flex-row items-center gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] px-3 py-1.5 rounded-full"
+            className="flex-row items-center gap-1.5 bg-surface border border-border px-3 py-1.5 rounded-full"
           >
             <Ionicons
               name="download-outline"
@@ -197,7 +197,7 @@ export default function HistoryScreen() {
               color={filtered.length > 0 ? "#22C55E" : "#6B7280"}
             />
             <Text
-              className={`text-xs font-medium ${filtered.length > 0 ? "text-[#22C55E]" : "text-[#6B7280]"}`}
+              className={`text-xs font-medium ${filtered.length > 0 ? "text-teleop" : "text-[#6B7280]"}`}
             >
               CSV
             </Text>
@@ -207,34 +207,34 @@ export default function HistoryScreen() {
 
       {/* Stats summary */}
       {filtered.length > 0 && (
-        <View className="mx-4 mb-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl p-4">
-          <Text className="text-[#9CA3AF] text-xs font-bold tracking-widest mb-2">
+        <View className="mx-4 mb-3 bg-surface border border-border rounded-2xl p-4">
+          <Text className="text-text-secondary text-xs font-bold tracking-widest mb-2">
             LAST {last10.length} MATCHES
           </Text>
           <View className="flex-row justify-between">
             <View className="items-center">
-              <Text className="text-[#F5F5F5] text-xl font-bold">
+              <Text className="text-text-primary text-xl font-bold">
                 {avgScore}
               </Text>
-              <Text className="text-[#9CA3AF] text-xs">Avg</Text>
+              <Text className="text-text-secondary text-xs">Avg</Text>
             </View>
             <View className="items-center">
-              <Text className="text-[#F5F5F5] text-xl font-bold">
+              <Text className="text-text-primary text-xl font-bold">
                 {bestMatch}
               </Text>
-              <Text className="text-[#9CA3AF] text-xs">Best</Text>
+              <Text className="text-text-secondary text-xs">Best</Text>
             </View>
             <View className="items-center">
-              <Text className="text-[#EF4444] text-xl font-bold">
+              <Text className="text-auto text-xl font-bold">
                 {avgAuto}
               </Text>
-              <Text className="text-[#9CA3AF] text-xs">Avg Auto</Text>
+              <Text className="text-text-secondary text-xs">Avg Auto</Text>
             </View>
             <View className="items-center">
-              <Text className="text-[#22C55E] text-xl font-bold">
+              <Text className="text-teleop text-xl font-bold">
                 {avgTeleop}
               </Text>
-              <Text className="text-[#9CA3AF] text-xs">Avg Teleop</Text>
+              <Text className="text-text-secondary text-xs">Avg Teleop</Text>
             </View>
           </View>
         </View>
@@ -259,13 +259,13 @@ export default function HistoryScreen() {
               onPress={() => setFilterSeasonId(item.id)}
               className={`mr-2 px-3 py-1.5 rounded-full border ${
                 filterSeasonId === item.id
-                  ? "bg-[#3B82F6] border-[#3B82F6]"
-                  : "bg-[#1A1A1A] border-[#2A2A2A]"
+                  ? "bg-primary border-primary"
+                  : "bg-surface border-border"
               }`}
             >
               <Text
                 className={`text-xs font-medium ${
-                  filterSeasonId === item.id ? "text-white" : "text-[#9CA3AF]"
+                  filterSeasonId === item.id ? "text-white" : "text-text-secondary"
                 }`}
                 numberOfLines={1}
               >
@@ -282,9 +282,9 @@ export default function HistoryScreen() {
           <TouchableOpacity
             key={type}
             onPress={() => setMatchTypeFilter(type)}
-            className={`px-3 py-1 rounded-full ${matchTypeFilter === type ? "bg-[#3B82F6]" : "bg-[#1A1A1A]"}`}
+            className={`px-3 py-1 rounded-full ${matchTypeFilter === type ? "bg-primary" : "bg-surface"}`}
           >
-            <Text className={`text-sm ${matchTypeFilter === type ? "text-white" : "text-[#9CA3AF]"}`}>
+            <Text className={`text-sm ${matchTypeFilter === type ? "text-white" : "text-text-secondary"}`}>
               {type === "all" ? "All Types" : type.charAt(0).toUpperCase() + type.slice(1)}
             </Text>
           </TouchableOpacity>
@@ -297,9 +297,9 @@ export default function HistoryScreen() {
           <TouchableOpacity
             key={mode}
             onPress={() => setStartModeFilter(mode)}
-            className={`px-3 py-1 rounded-full ${startModeFilter === mode ? "bg-[#3B82F6]" : "bg-[#1A1A1A]"}`}
+            className={`px-3 py-1 rounded-full ${startModeFilter === mode ? "bg-primary" : "bg-surface"}`}
           >
-            <Text className={`text-sm ${startModeFilter === mode ? "text-white" : "text-[#9CA3AF]"}`}>
+            <Text className={`text-sm ${startModeFilter === mode ? "text-white" : "text-text-secondary"}`}>
               {mode === "all" ? "All Modes" : mode === "auto_teleop" ? "Auto + Teleop" : "Teleop Only"}
             </Text>
           </TouchableOpacity>
@@ -308,8 +308,8 @@ export default function HistoryScreen() {
 
       {filtered.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Ionicons name="time-outline" size={48} color="#2A2A2A" />
-          <Text className="text-[#9CA3AF] text-sm mt-3">
+          <Ionicons name="time-outline" size={48} color="#1E293B" />
+          <Text className="text-text-secondary text-sm mt-3">
             No matches saved yet
           </Text>
         </View>
