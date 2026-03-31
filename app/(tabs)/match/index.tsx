@@ -7,7 +7,6 @@ const ScreenOrientation = Platform.OS !== "web"
   : null;
 import * as Haptics from 'expo-haptics';
 import { useSeasonStore, useMatchStore, useHistoryStore } from '../../../lib/store';
-import { computeScore } from '../../../lib/scoreEngine';
 import { getSeasonById } from '../../../lib/seasonLoader';
 import { MatchSetup } from '../../../components/match/MatchSetup';
 import { TimerOnlyMatch } from '../../../components/match/TimerOnlyMatch';
@@ -60,32 +59,25 @@ export default function MatchScreen() {
     setScreenState('setup');
   };
 
-  const handleMatchComplete = async (
-    blueScore: number,
-    redScore: number,
-    blueScores: ScoreMap,
-    redScores: ScoreMap,
-  ) => {
+  const handleMatchComplete = async (result: any) => {
     let totalScore: number;
     let autoScore: number;
     let teleopScore: number;
     let allScores: ScoreMap | { blue: ScoreMap; red: ScoreMap };
 
     if (matchType === 'solo') {
-      const allianceScores = alliance === 'red' ? redScores : blueScores;
-      const result = computeScore(season, allianceScores);
-      totalScore = result.total;
-      autoScore = result.auto;
-      teleopScore = result.teleop;
-      allScores = allianceScores;
+      totalScore = result.totalScore ?? 0;
+      autoScore = result.autoScore ?? 0;
+      teleopScore = result.teleopScore ?? 0;
+      allScores = result.scores ?? {};
     } else {
       // full mode
-      const blueResult = computeScore(season, blueScores);
-      const redResult = computeScore(season, redScores);
-      totalScore = blueScore + redScore;
+      const blueResult = result.blue ?? { total: 0, auto: 0, teleop: 0 };
+      const redResult = result.red ?? { total: 0, auto: 0, teleop: 0 };
+      totalScore = blueResult.total + redResult.total;
       autoScore = blueResult.auto + redResult.auto;
       teleopScore = blueResult.teleop + redResult.teleop;
-      allScores = { blue: blueScores, red: redScores };
+      allScores = { blue: result.scores ?? {}, red: result.redScores ?? {} };
     }
 
     try {
@@ -125,7 +117,7 @@ export default function MatchScreen() {
   if (matchType === 'timer_only') {
     return (
       <SafeAreaView className="flex-1 bg-[#0F0F0F]">
-        <TimerOnlyMatch season={season} onBack={handleExit} />
+        <TimerOnlyMatch season={season} onExit={handleExit} />
       </SafeAreaView>
     );
   }
@@ -135,7 +127,7 @@ export default function MatchScreen() {
     <LandscapeMatch
       season={season}
       matchType={matchType as 'solo' | 'full'}
-      alliance={alliance}
+      alliance={alliance ?? "blue"}
       onExit={handleExit}
       onMatchComplete={handleMatchComplete}
     />

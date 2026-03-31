@@ -38,7 +38,7 @@ function MatchCard({
               className="text-text-primary font-semibold text-sm"
               numberOfLines={1}
             >
-              {match.matchName ?? `Match #${match.matchNumber ?? "?"}`}
+              {match.matchName ?? "Untitled Match"}
             </Text>
             <MatchTypeBadge matchType={match.matchType} />
           </View>

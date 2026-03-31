@@ -241,8 +241,8 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         record.matchNumber = null;
         record.alliance = match.alliance ?? null;
         record.matchType = match.matchType ?? null;
-        record.set('matchName', match.matchName ?? '');
-        record.set('startMode', match.startMode ?? 'auto_teleop');
+        record.matchName = match.matchName ?? '';
+        record.startMode = match.startMode ?? 'auto_teleop';
       });
     });
     // reload

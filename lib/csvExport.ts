@@ -37,7 +37,7 @@ export async function exportMatchesCSV(matches: SavedMatch[]): Promise<void> {
       season?.name ?? m.seasonId,
       date.toLocaleDateString(),
       date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      m.matchNumber?.toString() ?? "",
+      m.matchName ?? "",
       m.alliance ?? "",
       m.autoScore.toString(),
       m.teleopScore.toString(),
