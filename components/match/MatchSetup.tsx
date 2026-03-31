@@ -215,7 +215,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
         {/* Start button */}
         <TouchableOpacity
           onPress={handleStart}
-          className="mt-4 bg-[#3B82F6] rounded-2xl py-4 items-center"
+          className="mt-4 bg-primary rounded-2xl py-4 items-center"
         >
           <Text className="text-white font-bold text-base">Start Match</Text>
         </TouchableOpacity>
