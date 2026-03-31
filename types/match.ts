@@ -1,6 +1,6 @@
 // types/match.ts
 
-export type MatchPhase = 'idle' | 'auto' | 'transition' | 'teleop' | 'complete';
+export type MatchPhase = 'idle' | 'pre_auto' | 'auto' | 'transition' | 'pre_teleop' | 'teleop' | 'complete';
 export type MatchType = 'timer_only' | 'solo' | 'full';
 export type StartMode = "auto_teleop" | "teleop_only";
 

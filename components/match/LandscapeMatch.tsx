@@ -25,8 +25,10 @@ function resolveModules(
   season: SeasonConfig,
   phase: MatchPhase,
 ): ModuleConfig[] {
-  if (phase === "auto" || phase === "transition") return season.autonomous;
-  if (phase === "teleop" || phase === "complete") return season.teleop;
+  if (phase === "pre_auto" || phase === "auto" || phase === "transition")
+    return season.autonomous;
+  if (phase === "pre_teleop" || phase === "teleop" || phase === "complete")
+    return season.teleop;
   return [];
 }
 
@@ -48,23 +50,19 @@ export function LandscapeMatch({
     setScore,
     setRedScore,
     fouls,
-    resetMatch,
   } = useMatchStore();
 
-  const {
-    displayTime,
-    isPaused,
-    isCountingDown,
-    countdownValue,
-    start,
-    pause,
-    resume,
-    reset,
-  } = useMatchTimer(season);
+  const { displayTime, isPaused, start, resume, reset } = useMatchTimer(season);
 
   const completeFiredRef = useRef(false);
+  const justResetRef = useRef(false); // guards against double-fire on reset (TouchableOpacity re-render race)
+  const justResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSolo = matchType === "solo";
-  const disabled = phase === "idle" || phase === "complete";
+  const disabled =
+    phase === "idle" ||
+    phase === "complete" ||
+    phase === "pre_auto" ||
+    phase === "pre_teleop";
   const modules = resolveModules(season, phase);
 
   // Auto-select first module when modules change (phase change)
@@ -136,9 +134,15 @@ export function LandscapeMatch({
 
   const handleStartReset = () => {
     if (phase === "idle" || phase === "complete") {
+      if (justResetRef.current) return;
       completeFiredRef.current = false;
       start();
     } else {
+      justResetRef.current = true;
+      if (justResetTimerRef.current) clearTimeout(justResetTimerRef.current);
+      justResetTimerRef.current = setTimeout(() => {
+        justResetRef.current = false;
+      }, 300);
       reset();
     }
   };
@@ -225,15 +229,9 @@ export function LandscapeMatch({
               <View className="flex-1 flex-row gap-1">
                 {/* Timer */}
                 <View className="flex-1 bg-white rounded-lg items-center justify-center">
-                  {isCountingDown ? (
-                    <Text className="text-black text-3xl font-bold">
-                      {countdownValue}
-                    </Text>
-                  ) : (
-                    <Text className="text-black text-3xl font-bold font-mono">
-                      {displayTime}
-                    </Text>
-                  )}
+                  <Text className="text-black text-3xl font-bold font-mono">
+                    {displayTime}
+                  </Text>
                   {isPaused && (
                     <TouchableOpacity onPress={resume}>
                       <Text className="text-transition text-xs">PAUSED</Text>
@@ -330,16 +328,10 @@ export function LandscapeMatch({
               </Text>
             </TouchableOpacity>
 
-            <View className="bg-white px-6 py-2 rounded-sm">
-              {isCountingDown ? (
-                <Text className="text-black text-4xl font-bold">
-                  {countdownValue}
-                </Text>
-              ) : (
-                <Text className="text-black text-4xl font-bold font-mono">
-                  {displayTime}
-                </Text>
-              )}
+            <View className="bg-white px-6 py-2 rounded-full">
+              <Text className="text-black text-2xl font-bold font-mono">
+                {displayTime}
+              </Text>
             </View>
 
             {isPaused && (

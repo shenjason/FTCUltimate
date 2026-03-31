@@ -15,8 +15,6 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
     displayTime,
     phase,
     isPaused,
-    isCountingDown,
-    countdownValue,
     start,
     pause,
     resume,
@@ -65,16 +63,10 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
         </Text>
       </View>
 
-      {/* Countdown or Timer */}
-      {isCountingDown ? (
-        <Text className="text-white text-[160px] font-black">
-          {countdownValue}
-        </Text>
-      ) : (
-        <Text className="text-white text-[160px] font-black tracking-tight">
-          {displayTime}
-        </Text>
-      )}
+      {/* Timer */}
+      <Text className="text-white text-[160px] font-black tracking-tight">
+        {displayTime}
+      </Text>
 
       {/* Pause indicator */}
       {isPaused && (
@@ -86,7 +78,7 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
       )}
 
       {/* Pause button (during active phases) */}
-      {timerStarted && !isPaused && !isCountingDown && (
+      {timerStarted && !isPaused && phase !== 'pre_auto' && phase !== 'pre_teleop' && (
         <TouchableOpacity onPress={pause} className="mt-4">
           <Text className="text-text-secondary text-base">tap to pause</Text>
         </TouchableOpacity>

@@ -54,6 +54,7 @@ export default function MatchScreen() {
 
   const handleExit = async () => {
     await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
+    setMatchStarted(false);
     resetMatch();
     setAlliance(undefined);
     setScreenState('setup');
