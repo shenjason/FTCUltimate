@@ -251,8 +251,11 @@ export function FullMatchFooter({
   // Fallback for non-counter module types
   return (
     <View className="h-36 flex-row border-t border-outline-variant/10">
-      <View className="flex-1 bg-[#1a0808] items-center justify-center border-r border-white/5">
-        <Text className="text-[9px] uppercase font-bold text-stitch-error mb-2">
+      <View className="flex-1 bg-[#1a0808] flex-col justify-center px-4 border-r border-white/5">
+        <Text
+          numberOfLines={1}
+          className="text-[9px] uppercase font-bold text-stitch-error mb-2"
+        >
           Red: {selectedModule.label}
         </Text>
         <FallbackControls
@@ -262,8 +265,11 @@ export function FullMatchFooter({
           disabled={disabled}
         />
       </View>
-      <View className="flex-1 bg-[#080818] items-center justify-center">
-        <Text className="text-[9px] uppercase font-bold text-stitch-primary mb-2">
+      <View className="flex-1 bg-[#080818] flex-col justify-center px-4">
+        <Text
+          numberOfLines={1}
+          className="text-[9px] uppercase font-bold text-stitch-primary mb-2"
+        >
           Blue: {selectedModule.label}
         </Text>
         <FallbackControls
@@ -309,21 +315,28 @@ function FallbackControls({
         </View>
       );
     case "selector": {
-      const mod = module as ModuleConfig & { options: { id: string; label: string }[] };
+      const mod = module as import('../../types/season').SelectorModule;
+      const defaultValue = mod.defaultValue ?? null;
+      const effectiveValue = (value as string | null) ?? defaultValue;
       return (
         <View className="flex-row flex-wrap gap-2 justify-center">
-          {mod.options.map((opt) => (
-            <TouchableOpacity
-              key={opt.id}
-              onPress={() => onChange(value === opt.id ? null : opt.id)}
-              disabled={disabled}
-              className={`px-3 py-2 rounded-lg ${value === opt.id ? "bg-stitch-primary" : "bg-surface-container-highest"}`}
-            >
-              <Text className="text-on-surface text-sm font-semibold">
-                {opt.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {mod.options.map((opt) => {
+            const isActive = effectiveValue === opt.id;
+            return (
+              <TouchableOpacity
+                key={opt.id}
+                onPress={() =>
+                  onChange((value as string | null) === opt.id ? defaultValue : opt.id)
+                }
+                disabled={disabled}
+                className={`px-3 py-2 rounded-lg ${isActive ? "bg-stitch-primary" : "bg-surface-container-highest"}`}
+              >
+                <Text className="text-on-surface text-sm font-semibold">
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       );
     }
