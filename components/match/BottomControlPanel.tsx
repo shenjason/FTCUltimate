@@ -131,17 +131,25 @@ function renderControls(
     }
 
     case "selector": {
-      const mod = module as ModuleConfig & {
-        options: { id: string; label: string; points?: number }[];
-      };
+      const mod = module as import("../../types/season").SelectorModule;
+      const defaultValue = mod.defaultValue ?? null;
+      const effectiveValue = (value as string | null) ?? defaultValue;
+
       return (
         <View className="flex-1 flex-row items-center justify-around gap-2">
           {mod.options.map((opt) => {
-            const isActive = value === opt.id;
+            const isActive = effectiveValue === opt.id;
             return (
               <TouchableOpacity
                 key={opt.id}
-                onPress={() => onChange(value === opt.id ? null : opt.id)}
+                onPress={() => {
+                  if ((value as string | null) === opt.id) {
+                    // Deselect → cycle back to defaultValue (not null)
+                    onChange(defaultValue);
+                  } else {
+                    onChange(opt.id);
+                  }
+                }}
                 disabled={disabled}
                 className={`flex-1 h-16 rounded-xl flex-col items-center justify-center gap-1 active:scale-95 ${
                   isActive
