@@ -20,6 +20,7 @@
       "id": "auto_preloaded_cone",
       "label": "Preloaded Cone on Junction",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "Not Scored", "points": 0 },
         { "id": "ground", "label": "Ground Junction", "points": 2 },
@@ -32,6 +33,7 @@
       "id": "auto_parked",
       "label": "Auto Parking",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "Not Parked", "points": 0 },
         { "id": "signal_zone", "label": "Signal Zone", "points": 10 },
@@ -87,6 +89,7 @@
       "id": "end_parked",
       "label": "Endgame Parking",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "None", "points": 0 },
         { "id": "signal_zone", "label": "Signal Zone", "points": 10 },
@@ -97,6 +100,7 @@
       "id": "conestack_bonus",
       "label": "Cone Stack Bonus",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "None", "points": 0 },
         { "id": "top_3", "label": "3 Cones (Top)", "points": 10 },

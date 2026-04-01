@@ -41,6 +41,7 @@
       "id": "auto_parked",
       "label": "Auto Parking",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "Not Parked", "points": 0 },
         { "id": "backstage", "label": "Backstage", "points": 5 },
@@ -84,6 +85,7 @@
       "id": "drone_launch",
       "label": "Drone Launched in Landing Zone",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "None / Not Scored", "points": 0 },
         { "id": "zone1", "label": "Zone 1 (Far)", "points": 30 },
@@ -95,6 +97,7 @@
       "id": "end_hang",
       "label": "Endgame Hang",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "None", "points": 0 },
         { "id": "rigging", "label": "Rigging (Hanging)", "points": 20 }
@@ -104,6 +107,7 @@
       "id": "end_parked",
       "label": "Endgame Park",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "None", "points": 0 },
         { "id": "backstage", "label": "Backstage", "points": 5 },

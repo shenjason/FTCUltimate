@@ -30,6 +30,7 @@
       "id": "auto_parking",
       "label": "Auto Parking",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "Not Parked", "points": 0 },
         { "id": "park_1", "label": "Park Zone 1", "points": 3 },
@@ -50,6 +51,7 @@
       "id": "endgame",
       "label": "Endgame",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "None", "points": 0 },
         { "id": "level1", "label": "Level 1", "points": 5 },

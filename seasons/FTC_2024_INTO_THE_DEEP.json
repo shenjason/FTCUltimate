@@ -43,6 +43,7 @@
       "id": "auto_parking",
       "label": "Auto Parking",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "Not Parked", "points": 0 },
         { "id": "observation_zone", "label": "Observation Zone", "points": 3 },
@@ -85,6 +86,7 @@
       "id": "teleop_ascent",
       "label": "End Game Ascent",
       "type": "selector",
+      "defaultValue": "none",
       "options": [
         { "id": "none", "label": "None", "points": 0 },
         { "id": "level1", "label": "Level 1 (Observation Zone)", "points": 3 },
