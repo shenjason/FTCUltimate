@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { SeasonConfig, ModuleConfig } from "../../types/season";
-import type { MatchType, MatchPhase } from "../../types/match";
+import type { MatchType, MatchPhase, StartMode } from "../../types/match";
 import { useMatchStore } from "../../lib/store";
 import { useMatchTimer } from "../../hooks/useMatchTimer";
 import { computeDualScore, computeScore } from "../../lib/scoreEngine";
@@ -23,15 +23,15 @@ interface LandscapeMatchProps {
   onExit: () => void;
 }
 
-function resolveModules(
-  season: SeasonConfig,
-  phase: MatchPhase,
-): ModuleConfig[] {
-  if (phase === "pre_auto" || phase === "auto" || phase === "transition")
-    return season.autonomous;
-  if (phase === "pre_teleop" || phase === "teleop" || phase === "complete")
-    return season.teleop;
-  return [];
+type ViewingPhase = 'auto' | 'teleop';
+
+function canonicalPhase(phase: MatchPhase, startMode: StartMode): ViewingPhase {
+  if (phase === 'pre_teleop' || phase === 'teleop' || phase === 'complete') return 'teleop';
+  return 'auto'; // idle, pre_auto, auto, transition
+}
+
+function resolveModules(season: SeasonConfig, vp: ViewingPhase): ModuleConfig[] {
+  return vp === 'auto' ? season.autonomous : season.teleop;
 }
 
 export function LandscapeMatch({
@@ -61,30 +61,50 @@ export function LandscapeMatch({
   const justResetRef = useRef(false);
   const justResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSolo = matchType === "solo";
+
+  // viewingPhase: which phase's modules the user is currently viewing/editing
+  const [viewingPhase, setViewingPhase] = useState<ViewingPhase>(
+    () => canonicalPhase(phase, startMode)
+  );
+
+  // Auto-sync viewingPhase when the real game phase transitions
+  useEffect(() => {
+    setViewingPhase(canonicalPhase(phase, startMode));
+  }, [phase, startMode]);
+
+  // Effective viewing phase for module resolution:
+  // In idle, always show the starting phase's modules
+  const effectiveViewingPhase: ViewingPhase =
+    phase === 'idle'
+      ? (startMode === 'teleop_only' ? 'teleop' : 'auto')
+      : viewingPhase;
+
+  const modules = resolveModules(season, effectiveViewingPhase);
+
+  // Wrong-phase detection (only meaningful during active match)
+  const matchIsActive =
+    phase === 'auto' || phase === 'transition' || phase === 'teleop' ||
+    phase === 'pre_auto' || phase === 'pre_teleop';
+  const isWrongPhase = matchIsActive && viewingPhase !== canonicalPhase(phase, startMode);
+
   const disabled =
-    phase === "idle" ||
     phase === "complete" ||
     phase === "pre_auto" ||
     phase === "pre_teleop";
-  const modules = resolveModules(season, phase);
+  // NOTE: removed "idle" from disabled — modules are editable before match starts
 
-  // Auto-select first module when modules change (phase change)
+  // Always select first module when modules set changes and selection is invalid
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (modules.length > 0 && !selectedModuleId) {
+    if (modules.length === 0) return;
+    const isValid =
+      selectedModuleId !== null &&
+      selectedModuleId !== FOULS_MODULE_ID &&
+      modules.some((m) => m.id === selectedModuleId);
+    if (!isValid) {
       setSelectedModuleId(modules[0].id);
     }
-  }, [modules, selectedModuleId, setSelectedModuleId]);
-
-  // Reset selectedModuleId when phase changes and current selection is invalid
-  useEffect(() => {
-    if (
-      selectedModuleId &&
-      selectedModuleId !== FOULS_MODULE_ID &&
-      !modules.find((m) => m.id === selectedModuleId)
-    ) {
-      setSelectedModuleId(modules.length > 0 ? modules[0].id : null);
-    }
-  }, [modules, selectedModuleId, setSelectedModuleId]);
+  }, [modules]);
 
   // Fire completion callback
   useEffect(() => {
@@ -164,6 +184,9 @@ export function LandscapeMatch({
           startMode={startMode}
           onToggleStartMode={handleToggleStartMode}
           canChangeStartMode={canChangeStartMode}
+          viewingPhase={effectiveViewingPhase}
+          onSetViewingPhase={setViewingPhase}
+          canToggleViewingPhase={matchIsActive}
         />
 
         {/* Content row: main area + action strip (full height) */}
@@ -227,6 +250,7 @@ export function LandscapeMatch({
                   {/* Start / Reset button */}
                   <TouchableOpacity
                     onPress={handleStartReset}
+                    disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
                     className="mt-3 bg-secondary px-6 py-2 rounded-lg"
                   >
                     <Text className="text-on-secondary font-bold text-sm">
@@ -285,6 +309,17 @@ export function LandscapeMatch({
             onReset={handleStartReset}
           />
         </View>
+
+        {/* Wrong-phase editing vignette */}
+        {isWrongPhase && (
+          <View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFillObject,
+              { borderWidth: 6, borderColor: 'rgba(239, 68, 68, 0.55)', zIndex: 999 },
+            ]}
+          />
+        )}
       </SafeAreaView>
     );
   }
@@ -304,6 +339,9 @@ export function LandscapeMatch({
         startMode={startMode}
         onToggleStartMode={handleToggleStartMode}
         canChangeStartMode={canChangeStartMode}
+        viewingPhase={effectiveViewingPhase}
+        onSetViewingPhase={setViewingPhase}
+        canToggleViewingPhase={matchIsActive}
       />
 
       {/* Content row: main area + action strip (full height) */}
@@ -360,6 +398,7 @@ export function LandscapeMatch({
               <View className="flex-1 items-center justify-center gap-3">
                 <TouchableOpacity
                   onPress={handleStartReset}
+                  disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
                   className="bg-stitch-secondary px-6 py-2 rounded-lg"
                 >
                   <Text className="text-on-stitch-error font-bold text-base">
@@ -416,6 +455,17 @@ export function LandscapeMatch({
           onReset={handleStartReset}
         />
       </View>
+
+      {/* Wrong-phase editing vignette */}
+      {isWrongPhase && (
+        <View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFillObject,
+            { borderWidth: 6, borderColor: 'rgba(239, 68, 68, 0.55)', zIndex: 999 },
+          ]}
+        />
+      )}
     </SafeAreaView>
   );
 }

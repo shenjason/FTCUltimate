@@ -46,7 +46,10 @@ export function MatchActionBar({
 
       <TouchableOpacity
         onPress={onReset}
-        className="flex-[2] flex-col items-center justify-center rounded-lg bg-surface-container-highest/80 border border-secondary/20"
+        disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
+        className={`flex-[2] flex-col items-center justify-center rounded-lg bg-surface-container-highest/80 border border-secondary/20 ${
+          phase === 'pre_auto' || phase === 'pre_teleop' ? 'opacity-40' : ''
+        }`}
       >
         <MaterialIcon name="restart_alt" size={18} color="#fdc003" />
         <Text className="text-[8px] font-bold uppercase mt-1 tracking-tighter text-secondary">
