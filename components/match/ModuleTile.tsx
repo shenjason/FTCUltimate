@@ -6,6 +6,9 @@ import { MaterialIcon } from "../ui/MaterialIcon";
 
 // Maps module label keywords to Material Symbols icon names
 function iconForModule(module: ModuleConfig): string {
+  // JSON-defined icon takes priority over keyword lookup
+  if (module.icon) return module.icon;
+
   const label = module.label.toLowerCase();
   if (label.includes("sample")) return "category";
   if (label.includes("specimen")) return "precision_manufacturing";
@@ -21,19 +24,24 @@ function iconForModule(module: ModuleConfig): string {
 }
 
 function formatValue(module: ModuleConfig, score: ScoreValue): string {
-  if (score === null || score === undefined) return "0";
   switch (module.type) {
     case "boolean":
       return score === true ? "Yes" : "No";
     case "counter":
-      return String(score ?? 0);
+      return String((score as number) ?? 0);
     case "tiered_counter": {
       const tiers = score as Record<string, number>;
       if (!tiers) return "0";
       return String(Object.values(tiers).reduce((a, b) => a + b, 0));
     }
-    case "selector":
-      return score ? String(score) : "—";
+    case "selector": {
+      // If no explicit value, try defaultValue
+      const effectiveScore = score ?? module.defaultValue ?? null;
+      if (!effectiveScore) return "—";
+      // Find the option label for the selected id
+      const opt = module.options.find(o => o.id === effectiveScore);
+      return opt ? opt.label : String(effectiveScore);
+    }
     case "multi_boolean": {
       const items = score as Record<string, boolean>;
       if (!items) return "0";
