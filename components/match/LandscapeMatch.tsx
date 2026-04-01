@@ -7,9 +7,13 @@ import { useMatchStore } from "../../lib/store";
 import { useMatchTimer } from "../../hooks/useMatchTimer";
 import { computeDualScore, computeScore } from "../../lib/scoreEngine";
 import { LandscapeHeader } from "./LandscapeHeader";
-import { ModuleToggleButton } from "./ModuleToggleButton";
 import { BottomControlPanel } from "./BottomControlPanel";
 import { FoulsPanel } from "./FoulsPanel";
+import { GlassTimer } from "./GlassTimer";
+import { AllianceModuleGrid, FOULS_MODULE_ID } from "./AllianceModuleGrid";
+import { MatchActionBar } from "./MatchActionBar";
+import { FullMatchFooter } from "./FullMatchFooter";
+import { ModuleTile } from "./ModuleTile";
 
 interface LandscapeMatchProps {
   season: SeasonConfig;
@@ -18,8 +22,6 @@ interface LandscapeMatchProps {
   onMatchComplete: (scores: any) => void;
   onExit: () => void;
 }
-
-const FOULS_MODULE_ID = "__fouls__";
 
 function resolveModules(
   season: SeasonConfig,
@@ -52,10 +54,11 @@ export function LandscapeMatch({
     fouls,
   } = useMatchStore();
 
-  const { displayTime, isPaused, start, resume, reset } = useMatchTimer(season);
+  const { displayTime, isPaused, start, pause, resume, reset } =
+    useMatchTimer(season);
 
   const completeFiredRef = useRef(false);
-  const justResetRef = useRef(false); // guards against double-fire on reset (TouchableOpacity re-render race)
+  const justResetRef = useRef(false);
   const justResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSolo = matchType === "solo";
   const disabled =
@@ -124,9 +127,7 @@ export function LandscapeMatch({
   const canChangeStartMode = phase === "idle" || phase === "complete";
   const saveEnabled = phase === "complete";
 
-  const handleSave = () => {
-    // Save handled by onMatchComplete callback
-  };
+  const handleSave = () => {};
 
   const handleToggleStartMode = () => {
     setStartMode(startMode === "auto_teleop" ? "teleop_only" : "auto_teleop");
@@ -147,9 +148,14 @@ export function LandscapeMatch({
     }
   };
 
+  // ─── Solo Layout ───────────────────────────────────────────────────────────
   if (isSolo) {
     return (
-      <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+      <SafeAreaView
+        className="flex-1 flex-col"
+        style={{ backgroundColor: "#0a0e16" }}
+        edges={["left", "right"]}
+      >
         <LandscapeHeader
           phase={phase}
           onExit={onExit}
@@ -160,45 +166,97 @@ export function LandscapeMatch({
           canChangeStartMode={canChangeStartMode}
         />
 
-        <View className="flex-1">
-          {/* Module toggle buttons (top, wrapping) */}
-          <ScrollView
-            className="p-2"
-            contentContainerClassName="flex-row flex-wrap gap-2"
-          >
-            {modules.map((mod) => (
-              <ModuleToggleButton
-                key={mod.id}
-                module={mod}
-                isSelected={selectedModuleId === mod.id}
-                onPress={() => setSelectedModuleId(mod.id)}
-                scores={scores}
-                disabled={disabled}
-              />
-            ))}
-            {/* Fouls toggle */}
-            <TouchableOpacity
-              onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
-              className={`flex-row items-center px-3 py-2 rounded-lg ${
-                isFoulsSelected
-                  ? "bg-white border-2 border-white"
-                  : "bg-surface border border-border"
-              }`}
-            >
-              <Text
-                className={`font-semibold text-sm ${
-                  isFoulsSelected ? "text-black" : "text-text-primary"
-                }`}
+        {/* Content row: main area + action strip (full height) */}
+        <View className="flex-1 flex-row overflow-hidden">
+          {/* Main area: module grid row + footer */}
+          <View className="flex-1 flex-col overflow-hidden">
+            {/* Upper row: left grid (66.6%) + right panel (33.4%) */}
+            <View className="flex-1 flex-row overflow-hidden">
+              {/* Left 66.6%: scrollable 2-col module grid */}
+              <View
+                className="flex-col overflow-hidden border-r"
+                style={{ width: "66.6%", borderColor: "#2A2A2A", backgroundColor: "#0a0e16" }}
               >
-                Fouls
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
+                <ScrollView
+                  className="flex-1 p-4"
+                  contentContainerStyle={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: 12,
+                  }}
+                >
+                  {modules.map((mod) => (
+                    <ModuleTile
+                      key={mod.id}
+                      module={mod}
+                      value={scores[mod.id]}
+                      isSelected={selectedModuleId === mod.id}
+                      onPress={() => setSelectedModuleId(mod.id)}
+                      disabled={disabled}
+                      mode="solo"
+                    />
+                  ))}
+                  {/* Fouls tile */}
+                  <ModuleTile
+                    module={
+                      { id: FOULS_MODULE_ID, label: "Fouls", type: "boolean" } as ModuleConfig
+                    }
+                    value={null}
+                    isSelected={isFoulsSelected}
+                    onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
+                    disabled={disabled}
+                    mode="solo"
+                    foulData={{
+                      minor: alliance === "blue" ? fouls.blueMinor : fouls.redMinor,
+                      major: alliance === "blue" ? fouls.blueMajor : fouls.redMajor,
+                    }}
+                  />
+                </ScrollView>
+              </View>
 
-          {/* Bottom section */}
-          <View className="flex-row h-36">
-            {/* Module controls (bottom-left) */}
-            <View className="flex-1 bg-surface/50 p-2">
+              {/* Right 33.4%: timer (top flex-1) + score (bottom h-[100px]) */}
+              <View className="flex-1 flex-col">
+                {/* Top: glass timer */}
+                <View className="flex-1 items-center justify-center px-4">
+                  <GlassTimer
+                    displayTime={displayTime}
+                    phase={phase}
+                    isPaused={isPaused}
+                    variant="solo"
+                  />
+                  {/* Start / Reset button */}
+                  <TouchableOpacity
+                    onPress={handleStartReset}
+                    className="mt-3 bg-secondary px-6 py-2 rounded-lg"
+                  >
+                    <Text className="text-on-secondary font-bold text-sm">
+                      {phase === "idle" || phase === "complete"
+                        ? "▶  Start"
+                        : "⟳  Reset"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Bottom: big gold score */}
+                <View
+                  className="h-[100px] items-center justify-center border-t"
+                  style={{ borderColor: "#2A2A2A" }}
+                >
+                  <Text
+                    className="font-black text-secondary leading-none tracking-tighter"
+                    style={{ fontSize: 56 }}
+                  >
+                    {blueScore}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Footer: dynamic module controls */}
+            <View
+              className="h-[100px] shrink-0 border-t bg-surface-container-low flex-row items-stretch px-4"
+              style={{ borderColor: "#2A2A2A" }}
+            >
               {isFoulsSelected ? (
                 <FoulsPanel alliance={alliance} disabled={disabled} />
               ) : selectedModule ? (
@@ -208,61 +266,36 @@ export function LandscapeMatch({
                   onChange={(val) => setScore(selectedModule.id, val)}
                   alliance={alliance}
                   disabled={disabled}
-                  layout="horizontal"
                 />
-              ) : null}
-            </View>
-
-            {/* Timer + Score (bottom-right) */}
-            <View className="w-52 p-2 gap-1">
-              <TouchableOpacity
-                onPress={handleStartReset}
-                className="bg-[#B8860B] py-2 rounded-lg"
-              >
-                <Text className="text-white font-bold text-center">
-                  {phase === "idle" || phase === "complete"
-                    ? "▶ Start"
-                    : "⟳ Reset"}
-                </Text>
-              </TouchableOpacity>
-
-              <View className="flex-1 flex-row gap-1">
-                {/* Timer */}
-                <View className="flex-1 bg-white rounded-lg items-center justify-center">
-                  <Text className="text-black text-3xl font-bold font-mono">
-                    {displayTime}
-                  </Text>
-                  {isPaused && (
-                    <TouchableOpacity onPress={resume}>
-                      <Text className="text-transition text-xs">PAUSED</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {/* Score */}
-                <View
-                  className={`w-16 rounded-lg items-center justify-center ${
-                    alliance === "blue" ? "bg-primary" : "bg-auto"
-                  }`}
-                >
-                  <Text className="text-white text-2xl font-black">
-                    {blueScore}
+              ) : (
+                <View className="flex-1 items-center justify-center">
+                  <Text className="text-on-surface-variant text-sm">
+                    Select a module above
                   </Text>
                 </View>
-              </View>
+              )}
             </View>
           </View>
+
+          {/* Action strip: full height, far right */}
+          <MatchActionBar
+            isPaused={isPaused}
+            phase={phase}
+            onPauseResume={isPaused ? resume : pause}
+            onReset={handleStartReset}
+          />
         </View>
       </SafeAreaView>
     );
   }
 
-  // Full mode — split modules evenly between left and right columns
-  const mid = Math.ceil(modules.length / 2);
-  const leftModules = modules.slice(0, mid);
-  const rightModules = modules.slice(mid);
-
+  // ─── Full Mode Layout ──────────────────────────────────────────────────────
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+    <SafeAreaView
+      className="flex-1 flex-col"
+      style={{ backgroundColor: "#0a0e16" }}
+      edges={["left", "right"]}
+    >
       <LandscapeHeader
         phase={phase}
         onExit={onExit}
@@ -273,140 +306,115 @@ export function LandscapeMatch({
         canChangeStartMode={canChangeStartMode}
       />
 
-      <View className="flex-1 flex-row">
-        {/* Left column: first half of modules + Fouls */}
-        <ScrollView className="flex-1 p-1" contentContainerClassName="gap-1">
-          {leftModules.map((mod) => (
-            <ModuleToggleButton
-              key={mod.id}
-              module={mod}
-              isSelected={selectedModuleId === mod.id}
-              onPress={() => setSelectedModuleId(mod.id)}
-              scores={scores}
-              redScores={redScores}
-              showBothAlliances
-              disabled={disabled}
-            />
-          ))}
-          <TouchableOpacity
-            onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
-            className={`flex-row items-center px-3 py-2 rounded-lg ${
-              isFoulsSelected
-                ? "bg-white border-2 border-white"
-                : "bg-surface border border-border"
-            }`}
-          >
-            <Text
-              className={`font-semibold text-sm ${
-                isFoulsSelected ? "text-black" : "text-text-primary"
-              }`}
+      {/* Content row: main area + action strip (full height) */}
+      <View className="flex-1 flex-row overflow-hidden">
+        {/* Main area: alliance columns + footer */}
+        <View className="flex-1 flex-col overflow-hidden">
+          {/* Upper row: Red | Center | Blue */}
+          <View className="flex-1 flex-row overflow-hidden">
+            {/* Red Alliance (fixed 240px) */}
+            <View style={{ width: 240 }}>
+              <AllianceModuleGrid
+                alliance="red"
+                modules={modules}
+                scores={redScores}
+                fouls={fouls}
+                selectedModuleId={selectedModuleId}
+                onSelectModule={setSelectedModuleId}
+                disabled={disabled}
+              />
+            </View>
+
+            {/* Center: Scores + Timer */}
+            <View
+              className="flex-1 flex-col items-center overflow-hidden px-2"
+              style={{ backgroundColor: "rgba(15, 19, 29, 0.3)" }}
             >
-              Fouls
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
+              {/* Scores row */}
+              <View className="w-full flex-row justify-between items-start mt-4">
+                <View className="items-center">
+                  <Text
+                    className="font-black leading-none tracking-tighter text-stitch-error"
+                    style={{ fontSize: 40 }}
+                  >
+                    {String(redScore).padStart(3, "0")}
+                  </Text>
+                  <Text className="text-[8px] uppercase text-stitch-error font-bold tracking-widest mt-1">
+                    Red Score
+                  </Text>
+                </View>
+                <View className="items-center">
+                  <Text
+                    className="font-black leading-none tracking-tighter text-stitch-primary"
+                    style={{ fontSize: 40 }}
+                  >
+                    {String(blueScore).padStart(3, "0")}
+                  </Text>
+                  <Text className="text-[8px] uppercase text-stitch-primary font-bold tracking-widest mt-1">
+                    Blue Score
+                  </Text>
+                </View>
+              </View>
 
-        {/* Center column: Season name + Timer + Scores */}
-        <View className="w-48 items-center justify-between py-2">
-          {/* Season name placeholder */}
-          <View className="w-24 h-24 bg-surface rounded-xl items-center justify-center border border-border">
-            <Text className="text-text-secondary text-xs text-center">
-              {season.name.replace(/\s*presented by.*/i, "")}
-            </Text>
-          </View>
-
-          {/* Start/Reset + Timer */}
-          <View className="items-center gap-2">
-            <TouchableOpacity
-              onPress={handleStartReset}
-              className="bg-[#B8860B] px-6 py-2 rounded-lg"
-            >
-              <Text className="text-white font-bold text-xl">
-                {phase === "idle" || phase === "complete"
-                  ? "▶ Start"
-                  : "⟳ Reset"}
-              </Text>
-            </TouchableOpacity>
-
-            <View className="bg-white px-6 py-2 rounded-full">
-              <Text className="text-black text-2xl font-bold font-mono">
-                {displayTime}
-              </Text>
+              {/* Timer + Start button centered */}
+              <View className="flex-1 items-center justify-center gap-3">
+                <TouchableOpacity
+                  onPress={handleStartReset}
+                  className="bg-stitch-secondary px-6 py-2 rounded-lg"
+                >
+                  <Text className="text-on-stitch-error font-bold text-base">
+                    {phase === "idle" || phase === "complete"
+                      ? "▶  Start"
+                      : "⟳  Reset"}
+                  </Text>
+                </TouchableOpacity>
+                <GlassTimer
+                  displayTime={displayTime}
+                  phase={phase}
+                  isPaused={isPaused}
+                  variant="full"
+                />
+              </View>
             </View>
 
-            {isPaused && (
-              <TouchableOpacity onPress={resume}>
-                <Text className="text-transition text-xs font-bold">
-                  PAUSED
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Scores */}
-          <View className="flex-row gap-2 w-full px-2">
-            <View className="flex-1 bg-auto rounded-xl py-2 items-center">
-              <Text className="text-white text-2xl font-black">{redScore}</Text>
-            </View>
-            <View className="flex-1 bg-primary rounded-xl py-2 items-center">
-              <Text className="text-white text-2xl font-black">
-                {blueScore}
-              </Text>
+            {/* Blue Alliance (fixed 240px) */}
+            <View style={{ width: 240 }}>
+              <AllianceModuleGrid
+                alliance="blue"
+                modules={modules}
+                scores={scores}
+                fouls={fouls}
+                selectedModuleId={selectedModuleId}
+                onSelectModule={setSelectedModuleId}
+                disabled={disabled}
+              />
             </View>
           </View>
+
+          {/* Footer: only spans to the left of action strip */}
+          <FullMatchFooter
+            selectedModule={selectedModule ?? null}
+            isFoulsSelected={isFoulsSelected}
+            redScores={redScores}
+            blueScores={scores}
+            fouls={fouls}
+            onRedChange={(val) =>
+              selectedModule && setRedScore(selectedModule.id, val)
+            }
+            onBlueChange={(val) =>
+              selectedModule && setScore(selectedModule.id, val)
+            }
+            disabled={disabled}
+          />
         </View>
 
-        {/* Right column: second half of modules */}
-        <ScrollView className="flex-1 p-1" contentContainerClassName="gap-1">
-          {rightModules.map((mod) => (
-            <ModuleToggleButton
-              key={mod.id}
-              module={mod}
-              isSelected={selectedModuleId === mod.id}
-              onPress={() => setSelectedModuleId(mod.id)}
-              scores={scores}
-              redScores={redScores}
-              showBothAlliances
-              disabled={disabled}
-            />
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Bottom control panels */}
-      <View className="flex-row h-36">
-        {/* Red controls (bottom-left) */}
-        <View className="flex-1">
-          {isFoulsSelected ? (
-            <FoulsPanel alliance="red" disabled={disabled} />
-          ) : selectedModule ? (
-            <BottomControlPanel
-              module={selectedModule}
-              value={redScores[selectedModule.id]}
-              onChange={(val) => setRedScore(selectedModule.id, val)}
-              alliance="red"
-              disabled={disabled}
-            />
-          ) : null}
-        </View>
-
-        {/* Spacer for center column */}
-        <View className="w-48" />
-
-        {/* Blue controls (bottom-right) */}
-        <View className="flex-1">
-          {isFoulsSelected ? (
-            <FoulsPanel alliance="blue" disabled={disabled} />
-          ) : selectedModule ? (
-            <BottomControlPanel
-              module={selectedModule}
-              value={scores[selectedModule.id]}
-              onChange={(val) => setScore(selectedModule.id, val)}
-              alliance="blue"
-              disabled={disabled}
-            />
-          ) : null}
-        </View>
+        {/* Action strip: full height on far right */}
+        <MatchActionBar
+          isPaused={isPaused}
+          phase={phase}
+          onPauseResume={isPaused ? resume : pause}
+          onReset={handleStartReset}
+        />
       </View>
     </SafeAreaView>
   );
