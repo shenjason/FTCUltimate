@@ -16,6 +16,7 @@ export interface BooleanModule {
   period?: 'auto' | 'teleop';
   description?: string;
   showPreview?: boolean;
+  icon?: string;
 }
 
 export interface CounterModule {
@@ -29,6 +30,7 @@ export interface CounterModule {
   period?: 'auto' | 'teleop';
   description?: string;
   showPreview?: boolean;
+  icon?: string;
 }
 
 export interface TierConfig {
@@ -44,6 +46,7 @@ export interface TieredCounterModule {
   tiers: TierConfig[];
   period?: 'auto' | 'teleop';
   description?: string;
+  icon?: string;
 }
 
 export interface OptionConfig {
@@ -60,6 +63,8 @@ export interface SelectorModule {
   period?: 'auto' | 'teleop';
   description?: string;
   showPreview?: boolean;
+  icon?: string;
+  defaultValue?: string;
 }
 
 export interface MultiBooleanItem {
@@ -75,6 +80,7 @@ export interface MultiBooleanModule {
   items: MultiBooleanItem[];
   period?: 'auto' | 'teleop';
   description?: string;
+  icon?: string;
 }
 
 export interface GridBonusConfig {
@@ -95,6 +101,7 @@ export interface GridModule {
   bonuses?: GridBonusConfig[];
   period?: 'auto' | 'teleop';
   description?: string;
+  icon?: string;
 }
 
 export interface CalculatedModule {
@@ -105,6 +112,7 @@ export interface CalculatedModule {
   scoreFn: string;          // references a named function in the registry
   period?: 'auto' | 'teleop';
   description?: string;
+  icon?: string;
 }
 
 export type ModuleConfig =
