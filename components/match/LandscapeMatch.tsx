@@ -91,9 +91,11 @@ export function LandscapeMatch({
     phase === "complete" ||
     phase === "pre_auto" ||
     phase === "pre_teleop";
-  // NOTE: removed "idle" from disabled — modules are editable before match starts
+  // idle is intentionally excluded: modules are editable before match starts
 
-  // Always select first module when modules set changes and selection is invalid
+  // Selects first module whenever the modules list changes (phase/viewingPhase switch).
+  // Intentionally omits selectedModuleId/setSelectedModuleId from deps to avoid
+  // re-entrancy — this effect must only fire when the modules array identity changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (modules.length === 0) return;

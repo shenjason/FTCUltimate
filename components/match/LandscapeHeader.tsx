@@ -12,7 +12,6 @@ interface LandscapeHeaderProps {
   startMode: StartMode;
   onToggleStartMode: () => void;
   canChangeStartMode: boolean;
-  // NEW:
   viewingPhase: 'auto' | 'teleop';
   onSetViewingPhase: (p: 'auto' | 'teleop') => void;
   canToggleViewingPhase: boolean;
