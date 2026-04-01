@@ -65,9 +65,7 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
     (phaseDuration: number) => {
       phaseStartRef.current = Date.now();
       pauseOffsetRef.current = 0;
-      setDisplayTime(
-        phaseDuration <= 10 ? phaseDuration.toString() : formatTime(phaseDuration),
-      );
+      setDisplayTime(formatTime(phaseDuration));
       setProgressFraction(1);
     },
     [],
@@ -110,7 +108,7 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
           return;
         }
 
-        setDisplayTime(remaining.toString());
+        setDisplayTime(formatTime(remaining));
         setProgressFraction(remaining / duration);
       }, TICK_INTERVAL_MS);
 
@@ -149,11 +147,7 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
       }
 
       // Update display; use phaseRef.current for accuracy
-      if (phaseRef.current === 'transition') {
-        setDisplayTime(remaining.toString());
-      } else {
-        setDisplayTime(formatTime(remaining));
-      }
+      setDisplayTime(formatTime(remaining));
 
       setProgressFraction(remaining / duration);
     }, TICK_INTERVAL_MS);
@@ -162,6 +156,16 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, autonomous, transition, teleop]); // Re-runs when phase or season durations change;
                // refs (clearTimer, getElapsedSeconds, startPhaseTimer, setPhase, setElapsed) are stable across renders.
+
+  // Show initial time in idle based on startMode
+  useEffect(() => {
+    if (phase === 'idle') {
+      const startMode = useMatchStore.getState().startMode;
+      const idleDuration = startMode === 'teleop_only' ? teleop : autonomous;
+      setDisplayTime(formatTime(idleDuration));
+      setProgressFraction(1);
+    }
+  }, [phase, autonomous, teleop]);
 
   // ─── Public actions ────────────────────────────────────────────────
 
@@ -195,7 +199,7 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
     setIsPaused(false);
     setProgressFraction(1);
     resetMatch();
-    setDisplayTime('');
+    // idle effect will set display time
   }, [clearTimer, resetMatch]);
 
   return {
