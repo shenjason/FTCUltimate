@@ -67,7 +67,9 @@ function CounterZone({
             disabled={disabled || (max !== undefined && value >= max)}
             className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${incrementBg}`}
           >
-            <Text className="text-on-stitch-error text-3xl leading-none font-bold">+</Text>
+            <Text className="text-on-stitch-error text-3xl leading-none font-bold">
+              +
+            </Text>
           </TouchableOpacity>
 
           {/* Scroll-drum dial with count inside */}
@@ -84,8 +86,8 @@ function CounterZone({
               step={step}
               onChange={onChange}
               disabled={disabled}
-              height={90}
-              width={80}
+              height={110}
+              width={160}
             />
           </View>
 
@@ -95,7 +97,9 @@ function CounterZone({
             disabled={disabled || value <= min}
             className="w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70"
           >
-            <Text className="text-on-surface text-3xl leading-none font-bold">−</Text>
+            <Text className="text-on-surface text-3xl leading-none font-bold">
+              −
+            </Text>
           </TouchableOpacity>
         </>
       ) : (
@@ -106,7 +110,9 @@ function CounterZone({
             disabled={disabled || value <= min}
             className="w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70"
           >
-            <Text className="text-on-surface text-3xl leading-none font-bold">−</Text>
+            <Text className="text-on-surface text-3xl leading-none font-bold">
+              −
+            </Text>
           </TouchableOpacity>
 
           {/* Scroll-drum dial with count inside */}
@@ -123,8 +129,8 @@ function CounterZone({
               step={step}
               onChange={onChange}
               disabled={disabled}
-              height={90}
-              width={80}
+              height={110}
+              width={160}
             />
           </View>
 
@@ -134,7 +140,9 @@ function CounterZone({
             disabled={disabled || (max !== undefined && value >= max)}
             className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${incrementBg}`}
           >
-            <Text className="text-on-stitch-primary text-3xl leading-none font-bold">+</Text>
+            <Text className="text-on-stitch-primary text-3xl leading-none font-bold">
+              +
+            </Text>
           </TouchableOpacity>
         </>
       )}
@@ -359,7 +367,7 @@ function FallbackControls({
         </View>
       );
     case "selector": {
-      const mod = module as import('../../types/season').SelectorModule;
+      const mod = module as import("../../types/season").SelectorModule;
       const defaultValue = mod.defaultValue ?? null;
       const effectiveValue = (value as string | null) ?? defaultValue;
       return (
@@ -370,7 +378,9 @@ function FallbackControls({
               <TouchableOpacity
                 key={opt.id}
                 onPress={() =>
-                  onChange((value as string | null) === opt.id ? defaultValue : opt.id)
+                  onChange(
+                    (value as string | null) === opt.id ? defaultValue : opt.id,
+                  )
                 }
                 disabled={disabled}
                 className={`px-3 py-2 rounded-lg ${isActive ? "bg-stitch-primary" : "bg-surface-container-highest"}`}

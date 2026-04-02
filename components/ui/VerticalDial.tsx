@@ -1,13 +1,13 @@
-import React, { useCallback, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-} from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useLayoutEffect,
+} from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { WheelPicker } from "react-native-infinite-wheel-picker";
+import * as Haptics from "expo-haptics";
 
 interface VerticalDialProps {
   value: number;
@@ -22,14 +22,6 @@ interface VerticalDialProps {
   labelColor?: string;
 }
 
-const STEP_PX = 30; // pixels of drag per step change
-
-const SPRING_CONFIG = {
-  damping: 20,
-  stiffness: 200,
-  mass: 0.5,
-};
-
 export function VerticalDial({
   value,
   min,
@@ -38,68 +30,192 @@ export function VerticalDial({
   onChange,
   disabled = false,
   height = 100,
-  width = 80,
+  width = 160,
   label,
   labelColor,
 }: VerticalDialProps) {
-  const accumulatedY = useSharedValue(0);
-  const slideY = useSharedValue(0);
-  const lastSteppedValue = useRef(value);
+  const safeStep = step > 0 ? step : 1;
 
-  // Keep ref in sync when value changes externally
-  if (lastSteppedValue.current !== value) {
-    lastSteppedValue.current = value;
+  // Build finite data array (WheelPicker needs a finite list)
+  const effectiveMax = typeof max === "number" ? max : min + safeStep * 20;
+  const data: number[] = [];
+  for (let v = min; v <= effectiveMax; v += safeStep) {
+    data.push(v);
+    // safety guard to avoid accidental infinite loops
+    if (data.length > 1000) break;
   }
+
+  // compute initial selected index from provided value
+  const clampIndex = (val: number) => {
+    if (typeof val !== "number" || Number.isNaN(val)) return 0;
+    if (val <= data[0]) return 0;
+    if (val >= data[data.length - 1]) return data.length - 1;
+    return Math.round((val - min) / safeStep);
+  };
+
+  const initialIndex = clampIndex(value);
+  const [selectedIndex, setSelectedIndex] = useState<number>(initialIndex);
+  const prevIndexRef = useRef<number>(initialIndex);
+  const wheelRef = useRef<any>(null);
+  const animTimerRef = useRef<any>(null);
+  const suppressOnChangeRef = useRef(false);
+  const suppressClearTimerRef = useRef<any>(null);
+  const ANIMATION_DURATION = 200; // ms, chosen by user
+
+  // Immediately clamp selected index when the dial's range changes (synchronous
+  // to avoid rendering the wheel with an out-of-range index when switching
+  // modules). useLayoutEffect runs before paint.
+  useLayoutEffect(() => {
+    const idx = clampIndex(value);
+    if (!Number.isNaN(idx) && idx !== selectedIndex) {
+      prevIndexRef.current = idx;
+      setSelectedIndex(idx);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [min, max, step, value]);
+
+  // Animate when the external value changes (only dependent on `value`). This
+  // runs after paint and attempts to scroll the wheel programmatically.
+  useEffect(() => {
+    const idx = clampIndex(value);
+    if (Number.isNaN(idx) || idx === selectedIndex) return;
+
+    // clear any existing animation timer
+    if (animTimerRef.current) {
+      clearInterval(animTimerRef.current);
+      animTimerRef.current = null;
+    }
+
+    // Try to use the wheel picker's programmatic API if available
+    const picker = wheelRef.current as any;
+    let handled = false;
+    try {
+      if (picker) {
+        if (typeof picker.scrollToIndex === "function") {
+          // Suppress parent `onChange` while we programmatically move the
+          // wheel. The WheelPicker implementation calls `onChangeValue` from
+          // its `scrollToIndex` imperative method, so without suppression the
+          // parent would receive a duplicate update when the +/- buttons
+          // already updated the store.
+          suppressOnChangeRef.current = true;
+          // clear any previous clear timers
+          if (suppressClearTimerRef.current) {
+            clearTimeout(suppressClearTimerRef.current);
+            suppressClearTimerRef.current = null;
+          }
+
+          try {
+            picker.scrollToIndex(idx);
+          } catch (e) {
+            try {
+              picker.scrollToIndex(idx, true);
+            } catch (e2) {
+              // ignore
+            }
+          }
+
+          // Clear suppression after animation completes (with small buffer)
+          suppressClearTimerRef.current = setTimeout(() => {
+            suppressOnChangeRef.current = false;
+            suppressClearTimerRef.current = null;
+          }, ANIMATION_DURATION + 80);
+
+          handled = true;
+        }
+      }
+    } catch (e) {
+      // ignore and fallback
+    }
+
+    if (handled) {
+      prevIndexRef.current = idx;
+      setSelectedIndex(idx);
+      return;
+    }
+
+    // Fallback: step the index in small increments to simulate a scroll animation
+    const diff = idx - prevIndexRef.current;
+    const steps = Math.abs(diff);
+    if (steps === 0) {
+      prevIndexRef.current = idx;
+      setSelectedIndex(idx);
+      return;
+    }
+
+    const minInterval = 16; // ms per step (approx one frame)
+    const interval = Math.max(
+      minInterval,
+      Math.floor(ANIMATION_DURATION / steps),
+    );
+    let current = prevIndexRef.current;
+    const dir = diff > 0 ? 1 : -1;
+
+    // Suppress onChange while we perform the fallback stepping animation
+    suppressOnChangeRef.current = true;
+    animTimerRef.current = setInterval(() => {
+      current += dir;
+      prevIndexRef.current = current;
+      setSelectedIndex(current);
+      if (current === idx && animTimerRef.current) {
+        clearInterval(animTimerRef.current);
+        animTimerRef.current = null;
+        // clear suppression after fallback animation
+        suppressOnChangeRef.current = false;
+      }
+    }, interval);
+
+    // cleanup if dependencies change
+    return () => {
+      if (animTimerRef.current) {
+        clearInterval(animTimerRef.current);
+        animTimerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
 
   const fireChange = useCallback(
     (newVal: number) => {
+      // gentle haptic feedback on wheel change
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onChange(newVal);
     },
     [onChange],
   );
 
-  const pan = Gesture.Pan()
-    .enabled(!disabled)
-    .onUpdate((e) => {
-      const delta = e.translationY - accumulatedY.value;
-      // Negative translationY = drag up = increment
-      const stepsToFire = Math.floor(Math.abs(delta) / STEP_PX);
-      if (stepsToFire > 0) {
-        const direction = delta < 0 ? 1 : -1; // up = +, down = -
-        const currentVal = lastSteppedValue.current;
-        let newVal = currentVal + direction * step * stepsToFire;
+  const elementHeight = Math.max(26, Math.floor(height / 3));
+  const restElements = 1; // show smaller preview
 
-        // Clamp
-        newVal = Math.max(min, newVal);
-        if (max !== undefined) newVal = Math.min(max, newVal);
-
-        if (newVal !== currentVal) {
-          lastSteppedValue.current = newVal;
-          runOnJS(fireChange)(newVal);
-        }
-
-        accumulatedY.value += direction < 0 ? -stepsToFire * STEP_PX : stepsToFire * STEP_PX;
+  // Ensure any running timers are cleared on unmount
+  useEffect(() => {
+    return () => {
+      if (animTimerRef.current) {
+        clearInterval(animTimerRef.current);
+        animTimerRef.current = null;
       }
+      if (suppressClearTimerRef.current) {
+        clearTimeout(suppressClearTimerRef.current);
+        suppressClearTimerRef.current = null;
+      }
+      suppressOnChangeRef.current = false;
+    };
+  }, []);
 
-      // Visual slide (clamped for feel)
-      slideY.value = e.translationY * 0.3;
-    })
-    .onEnd(() => {
-      accumulatedY.value = 0;
-      slideY.value = withSpring(0, SPRING_CONFIG);
-    });
-
-  const animatedNumbers = useAnimatedStyle(() => ({
-    transform: [{ translateY: slideY.value }],
-  }));
-
-  const prevValue = value - step;
-  const nextValue = value + step;
-  const showPrev = prevValue >= min;
-  const showNext = max === undefined || nextValue <= max;
-
-  const cellH = height / 3;
+  // Debug: warn if selected index resolves to undefined data on mount/update
+  useEffect(() => {
+    const current = data[selectedIndex];
+    if (typeof current === "undefined") {
+      // eslint-disable-next-line no-console
+      console.warn("VerticalDial: selectedIndex has no corresponding data", {
+        selectedIndex,
+        dataLength: data.length,
+        value,
+        min,
+        max,
+        step,
+      });
+    }
+  }, [selectedIndex, data, value, min, max, step]);
 
   return (
     <View style={[styles.container, { height, width }]}>
@@ -111,99 +227,173 @@ export function VerticalDial({
           {label}
         </Text>
       )}
-      <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.track, { height, width, borderRadius: width * 0.2 }]}>
-          <Animated.View style={[styles.numbersContainer, animatedNumbers]}>
-            {/* Previous value */}
-            <View style={[styles.cell, { height: cellH }]}>
-              {showPrev && (
-                <Text style={styles.fadedValue}>
-                  {String(prevValue).padStart(2, '0')}
-                </Text>
-              )}
-            </View>
 
-            {/* Current value */}
-            <View style={[styles.cell, { height: cellH }]}>
-              <Text style={styles.currentValue}>
-                {String(value).padStart(2, '0')}
-              </Text>
-            </View>
+      <View
+        style={[styles.track, { height, width, borderRadius: width * 0.2 }]}
+      >
+        <WheelPicker
+          ref={wheelRef}
+          initialSelectedIndex={selectedIndex}
+          selectedIndex={selectedIndex}
+          data={data}
+          restElements={restElements}
+          elementHeight={elementHeight}
+          infiniteScroll={false}
+          containerStyle={[styles.containerStyle, { width }]}
+          selectedLayoutStyle={styles.selectedLayoutStyle}
+          elementTextStyle={[
+            styles.currentValue,
+            { lineHeight: elementHeight },
+          ]}
+          onChangeValue={(index: number, val: string) => {
+            const last = data.length - 1;
+            const prev = prevIndexRef.current;
 
-            {/* Next value */}
-            <View style={[styles.cell, { height: cellH }]}>
-              {showNext && (
-                <Text style={styles.fadedValue}>
-                  {String(nextValue).padStart(2, '0')}
-                </Text>
-              )}
-            </View>
-          </Animated.View>
+            // Prevent wrap-around: if we were at last and got 0 → clamp to last
+            if (prev === last && index === 0) {
+              if (prev !== last) {
+                prevIndexRef.current = last;
+                if (selectedIndex !== last) setSelectedIndex(last);
+              }
+              return;
+            }
 
-          {/* Top/bottom gradient overlays for depth effect */}
-          <View style={[styles.gradientTop, { borderTopLeftRadius: width * 0.2, borderTopRightRadius: width * 0.2 }]} pointerEvents="none" />
-          <View style={[styles.gradientBottom, { borderBottomLeftRadius: width * 0.2, borderBottomRightRadius: width * 0.2 }]} pointerEvents="none" />
-        </Animated.View>
-      </GestureDetector>
+            // Prevent backward wrap: if we were at 0 and got last → clamp to 0
+            if (prev === 0 && index === last) {
+              if (prev !== 0) {
+                prevIndexRef.current = 0;
+                if (selectedIndex !== 0) setSelectedIndex(0);
+              }
+              return;
+            }
+
+            const numeric = Number(val);
+            if (Number.isNaN(numeric)) return;
+
+            // Only update internal index if it changed
+            if (index !== prev) {
+              prevIndexRef.current = index;
+              setSelectedIndex(index);
+            }
+
+            // Only notify parent when the numeric value actually differs.
+            // If we're in a programmatic scroll (suppressOnChangeRef), skip
+            // notifying the parent because the parent already triggered the
+            // scroll (e.g. via +/- buttons) and would otherwise receive a
+            // duplicate update.
+            if (!suppressOnChangeRef.current && numeric !== value) {
+              fireChange(numeric);
+            }
+          }}
+        />
+
+        {/* Debug overlay when wheel picker doesn't render a value */}
+        {typeof data[selectedIndex] === "undefined" && (
+          <View
+            style={{
+              position: "absolute",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              width: "100%",
+            }}
+            pointerEvents="none"
+          >
+            <Text style={{ color: "#ffcc00", fontWeight: "900" }}>—</Text>
+            <Text style={{ color: "#ffcc00", fontSize: 10 }}>
+              {`idx:${selectedIndex} len:${data.length}`}
+            </Text>
+          </View>
+        )}
+
+        <View
+          style={[
+            styles.gradientTop,
+            {
+              borderTopLeftRadius: width * 0.2,
+              borderTopRightRadius: width * 0.2,
+            },
+          ]}
+          pointerEvents="none"
+        />
+        <View
+          style={[
+            styles.gradientBottom,
+            {
+              borderBottomLeftRadius: width * 0.2,
+              borderBottomRightRadius: width * 0.2,
+            },
+          ]}
+          pointerEvents="none"
+        />
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   label: {
     fontSize: 9,
-    fontWeight: '800',
-    textTransform: 'uppercase',
+    fontWeight: "800",
+    textTransform: "uppercase",
     letterSpacing: 1.5,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     marginBottom: 4,
-    textAlign: 'center',
+    textAlign: "center",
   },
   track: {
-    backgroundColor: 'rgba(42, 42, 42, 0.6)',
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(42, 42, 42, 0.6)",
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
   },
   numbersContainer: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   cell: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   fadedValue: {
     fontSize: 22,
-    fontWeight: '900',
-    color: 'rgba(245, 245, 245, 0.2)',
-    textAlign: 'center',
+    fontWeight: "900",
+    color: "rgba(245, 245, 245, 0.2)",
+    textAlign: "center",
   },
   currentValue: {
     fontSize: 36,
-    fontWeight: '900',
-    color: '#F5F5F5',
-    textAlign: 'center',
+    fontWeight: "900",
+    color: "#F5F5F5",
+    textAlign: "center",
   },
   gradientTop: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: '30%',
-    backgroundColor: 'rgba(10, 14, 22, 0.5)',
+    height: "30%",
+    backgroundColor: "rgba(10, 14, 22, 0.5)",
   },
   gradientBottom: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: '30%',
-    backgroundColor: 'rgba(10, 14, 22, 0.5)',
+    height: "30%",
+    backgroundColor: "rgba(10, 14, 22, 0.5)",
+  },
+  selectedLayoutStyle: {
+    backgroundColor: "#00000026",
+    borderRadius: 2,
+  },
+  containerStyle: {
+    backgroundColor: "#0000001a",
+    width: 160,
   },
 });

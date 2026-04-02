@@ -5,6 +5,7 @@ import type { ModuleConfig } from "../../types/season";
 import type { ScoreValue } from "../../types/match";
 import { MaterialIcon } from "../ui/MaterialIcon";
 import { VerticalDial } from "../ui/VerticalDial";
+import { styles } from "../ui/VerticalDial";
 
 interface BottomControlPanelProps {
   module: ModuleConfig;
@@ -33,7 +34,7 @@ function renderControls(
   value: ScoreValue,
   onChange: (value: ScoreValue) => void,
   disabled: boolean,
-  alliance: "blue" | "red"
+  alliance: "blue" | "red",
 ) {
   const accentBg = alliance === "blue" ? "bg-primary" : "bg-error";
   const accentText = alliance === "blue" ? "text-on-primary" : "text-on-error";
@@ -54,7 +55,13 @@ function renderControls(
             <MaterialIcon
               name="check"
               size={20}
-              color={value === true ? (alliance === "blue" ? "#002d64" : "#490013") : "#a8abb6"}
+              color={
+                value === true
+                  ? alliance === "blue"
+                    ? "#002d64"
+                    : "#490013"
+                  : "#a8abb6"
+              }
             />
             <Text
               className={`text-[8px] font-black uppercase mt-1 tracking-tight ${
@@ -76,7 +83,13 @@ function renderControls(
             <MaterialIcon
               name="close"
               size={20}
-              color={value !== true ? (alliance === "blue" ? "#002d64" : "#490013") : "#a8abb6"}
+              color={
+                value !== true
+                  ? alliance === "blue"
+                    ? "#002d64"
+                    : "#490013"
+                  : "#a8abb6"
+              }
             />
             <Text
               className={`text-[8px] font-black uppercase mt-1 tracking-tight ${
@@ -94,12 +107,17 @@ function renderControls(
       const min = (module as any).min ?? 0;
       const max = (module as any).max;
       const step = (module as any).step ?? 1;
+      let selectedIndex = 0;
+      const initialData = [];
+      for (let i = min; i <= max; i += step) {
+        initialData.push(i * step);
+      }
       return (
         <View className="flex-1 flex-col justify-center">
           <Text className="text-[9px] uppercase font-bold tracking-[0.2em] text-on-surface-variant mb-1">
             {module.label}
           </Text>
-          <View className="flex-row gap-3 items-center h-[76px]">
+          <View className="flex-row gap-3 items-center h-[110px]">
             <BounceButton
               onPress={() => onChange(Math.max(count - step, min))}
               disabled={disabled || count <= min}
@@ -107,7 +125,7 @@ function renderControls(
             >
               <MaterialIcon name="remove" size={22} color="#e8eaf7" />
             </BounceButton>
-            <VerticalDial
+            {/* <VerticalDial
               value={count}
               min={min}
               max={max}
@@ -116,11 +134,24 @@ function renderControls(
               disabled={disabled}
               height={76}
               width={70}
+            /> */}
+            <VerticalDial
+              value={count}
+              min={min}
+              max={max}
+              step={step}
+              onChange={(v) => onChange(v)}
+              disabled={disabled}
+              height={110}
+              width={160}
             />
+
             <BounceButton
               onPress={() =>
                 onChange(
-                  max !== undefined ? Math.min(count + step, max) : count + step
+                  max !== undefined
+                    ? Math.min(count + step, max)
+                    : count + step,
                 )
               }
               disabled={disabled || (max !== undefined && count >= max)}
@@ -163,7 +194,11 @@ function renderControls(
                     ? "bg-secondary border-2 border-white/20 shadow-lg"
                     : "bg-surface-container-highest/40 border border-outline-variant/10"
                 }`}
-                style={isActive ? { transform: [{ scale: 1.05 }], zIndex: 10 } : undefined}
+                style={
+                  isActive
+                    ? { transform: [{ scale: 1.05 }], zIndex: 10 }
+                    : undefined
+                }
               >
                 <Text
                   className={`text-[8px] font-black uppercase leading-none text-center tracking-tight ${
@@ -175,7 +210,9 @@ function renderControls(
                 {opt.points != null && (
                   <Text
                     className={`text-[7px] ${
-                      isActive ? "text-on-secondary opacity-80" : "text-on-surface-variant opacity-70"
+                      isActive
+                        ? "text-on-secondary opacity-80"
+                        : "text-on-surface-variant opacity-70"
                     }`}
                   >
                     ({opt.points}pts)
@@ -202,7 +239,10 @@ function renderControls(
                 <View className="flex-row gap-1.5 h-12 w-full">
                   <BounceButton
                     onPress={() =>
-                      onChange({ ...tierValues, [tier.id]: Math.max(0, tierCount - 1) })
+                      onChange({
+                        ...tierValues,
+                        [tier.id]: Math.max(0, tierCount - 1),
+                      })
                     }
                     disabled={disabled || tierCount <= 0}
                     className="flex-1 bg-surface-container-highest rounded-xl items-center justify-center"
@@ -210,7 +250,9 @@ function renderControls(
                     <MaterialIcon name="remove" size={18} color="#e8eaf7" />
                   </BounceButton>
                   <View className="flex-1 items-center justify-center">
-                    <Text className="text-xl font-black text-on-surface">{tierCount}</Text>
+                    <Text className="text-xl font-black text-on-surface">
+                      {tierCount}
+                    </Text>
                   </View>
                   <BounceButton
                     onPress={() =>
@@ -283,7 +325,9 @@ function renderControls(
                         ? accentBg
                         : "bg-surface-container-highest/40 border border-outline-variant/10"
                     }`}
-                  />
+                  >
+                    <View />
+                  </BounceButton>
                 );
               })}
             </View>

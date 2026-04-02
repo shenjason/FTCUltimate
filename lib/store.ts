@@ -1,12 +1,19 @@
 // lib/store.ts
-import { create } from 'zustand';
-import { getSeasons } from './seasonLoader';
-import { database } from './watermelon/database';
-import { PracticeMatch } from './watermelon/models/PracticeMatch';
-import type { SeasonConfig } from '../types/season';
-import type { MatchPhase, MatchType, SavedMatch, ScoreMap, ScoreValue, StartMode } from '../types/match';
-import { supabase } from './supabase';
-import { computeScore } from './scoreEngine';
+import { create } from "zustand";
+import { getSeasons } from "./seasonLoader";
+import { database } from "./watermelon/database";
+import { PracticeMatch } from "./watermelon/models/PracticeMatch";
+import type { SeasonConfig } from "../types/season";
+import type {
+  MatchPhase,
+  MatchType,
+  SavedMatch,
+  ScoreMap,
+  ScoreValue,
+  StartMode,
+} from "../types/match";
+import { supabase } from "./supabase";
+import { computeScore } from "./scoreEngine";
 export { computeScore };
 
 // ─── Season Store ──────────────────────────────────────────────────
@@ -21,7 +28,7 @@ export const useSeasonStore = create<SeasonState>((set) => {
   const seasons = getSeasons();
   return {
     seasons,
-    selectedSeasonId: seasons[0]?.id ?? '',
+    selectedSeasonId: seasons[0]?.id ?? "",
     setSelectedSeason: (id) => set({ selectedSeasonId: id }),
   };
 });
@@ -64,13 +71,19 @@ interface MatchState {
   setStartMode: (mode: StartMode) => void;
   setMatchName: (name: string) => void;
   setSelectedModuleId: (id: string | null) => void;
-  incrementFoul: (alliance: "red" | "blue", severity: "minor" | "major") => void;
-  decrementFoul: (alliance: "red" | "blue", severity: "minor" | "major") => void;
+  incrementFoul: (
+    alliance: "red" | "blue",
+    severity: "minor" | "major",
+  ) => void;
+  decrementFoul: (
+    alliance: "red" | "blue",
+    severity: "minor" | "major",
+  ) => void;
 }
 
 export const useMatchStore = create<MatchState>((set) => ({
-  phase: 'idle',
-  matchType: 'solo',
+  phase: "idle",
+  matchType: "solo",
   matchStarted: false,
   scores: {},
   redScores: {},
@@ -152,7 +165,7 @@ export const useMatchStore = create<MatchState>((set) => ({
 
   resetMatch: () =>
     set((state) => ({
-      phase: 'idle',
+      phase: "idle",
       scores: {},
       redScores: {},
       elapsedSeconds: 0,
@@ -172,13 +185,15 @@ export const useMatchStore = create<MatchState>((set) => ({
 
   incrementFoul: (alliance, severity) =>
     set((state) => {
-      const key = `${alliance}${severity.charAt(0).toUpperCase() + severity.slice(1)}` as keyof typeof state.fouls;
+      const key =
+        `${alliance}${severity.charAt(0).toUpperCase() + severity.slice(1)}` as keyof typeof state.fouls;
       return { fouls: { ...state.fouls, [key]: state.fouls[key] + 1 } };
     }),
 
   decrementFoul: (alliance, severity) =>
     set((state) => {
-      const key = `${alliance}${severity.charAt(0).toUpperCase() + severity.slice(1)}` as keyof typeof state.fouls;
+      const key =
+        `${alliance}${severity.charAt(0).toUpperCase() + severity.slice(1)}` as keyof typeof state.fouls;
       return {
         fouls: {
           ...state.fouls,
@@ -193,7 +208,7 @@ export const useMatchStore = create<MatchState>((set) => ({
 interface HistoryState {
   matches: SavedMatch[];
   loadMatches: () => Promise<void>;
-  saveMatch: (match: Omit<SavedMatch, 'id'>) => Promise<void>;
+  saveMatch: (match: Omit<SavedMatch, "id">) => Promise<void>;
   deleteMatch: (id: string) => Promise<void>;
 }
 
@@ -201,7 +216,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
   matches: [],
 
   loadMatches: async () => {
-    const collection = database.get<PracticeMatch>('practice_matches');
+    const collection = database.get<PracticeMatch>("practice_matches");
     const records = await collection.query().fetch();
     const matches: SavedMatch[] = records
       .map((r) => ({
@@ -216,7 +231,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         notes: r.notes || undefined,
         tags: r.tags,
         matchName: r.matchName ?? undefined,
-        alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
+        alliance: (r.alliance as "red" | "blue" | null) ?? undefined,
         matchType: (r.matchType as MatchType | null) ?? undefined,
         startMode: r.startMode as StartMode | undefined,
       }))
@@ -225,7 +240,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
   },
 
   saveMatch: async (match) => {
-    const collection = database.get<PracticeMatch>('practice_matches');
+    const collection = database.get<PracticeMatch>("practice_matches");
     await database.write(async () => {
       await collection.create((record) => {
         record.seasonId = match.seasonId;
@@ -235,14 +250,14 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         record.totalScore = match.totalScore;
         record.autoScore = match.autoScore;
         record.teleopScore = match.teleopScore;
-        record.notes = match.notes ?? null;
+        record.notes = match.notes ?? "";
         record.tagsRaw = JSON.stringify(match.tags ?? []);
         record.synced = false;
         record.matchNumber = null;
         record.alliance = match.alliance ?? null;
         record.matchType = match.matchType ?? null;
-        record.matchName = match.matchName ?? '';
-        record.startMode = match.startMode ?? 'auto_teleop';
+        record.matchName = match.matchName ?? "";
+        record.startMode = match.startMode ?? "auto_teleop";
       });
     });
     // reload
@@ -260,7 +275,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         notes: r.notes || undefined,
         tags: r.tags,
         matchName: r.matchName ?? undefined,
-        alliance: (r.alliance as 'red' | 'blue' | null) ?? undefined,
+        alliance: (r.alliance as "red" | "blue" | null) ?? undefined,
         matchType: (r.matchType as MatchType | null) ?? undefined,
         startMode: r.startMode as StartMode | undefined,
       }))
@@ -269,7 +284,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
   },
 
   deleteMatch: async (id) => {
-    const collection = database.get<PracticeMatch>('practice_matches');
+    const collection = database.get<PracticeMatch>("practice_matches");
     const record = await collection.find(id);
     await database.write(async () => {
       await record.destroyPermanently();
@@ -277,8 +292,12 @@ export const useHistoryStore = create<HistoryState>((set) => ({
     set((state) => ({ matches: state.matches.filter((m) => m.id !== id) }));
 
     // Best-effort remote delete — don't block on failure
-    supabase.from('practice_matches').delete().eq('id', id).then(({ error }) => {
-      if (error) console.warn('Remote delete failed:', error.message);
-    });
+    supabase
+      .from("practice_matches")
+      .delete()
+      .eq("id", id)
+      .then(({ error }) => {
+        if (error) console.warn("Remote delete failed:", error.message);
+      });
   },
 }));

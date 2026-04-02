@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { BounceButton } from "../ui/AnimatedPressable";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { SeasonConfig, ModuleConfig } from "../../types/season";
@@ -24,15 +30,19 @@ interface LandscapeMatchProps {
   onExit: () => void;
 }
 
-type ViewingPhase = 'auto' | 'teleop';
+type ViewingPhase = "auto" | "teleop";
 
 function canonicalPhase(phase: MatchPhase, startMode: StartMode): ViewingPhase {
-  if (phase === 'pre_teleop' || phase === 'teleop' || phase === 'complete') return 'teleop';
-  return 'auto'; // idle, pre_auto, auto, transition
+  if (phase === "pre_teleop" || phase === "teleop" || phase === "complete")
+    return "teleop";
+  return "auto"; // idle, pre_auto, auto, transition
 }
 
-function resolveModules(season: SeasonConfig, vp: ViewingPhase): ModuleConfig[] {
-  return vp === 'auto' ? season.autonomous : season.teleop;
+function resolveModules(
+  season: SeasonConfig,
+  vp: ViewingPhase,
+): ModuleConfig[] {
+  return vp === "auto" ? season.autonomous : season.teleop;
 }
 
 export function LandscapeMatch({
@@ -64,8 +74,8 @@ export function LandscapeMatch({
   const isSolo = matchType === "solo";
 
   // viewingPhase: which phase's modules the user is currently viewing/editing
-  const [viewingPhase, setViewingPhase] = useState<ViewingPhase>(
-    () => canonicalPhase(phase, startMode)
+  const [viewingPhase, setViewingPhase] = useState<ViewingPhase>(() =>
+    canonicalPhase(phase, startMode),
   );
 
   // Auto-sync viewingPhase when the real game phase transitions
@@ -76,22 +86,26 @@ export function LandscapeMatch({
   // Effective viewing phase for module resolution:
   // In idle, always show the starting phase's modules
   const effectiveViewingPhase: ViewingPhase =
-    phase === 'idle'
-      ? (startMode === 'teleop_only' ? 'teleop' : 'auto')
+    phase === "idle"
+      ? startMode === "teleop_only"
+        ? "teleop"
+        : "auto"
       : viewingPhase;
 
   const modules = resolveModules(season, effectiveViewingPhase);
 
   // Wrong-phase detection (only meaningful during active match)
   const matchIsActive =
-    phase === 'auto' || phase === 'transition' || phase === 'teleop' ||
-    phase === 'pre_auto' || phase === 'pre_teleop';
-  const isWrongPhase = matchIsActive && viewingPhase !== canonicalPhase(phase, startMode);
-
-  const disabled =
-    phase === "complete" ||
+    phase === "auto" ||
+    phase === "transition" ||
+    phase === "teleop" ||
     phase === "pre_auto" ||
     phase === "pre_teleop";
+  const isWrongPhase =
+    matchIsActive && viewingPhase !== canonicalPhase(phase, startMode);
+
+  const disabled =
+    phase === "complete" || phase === "pre_auto" || phase === "pre_teleop";
   // idle is intentionally excluded: modules are editable before match starts
 
   // Selects first module whenever the modules list changes (phase/viewingPhase switch).
@@ -220,9 +234,11 @@ export function LandscapeMatch({
 
             <BounceButton
               onPress={handleStartReset}
-              disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
+              disabled={phase === "pre_auto" || phase === "pre_teleop"}
               className={`flex-[2] flex-col items-center justify-center rounded-lg bg-surface-container-highest/80 border border-secondary/20 ${
-                phase === 'pre_auto' || phase === 'pre_teleop' ? 'opacity-40' : ''
+                phase === "pre_auto" || phase === "pre_teleop"
+                  ? "opacity-40"
+                  : ""
               }`}
             >
               <MaterialIcon name="restart_alt" size={18} color="#fdc003" />
@@ -235,7 +251,11 @@ export function LandscapeMatch({
           {/* Left panel (~25%): Timer + Score */}
           <View
             className="flex-col"
-            style={{ width: "25%", borderRightWidth: 1, borderColor: "#2A2A2A" }}
+            style={{
+              width: "25%",
+              borderRightWidth: 1,
+              borderColor: "#2A2A2A",
+            }}
           >
             {/* Timer */}
             <View className="flex-1 items-center justify-center px-3">
@@ -252,7 +272,7 @@ export function LandscapeMatch({
                   className="mt-3 bg-secondary px-6 py-2 rounded-lg"
                 >
                   <Text className="text-on-secondary font-bold text-sm">
-                    ▶  Start
+                    ▶ Start
                   </Text>
                 </BounceButton>
               )}
@@ -294,7 +314,11 @@ export function LandscapeMatch({
               {/* Fouls tile */}
               <ModuleTile
                 module={
-                  { id: FOULS_MODULE_ID, label: "Fouls", type: "boolean" } as ModuleConfig
+                  {
+                    id: FOULS_MODULE_ID,
+                    label: "Fouls",
+                    type: "boolean",
+                  } as ModuleConfig
                 }
                 value={null}
                 isSelected={isFoulsSelected}
@@ -340,7 +364,11 @@ export function LandscapeMatch({
             pointerEvents="none"
             style={[
               StyleSheet.absoluteFillObject,
-              { borderWidth: 6, borderColor: 'rgba(239, 68, 68, 0.55)', zIndex: 999 },
+              {
+                borderWidth: 6,
+                borderColor: "rgba(239, 68, 68, 0.55)",
+                zIndex: 999,
+              },
             ]}
           />
         )}
@@ -451,7 +479,7 @@ export function LandscapeMatch({
                     className="mt-2 bg-stitch-secondary px-5 py-1.5 rounded-lg"
                   >
                     <Text className="text-on-stitch-error font-bold text-sm">
-                      ▶  Start
+                      ▶ Start
                     </Text>
                   </BounceButton>
                 )}
@@ -460,9 +488,11 @@ export function LandscapeMatch({
               {/* Reset button */}
               <BounceButton
                 onPress={handleStartReset}
-                disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
+                disabled={phase === "pre_auto" || phase === "pre_teleop"}
                 className={`w-12 self-center rounded-2xl items-center justify-center bg-surface-container-highest/80 border border-secondary/20 ${
-                  phase === 'pre_auto' || phase === 'pre_teleop' ? 'opacity-40' : ''
+                  phase === "pre_auto" || phase === "pre_teleop"
+                    ? "opacity-40"
+                    : ""
                 }`}
                 style={{ aspectRatio: 1 }}
               >
@@ -508,7 +538,11 @@ export function LandscapeMatch({
           pointerEvents="none"
           style={[
             StyleSheet.absoluteFillObject,
-            { borderWidth: 6, borderColor: 'rgba(239, 68, 68, 0.55)', zIndex: 999 },
+            {
+              borderWidth: 6,
+              borderColor: "rgba(239, 68, 68, 0.55)",
+              zIndex: 999,
+            },
           ]}
         />
       )}
