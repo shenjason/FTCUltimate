@@ -9,6 +9,7 @@ interface HamburgerMenuProps {
   startMode: StartMode;
   onToggleStartMode: () => void;
   canChangeStartMode: boolean;
+  showSave?: boolean;
 }
 
 export function HamburgerMenu({
@@ -18,8 +19,10 @@ export function HamburgerMenu({
   startMode,
   onToggleStartMode,
   canChangeStartMode,
+  showSave,
 }: HamburgerMenuProps) {
   const [visible, setVisible] = useState(false);
+  const shouldShowSave = showSave !== false;
 
   const startFromLabel =
     startMode === "auto_teleop" ? "Start from Teleop" : "Start from Auto";
@@ -58,24 +61,26 @@ export function HamburgerMenu({
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => {
-                setVisible(false);
-                onSave();
-              }}
-              disabled={!saveEnabled}
-              className={`p-3 rounded-lg ${
-                saveEnabled ? "bg-background" : "bg-background opacity-40"
-              }`}
-            >
-              <Text
-                className={`font-semibold text-center ${
-                  saveEnabled ? "text-text-primary" : "text-text-secondary"
+            {shouldShowSave && (
+              <TouchableOpacity
+                onPress={() => {
+                  setVisible(false);
+                  onSave();
+                }}
+                disabled={!saveEnabled}
+                className={`p-3 rounded-lg ${
+                  saveEnabled ? "bg-background" : "bg-background opacity-40"
                 }`}
               >
-                Save
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  className={`font-semibold text-center ${
+                    saveEnabled ? "text-text-primary" : "text-text-secondary"
+                  }`}
+                >
+                  Save
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               onPress={() => {

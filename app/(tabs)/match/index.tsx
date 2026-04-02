@@ -42,12 +42,8 @@ export default function MatchScreen() {
     setAlliance(type === 'full' ? undefined : selectedAlliance);
     setMatchStarted(true);
 
-    if (type === 'solo' || type === 'full') {
-      await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)?.catch(() => {});
-    } else {
-      // timer_only stays portrait
-      await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
-    }
+    // All match types use landscape
+    await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)?.catch(() => {});
 
     setScreenState('active');
   };

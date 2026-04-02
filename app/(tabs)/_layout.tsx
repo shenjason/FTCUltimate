@@ -42,7 +42,7 @@ export default function TabLayout() {
   }, []);
 
   const isLandscapeMatch =
-    matchStarted && (matchType === "solo" || matchType === "full");
+    matchStarted && (matchType === "solo" || matchType === "full" || matchType === "timer_only");
 
   return (
     <Tabs

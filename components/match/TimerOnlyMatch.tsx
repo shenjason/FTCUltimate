@@ -37,9 +37,9 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
   };
 
   return (
-    <View className="flex-1 bg-black items-center justify-center">
-      {/* Top bar */}
-      <View className="absolute top-4 flex-row items-center gap-3">
+    <View className="flex-1 bg-black flex-row items-center justify-between px-8">
+      {/* Left: controls */}
+      <View className="items-center gap-3 w-40">
         <TouchableOpacity
           onPress={handleStartReset}
           className="bg-[#B8860B] px-6 py-2 rounded-full"
@@ -50,10 +50,7 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
               : "⟳ Reset"}
           </Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Start mode indicator (top right) */}
-      <View className="absolute top-4 right-6">
         <Text
           className={`font-bold text-sm ${
             startMode === "auto_teleop" ? "text-auto" : "text-primary"
@@ -63,33 +60,34 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
         </Text>
       </View>
 
-      {/* Timer */}
-      <Text className="text-white text-[160px] font-black tracking-tight">
-        {displayTime}
-      </Text>
+      {/* Center: timer + pause */}
+      <View className="items-center flex-1">
+        <Text className="text-white text-[120px] font-black tracking-tight">
+          {displayTime}
+        </Text>
 
-      {/* Pause indicator */}
-      {isPaused && (
-        <TouchableOpacity onPress={resume}>
-          <Text className="text-transition text-lg font-bold mt-2">
-            PAUSED — tap to resume
-          </Text>
-        </TouchableOpacity>
-      )}
+        {isPaused && (
+          <TouchableOpacity onPress={resume}>
+            <Text className="text-transition text-lg font-bold mt-1">
+              PAUSED — tap to resume
+            </Text>
+          </TouchableOpacity>
+        )}
 
-      {/* Pause button (during active phases) */}
-      {timerStarted && !isPaused && phase !== 'pre_auto' && phase !== 'pre_teleop' && (
-        <TouchableOpacity onPress={pause} className="mt-4">
-          <Text className="text-text-secondary text-base">tap to pause</Text>
-        </TouchableOpacity>
-      )}
+        {timerStarted && !isPaused && phase !== 'pre_auto' && phase !== 'pre_teleop' && (
+          <TouchableOpacity onPress={pause} className="mt-2">
+            <Text className="text-text-secondary text-base">tap to pause</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
-      {/* Bottom hamburger menu */}
-      <View className="absolute bottom-6">
+      {/* Right: hamburger menu */}
+      <View className="items-center w-40">
         <HamburgerMenu
           onExit={onExit}
           onSave={() => {}}
           saveEnabled={false}
+          showSave={false}
           startMode={startMode}
           onToggleStartMode={handleToggleStartMode}
           canChangeStartMode={phase === "idle" || phase === "complete"}
