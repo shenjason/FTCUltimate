@@ -44,7 +44,6 @@ export async function pushUnsyncedMatches(): Promise<SyncResult> {
         match_name: record.matchName ?? null,
         start_mode: record.startMode ?? null,
         duration_seconds: record.durationSeconds ?? null,
-        synced: true,
       });
 
       if (error) {

@@ -1,6 +1,6 @@
 // app/(tabs)/history/[id].tsx
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,7 +16,7 @@ type Alliance = "blue" | "red";
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { matches } = useHistoryStore();
+  const { matches, deleteMatch } = useHistoryStore();
   const match = matches.find((m) => m.id === id);
   const [activeTab, setActiveTab] = useState<Alliance>("blue");
 
@@ -164,6 +164,28 @@ export default function MatchDetailScreen() {
             period="teleop"
           />
         ))}
+
+        <View className="h-px bg-[#2A2A2A] my-4" />
+
+        {/* Delete match */}
+        <TouchableOpacity
+          onPress={() =>
+            Alert.alert("Delete Match", "Are you sure? This cannot be undone.", [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                  await deleteMatch(match.id);
+                  router.replace("/history");
+                },
+              },
+            ])
+          }
+          className="bg-[#7F1D1D] border border-[#991B1B] rounded-xl py-3 items-center mb-4"
+        >
+          <Text className="text-[#FCA5A5] font-bold text-sm">Delete Match</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

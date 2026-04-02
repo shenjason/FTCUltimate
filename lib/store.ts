@@ -5,6 +5,7 @@ import { database } from './watermelon/database';
 import { PracticeMatch } from './watermelon/models/PracticeMatch';
 import type { SeasonConfig } from '../types/season';
 import type { MatchPhase, MatchType, SavedMatch, ScoreMap, ScoreValue, StartMode } from '../types/match';
+import { supabase } from './supabase';
 import { computeScore } from './scoreEngine';
 export { computeScore };
 
@@ -234,7 +235,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         record.totalScore = match.totalScore;
         record.autoScore = match.autoScore;
         record.teleopScore = match.teleopScore;
-        record.notes = match.notes ?? '';
+        record.notes = match.notes ?? null;
         record.tagsRaw = JSON.stringify(match.tags ?? []);
         record.synced = false;
         record.matchNumber = null;
@@ -274,5 +275,10 @@ export const useHistoryStore = create<HistoryState>((set) => ({
       await record.destroyPermanently();
     });
     set((state) => ({ matches: state.matches.filter((m) => m.id !== id) }));
+
+    // Best-effort remote delete — don't block on failure
+    supabase.from('practice_matches').delete().eq('id', id).then(({ error }) => {
+      if (error) console.warn('Remote delete failed:', error.message);
+    });
   },
 }));
