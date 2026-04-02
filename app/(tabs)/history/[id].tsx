@@ -42,7 +42,7 @@ export default function MatchDetailScreen() {
     <SafeAreaView className="flex-1 bg-[#0F0F0F]">
       {/* Header */}
       <View className="flex-row items-center px-4 py-3 border-b border-[#2A2A2A]">
-        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+        <TouchableOpacity onPress={() => router.replace("/history")} className="mr-3">
           <Ionicons name="arrow-back" size={22} color="#F5F5F5" />
         </TouchableOpacity>
         <View className="flex-1">
