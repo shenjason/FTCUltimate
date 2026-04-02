@@ -125,12 +125,12 @@ export function ModuleTile({
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      style={{ width: "47%" }}
+      style={{ width: "47%", overflow: "hidden" }}
       className={`p-2.5 rounded-lg active:scale-95 ${containerCls} ${alignCls}`}
     >
       <View className={`flex-row items-center gap-1.5 mb-1 ${alignEnd ? "flex-row-reverse" : ""}`}>
         <MaterialIcon name={icon} size={14} color={iconColor} />
-        <Text className={labelCls}>{module.label}</Text>
+        <Text numberOfLines={1} className={labelCls}>{module.label}</Text>
       </View>
       {foulData ? (
         <View className={`flex-row gap-3 ${alignEnd ? "flex-row-reverse" : ""}`}>

@@ -6,8 +6,6 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 const SPRING_CONFIG = {
   damping: 15,
   stiffness: 300,
@@ -48,17 +46,19 @@ export function BounceButton({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <AnimatedPressable
+    <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={disabled}
       className={className}
-      style={[animatedStyle, style]}
+      style={style}
       hitSlop={hitSlop}
     >
-      {children}
-    </AnimatedPressable>
+      <Animated.View style={animatedStyle}>
+        {children}
+      </Animated.View>
+    </Pressable>
   );
 }

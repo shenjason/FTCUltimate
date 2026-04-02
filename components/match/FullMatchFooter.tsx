@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import type { ModuleConfig } from "../../types/season";
 import type { ScoreValue, ScoreMap } from "../../types/match";
 import { useMatchStore } from "../../lib/store";
+import { VerticalDial } from "../ui/VerticalDial";
 
 interface FoulCounts {
   redMinor: number;
@@ -50,8 +51,8 @@ function CounterZone({
   const increment = () =>
     onChange(max !== undefined ? Math.min(value + step, max) : value + step);
 
-  // Red: + on far left, count center, − inward (right)
-  // Blue: − inward (left), count center, + on far right
+  // Red: + on far left, dial center, − inward (right)
+  // Blue: − inward (left), dial center, + on far right
   return (
     <View
       className={`flex-1 flex-row items-center px-3 ${
@@ -69,16 +70,23 @@ function CounterZone({
             <Text className="text-on-stitch-error text-3xl leading-none font-bold">+</Text>
           </TouchableOpacity>
 
-          {/* Count + label (center) */}
+          {/* Scroll-drum dial with count inside */}
           <View className="flex-1 items-center justify-center">
             <Text
-              className={`text-[9px] uppercase font-bold tracking-[0.15em] ${labelColor} mb-0.5`}
+              className={`text-[9px] uppercase font-bold tracking-[0.15em] ${labelColor} mb-1`}
             >
               {displayLabel}
             </Text>
-            <Text className="text-4xl font-black text-on-surface leading-none">
-              {String(value).padStart(2, "0")}
-            </Text>
+            <VerticalDial
+              value={value}
+              min={min}
+              max={max}
+              step={step}
+              onChange={onChange}
+              disabled={disabled}
+              height={90}
+              width={80}
+            />
           </View>
 
           {/* − button (inward / right) */}
@@ -101,16 +109,23 @@ function CounterZone({
             <Text className="text-on-surface text-3xl leading-none font-bold">−</Text>
           </TouchableOpacity>
 
-          {/* Count + label (center) */}
+          {/* Scroll-drum dial with count inside */}
           <View className="flex-1 items-center justify-center">
             <Text
-              className={`text-[9px] uppercase font-bold tracking-[0.15em] ${labelColor} mb-0.5`}
+              className={`text-[9px] uppercase font-bold tracking-[0.15em] ${labelColor} mb-1`}
             >
               {displayLabel}
             </Text>
-            <Text className="text-4xl font-black text-on-surface leading-none">
-              {String(value).padStart(2, "0")}
-            </Text>
+            <VerticalDial
+              value={value}
+              min={min}
+              max={max}
+              step={step}
+              onChange={onChange}
+              disabled={disabled}
+              height={90}
+              width={80}
+            />
           </View>
 
           {/* Blue: + button (far right) */}

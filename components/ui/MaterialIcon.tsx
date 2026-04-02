@@ -13,6 +13,7 @@ const ICON_MAP: Record<string, string> = {
   add: "plus",
   check: "check",
   // Navigation
+  arrow_back: "arrow-left",
   north: "arrow-up",
   double_arrow: "chevron-double-up",
   // Objects

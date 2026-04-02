@@ -4,6 +4,7 @@ import { BounceButton } from "../ui/AnimatedPressable";
 import type { ModuleConfig } from "../../types/season";
 import type { ScoreValue } from "../../types/match";
 import { MaterialIcon } from "../ui/MaterialIcon";
+import { VerticalDial } from "../ui/VerticalDial";
 
 interface BottomControlPanelProps {
   module: ModuleConfig;
@@ -95,22 +96,27 @@ function renderControls(
       const step = (module as any).step ?? 1;
       return (
         <View className="flex-1 flex-col justify-center">
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-[9px] uppercase font-bold tracking-[0.2em] text-on-surface-variant">
-              {module.label}
-            </Text>
-            <Text className="text-3xl font-black text-on-surface">
-              {String(count).padStart(2, "0")}
-            </Text>
-          </View>
-          <View className="flex-row gap-3 h-12">
+          <Text className="text-[9px] uppercase font-bold tracking-[0.2em] text-on-surface-variant mb-1">
+            {module.label}
+          </Text>
+          <View className="flex-row gap-3 items-center h-[76px]">
             <BounceButton
               onPress={() => onChange(Math.max(count - step, min))}
               disabled={disabled || count <= min}
-              className="flex-1 bg-surface-container-highest rounded-xl items-center justify-center active:opacity-70"
+              className="flex-1 h-12 bg-surface-container-highest rounded-xl items-center justify-center active:opacity-70"
             >
               <MaterialIcon name="remove" size={22} color="#e8eaf7" />
             </BounceButton>
+            <VerticalDial
+              value={count}
+              min={min}
+              max={max}
+              step={step}
+              onChange={(v) => onChange(v)}
+              disabled={disabled}
+              height={76}
+              width={70}
+            />
             <BounceButton
               onPress={() =>
                 onChange(
@@ -118,7 +124,7 @@ function renderControls(
                 )
               }
               disabled={disabled || (max !== undefined && count >= max)}
-              className={`flex-[2] ${accentBg} rounded-xl items-center justify-center active:opacity-70`}
+              className={`flex-[2] h-12 ${accentBg} rounded-xl items-center justify-center active:opacity-70`}
             >
               <MaterialIcon
                 name="add"
