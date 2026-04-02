@@ -7,30 +7,30 @@ const ScreenOrientation =
   Platform.OS !== "web" ? require("expo-screen-orientation") : null;
 import { useMatchStore } from "../../lib/store";
 
-// Issue 4: module-level const avoids inline object recreation on every render
 const TAB_BAR_STYLE_VISIBLE = {
-  backgroundColor: "#0A0F1E",
-  borderTopColor: "#1E293B",
+  backgroundColor: "#0a0e16",
+  borderTopColor: "#202632",
   borderTopWidth: 1,
+  height: 64,
+} as const;
+
+const TAB_ITEM_STYLE = {
+  borderRadius: 12,
+  marginHorizontal: 4,
+  marginVertical: 4,
 } as const;
 
 export default function TabLayout() {
   const matchStarted = useMatchStore((s) => s.matchStarted);
   const matchType = useMatchStore((s) => s.matchType);
 
-  // Lock to portrait on mount as the baseline orientation.
-  // Note: the match screen itself will call lockAsync(LANDSCAPE) when a match
-  // starts and unlock/re-lock portrait when it ends — this layout only
-  // establishes the default portrait lock.
   useEffect(() => {
-    // Issue 1: handle promise rejection so unhandled rejections don't surface
     ScreenOrientation?.lockAsync(
       ScreenOrientation.OrientationLock.PORTRAIT_UP,
     )?.catch((err: any) => {
       console.warn("[TabLayout] Failed to lock orientation to portrait:", err);
     });
 
-    // Issue 3: release the lock if this layout ever unmounts
     return () => {
       ScreenOrientation?.unlockAsync()?.catch((err: any) => {
         console.warn(
@@ -41,8 +41,6 @@ export default function TabLayout() {
     };
   }, []);
 
-  // Issue 5: timer_only is excluded because that mode keeps portrait layout
-  // with the tab bar visible; only solo and full matches go landscape/fullscreen
   const isLandscapeMatch =
     matchStarted && (matchType === "solo" || matchType === "full");
 
@@ -53,8 +51,17 @@ export default function TabLayout() {
         tabBarStyle: isLandscapeMatch
           ? { display: "none" }
           : TAB_BAR_STYLE_VISIBLE,
-        tabBarActiveTintColor: "#3B82F6",
-        tabBarInactiveTintColor: "#9CA3AF",
+        tabBarActiveTintColor: "#84adff",
+        tabBarInactiveTintColor: "rgba(232,234,247,0.5)",
+        tabBarActiveBackgroundColor: "#202632",
+        tabBarItemStyle: TAB_ITEM_STYLE,
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: "700",
+          letterSpacing: 0.8,
+          textTransform: "uppercase",
+          marginBottom: 2,
+        },
       }}
     >
       <Tabs.Screen
@@ -78,10 +85,25 @@ export default function TabLayout() {
       <Tabs.Screen
         name="scouting/index"
         options={{
-          title: "Scouting",
+          title: "Scout",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search" size={size} color={color} />
+            <Ionicons name="people" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings/index"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="history/[id]"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

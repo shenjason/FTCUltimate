@@ -15,9 +15,11 @@ const stripSuffix = (name: string) => name.replace(/\s*presented by.*/i, "");
 
 function MatchCard({
   match,
+  isFirst,
   onDelete,
 }: {
   match: SavedMatch;
+  isFirst: boolean;
   onDelete: () => void;
 }) {
   const router = useRouter();
@@ -25,71 +27,107 @@ function MatchCard({
   const season = seasons.find((s) => s.id === match.seasonId);
   const date = new Date(match.timestamp);
   const seasonDisplayName = season ? stripSuffix(season.name) : match.seasonId;
+  const dateStr = `${date.toLocaleDateString()} · ${date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
 
   return (
     <TouchableOpacity
       onPress={() => router.push(`/history/${match.id}`)}
-      className="bg-surface border border-border rounded-2xl p-4 mb-3 mx-4"
+      style={{
+        backgroundColor: "#151a24",
+        borderRadius: 12,
+        padding: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderLeftWidth: 4,
+        borderLeftColor: isFirst ? "#84adff" : "transparent",
+        marginBottom: 12,
+      }}
     >
-      <View className="flex-row items-start justify-between">
-        <View className="flex-1">
-          <View className="flex-row items-center gap-2 flex-wrap">
-            <Text
-              className="text-text-primary font-semibold text-sm"
-              numberOfLines={1}
-            >
-              {match.matchName ?? "Untitled Match"}
+      {/* Left: info */}
+      <View style={{ flex: 1, gap: 6 }}>
+        <View>
+          <Text
+            style={{ color: "#e8eaf7", fontSize: 16, fontWeight: "700" }}
+            numberOfLines={1}
+          >
+            {match.matchName ?? "Untitled Match"}{" "}
+            <Text style={{ color: "#a8abb6", fontSize: 12, fontWeight: "400" }}>
+              {dateStr}
             </Text>
-            <MatchTypeBadge matchType={match.matchType} />
+          </Text>
+          <Text
+            style={{
+              color: "#84adff",
+              fontSize: 10,
+              fontWeight: "700",
+              letterSpacing: 1.2,
+              textTransform: "uppercase",
+              marginTop: 2,
+            }}
+          >
+            {seasonDisplayName}
+          </Text>
+        </View>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <View
+            style={{
+              backgroundColor: "rgba(167,1,56,0.2)",
+              borderRadius: 4,
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+            }}
+          >
+            <Text style={{ color: "#ff6e84", fontSize: 10, fontWeight: "700" }}>
+              AUTO {match.autoScore}
+            </Text>
           </View>
-          <View className="flex-row items-center gap-2 mt-0.5 flex-wrap">
-            <View className="bg-surface-light px-2 py-0.5 rounded-full">
-              <Text className="text-text-secondary text-xs" numberOfLines={1}>
-                {seasonDisplayName}
-              </Text>
-            </View>
-            <Text className="text-text-secondary text-xs">
-              {date.toLocaleDateString()} ·{" "}
-              {date.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+          <View
+            style={{
+              backgroundColor: "rgba(161,250,255,0.1)",
+              borderRadius: 4,
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+            }}
+          >
+            <Text style={{ color: "#a1faff", fontSize: 10, fontWeight: "700" }}>
+              TELEOP {match.teleopScore}
             </Text>
           </View>
         </View>
-        <View className="items-end">
-          <Text className="text-text-primary text-2xl font-bold">
+      </View>
+
+      {/* Right: type badge + score */}
+      <View style={{ alignItems: "flex-end", gap: 4, marginLeft: 12 }}>
+        <MatchTypeBadge matchType={match.matchType} />
+        <View style={{ flexDirection: "row", alignItems: "baseline" }}>
+          <Text
+            style={{
+              color: "#e8eaf7",
+              fontSize: 30,
+              fontWeight: "900",
+              fontStyle: "italic",
+              letterSpacing: -1,
+            }}
+          >
             {match.totalScore}
           </Text>
-          <Text className="text-text-secondary text-xs">pts</Text>
-        </View>
-      </View>
-      <View className="flex-row gap-4 mt-3">
-        <View className="flex-row items-center gap-1">
-          <View className="w-2 h-2 rounded-full bg-auto" />
-          <Text className="text-text-secondary text-xs">AUTO {match.autoScore}</Text>
-        </View>
-        <View className="flex-row items-center gap-1">
-          <View className="w-2 h-2 rounded-full bg-teleop" />
-          <Text className="text-text-secondary text-xs">
-            TELEOP {match.teleopScore}
+          <Text style={{ color: "#a8abb6", fontSize: 10, fontWeight: "700", marginLeft: 3 }}>
+            pts
           </Text>
         </View>
-        {match.tags && match.tags.length > 0 && (
-          <View className="flex-row gap-1 flex-wrap">
-            {match.tags.map((tag) => (
-              <View key={tag} className="bg-surface-light px-2 py-0.5 rounded-full">
-                <Text className="text-text-secondary text-xs">{tag}</Text>
-              </View>
-            ))}
-          </View>
-        )}
       </View>
+
+      {/* Delete button */}
       <TouchableOpacity
         onPress={onDelete}
-        className="absolute top-3 right-3 w-8 h-8 items-center justify-center"
+        style={{ position: "absolute", top: 10, right: 10, padding: 4 }}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Ionicons name="trash-outline" size={16} color="#6B7280" />
+        <Ionicons name="trash-outline" size={14} color="#444852" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -119,27 +157,20 @@ export default function HistoryScreen() {
     return true;
   });
 
-  // Stats
   const last10 = filtered.slice(0, 10);
   const avgScore =
     last10.length > 0
-      ? Math.round(
-          last10.reduce((sum, m) => sum + m.totalScore, 0) / last10.length,
-        )
+      ? Math.round(last10.reduce((sum, m) => sum + m.totalScore, 0) / last10.length)
       : 0;
   const bestMatch =
     filtered.length > 0 ? Math.max(...filtered.map((m) => m.totalScore)) : 0;
   const avgAuto =
     last10.length > 0
-      ? Math.round(
-          last10.reduce((sum, m) => sum + m.autoScore, 0) / last10.length,
-        )
+      ? Math.round(last10.reduce((sum, m) => sum + m.autoScore, 0) / last10.length)
       : 0;
   const avgTeleop =
     last10.length > 0
-      ? Math.round(
-          last10.reduce((sum, m) => sum + m.teleopScore, 0) / last10.length,
-        )
+      ? Math.round(last10.reduce((sum, m) => sum + m.teleopScore, 0) / last10.length)
       : 0;
 
   const handleSync = async () => {
@@ -149,10 +180,7 @@ export default function HistoryScreen() {
     setUnsyncedCount(await getUnsyncedCount());
 
     if (result.errors.length > 0) {
-      Alert.alert(
-        "Sync Partial",
-        `Pushed ${result.pushed} matches.\n${result.errors.length} failed.`,
-      );
+      Alert.alert("Sync Partial", `Pushed ${result.pushed} matches.\n${result.errors.length} failed.`);
     } else {
       Alert.alert("Synced", `${result.pushed} matches pushed to cloud.`);
     }
@@ -165,164 +193,332 @@ export default function HistoryScreen() {
     ]);
   };
 
+  const FilterPill = ({
+    label,
+    active,
+    onPress,
+  }: {
+    label: string;
+    active: boolean;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: 50,
+        backgroundColor: active ? "#84adff" : "#202632",
+        marginRight: 8,
+      }}
+    >
+      <Text
+        style={{
+          color: active ? "#002d64" : "#a8abb6",
+          fontSize: 11,
+          fontWeight: "700",
+          letterSpacing: 0.8,
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
-        <Text className="text-text-primary text-xl font-bold">Match History</Text>
-        <View className="flex-row gap-2">
-          <TouchableOpacity
-            onPress={handleSync}
-            disabled={syncing || unsyncedCount === 0}
-            className="flex-row items-center gap-1.5 bg-surface border border-border px-3 py-1.5 rounded-full"
-          >
-            <Ionicons
-              name={syncing ? "sync" : "cloud-upload-outline"}
-              size={14}
-              color={unsyncedCount > 0 ? "#3B82F6" : "#6B7280"}
-            />
-            {unsyncedCount > 0 && (
-              <Text className="text-primary text-xs font-medium">
-                {unsyncedCount}
-              </Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => exportMatchesCSV(filtered)}
-            disabled={filtered.length === 0}
-            className="flex-row items-center gap-1.5 bg-surface border border-border px-3 py-1.5 rounded-full"
-          >
-            <Ionicons
-              name="download-outline"
-              size={14}
-              color={filtered.length > 0 ? "#22C55E" : "#6B7280"}
-            />
-            <Text
-              className={`text-xs font-medium ${filtered.length > 0 ? "text-teleop" : "text-[#6B7280]"}`}
-            >
-              CSV
-            </Text>
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#0a0e16" }}>
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 20,
+          paddingTop: 8,
+          paddingBottom: 12,
+        }}
+      >
+        <Ionicons name="time" size={20} color="#84adff" style={{ marginRight: 10 }} />
+        <Text
+          style={{
+            color: "#84adff",
+            fontSize: 20,
+            fontWeight: "700",
+            letterSpacing: -0.5,
+            textTransform: "uppercase",
+            flex: 1,
+          }}
+        >
+          Match History
+        </Text>
+        <TouchableOpacity
+          onPress={handleSync}
+          disabled={syncing || unsyncedCount === 0}
+          style={{ padding: 8 }}
+        >
+          <Ionicons
+            name={syncing ? "sync" : "cloud-upload-outline"}
+            size={20}
+            color={unsyncedCount > 0 ? "#84adff" : "#444852"}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => exportMatchesCSV(filtered)}
+          disabled={filtered.length === 0}
+          style={{ padding: 8 }}
+        >
+          <Ionicons
+            name="download-outline"
+            size={20}
+            color={filtered.length > 0 ? "#a1faff" : "#444852"}
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Stats summary */}
-      {filtered.length > 0 && (
-        <View className="mx-4 mb-3 bg-surface border border-border rounded-2xl p-4">
-          <Text className="text-text-secondary text-xs font-bold tracking-widest mb-2">
-            LAST {last10.length} MATCHES
-          </Text>
-          <View className="flex-row justify-between">
-            <View className="items-center">
-              <Text className="text-text-primary text-xl font-bold">
-                {avgScore}
-              </Text>
-              <Text className="text-text-secondary text-xs">Avg</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-text-primary text-xl font-bold">
-                {bestMatch}
-              </Text>
-              <Text className="text-text-secondary text-xs">Best</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-auto text-xl font-bold">
-                {avgAuto}
-              </Text>
-              <Text className="text-text-secondary text-xs">Avg Auto</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-teleop text-xl font-bold">
-                {avgTeleop}
-              </Text>
-              <Text className="text-text-secondary text-xs">Avg Teleop</Text>
-            </View>
-          </View>
-        </View>
-      )}
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            {/* Stats hero */}
+            {filtered.length > 0 && (
+              <View
+                style={{
+                  backgroundColor: "#0f131d",
+                  borderRadius: 12,
+                  padding: 20,
+                  marginBottom: 20,
+                  overflow: "hidden",
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 16,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#a8abb6",
+                      fontSize: 10,
+                      fontWeight: "700",
+                      letterSpacing: 1.5,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Last {last10.length} Matches
+                  </Text>
+                  <View
+                    style={{
+                      backgroundColor: "rgba(132,173,255,0.1)",
+                      borderRadius: 4,
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#84adff",
+                        fontSize: 9,
+                        fontWeight: "700",
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Performance Live
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: "row" }}>
+                  <View style={{ flex: 1, alignItems: "flex-start" }}>
+                    <Text style={{ color: "#e8eaf7", fontSize: 30, fontWeight: "700" }}>
+                      {avgScore}
+                    </Text>
+                    <Text
+                      style={{
+                        color: "#a8abb6",
+                        fontSize: 10,
+                        fontWeight: "700",
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Avg Score
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flex: 1,
+                      alignItems: "flex-start",
+                      borderLeftWidth: 1,
+                      borderLeftColor: "rgba(68,72,82,0.3)",
+                      paddingLeft: 16,
+                    }}
+                  >
+                    <Text style={{ color: "#e8eaf7", fontSize: 30, fontWeight: "700" }}>
+                      {bestMatch}
+                    </Text>
+                    <Text
+                      style={{
+                        color: "#a8abb6",
+                        fontSize: 10,
+                        fontWeight: "700",
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Best
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flex: 1,
+                      alignItems: "flex-start",
+                      borderLeftWidth: 1,
+                      borderLeftColor: "rgba(68,72,82,0.3)",
+                      paddingLeft: 16,
+                    }}
+                  >
+                    <Text style={{ color: "#ff6e84", fontSize: 30, fontWeight: "700" }}>
+                      {avgAuto}
+                    </Text>
+                    <Text
+                      style={{
+                        color: "rgba(255,110,132,0.7)",
+                        fontSize: 10,
+                        fontWeight: "700",
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Avg Auto
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flex: 1,
+                      alignItems: "flex-start",
+                      borderLeftWidth: 1,
+                      borderLeftColor: "rgba(68,72,82,0.3)",
+                      paddingLeft: 16,
+                    }}
+                  >
+                    <Text style={{ color: "#a1faff", fontSize: 30, fontWeight: "700" }}>
+                      {avgTeleop}
+                    </Text>
+                    <Text
+                      style={{
+                        color: "rgba(161,250,255,0.7)",
+                        fontSize: 10,
+                        fontWeight: "700",
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Avg Teleop
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
-      {/* Season filter */}
-      <View className="mb-2">
-        <FlatList
-          data={[
-            { id: null, name: "All Seasons" } as {
-              id: string | null;
-              name: string;
-            },
-            ...seasons.map((s) => ({ id: s.id, name: stripSuffix(s.name) })),
-          ]}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id ?? "all"}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => setFilterSeasonId(item.id)}
-              className={`mr-2 px-3 py-1.5 rounded-full border ${
-                filterSeasonId === item.id
-                  ? "bg-primary border-primary"
-                  : "bg-surface border-border"
-              }`}
+            {/* Filters */}
+            <View style={{ gap: 8, marginBottom: 20 }}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              >
+                <FilterPill
+                  label="All Seasons"
+                  active={filterSeasonId === null}
+                  onPress={() => setFilterSeasonId(null)}
+                />
+                {seasons.map((s) => (
+                  <FilterPill
+                    key={s.id}
+                    label={stripSuffix(s.name)}
+                    active={filterSeasonId === s.id}
+                    onPress={() => setFilterSeasonId(s.id)}
+                  />
+                ))}
+              </ScrollView>
+
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {(["all", "solo", "full"] as const).map((type) => (
+                  <FilterPill
+                    key={type}
+                    label={type === "all" ? "All Types" : type === "solo" ? "Solo" : "Full"}
+                    active={matchTypeFilter === type}
+                    onPress={() => setMatchTypeFilter(type)}
+                  />
+                ))}
+              </ScrollView>
+
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {(["all", "auto_teleop", "teleop_only"] as const).map((mode) => (
+                  <FilterPill
+                    key={mode}
+                    label={
+                      mode === "all"
+                        ? "All Modes"
+                        : mode === "auto_teleop"
+                        ? "Auto + Teleop"
+                        : "Teleop Only"
+                    }
+                    active={startModeFilter === mode}
+                    onPress={() => setStartModeFilter(mode)}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Feed header */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 12,
+                paddingHorizontal: 4,
+              }}
             >
               <Text
-                className={`text-xs font-medium ${
-                  filterSeasonId === item.id ? "text-white" : "text-text-secondary"
-                }`}
-                numberOfLines={1}
+                style={{
+                  color: "rgba(232,234,247,0.5)",
+                  fontSize: 11,
+                  fontWeight: "700",
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                }}
               >
-                {item.name}
+                Verified Logs
               </Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Match Type Filter */}
-      <ScrollView horizontal className="mb-2" contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }} showsHorizontalScrollIndicator={false}>
-        {(["all", "solo", "full"] as const).map((type) => (
-          <TouchableOpacity
-            key={type}
-            onPress={() => setMatchTypeFilter(type)}
-            className={`px-3 py-1 rounded-full ${matchTypeFilter === type ? "bg-primary" : "bg-surface"}`}
-          >
-            <Text className={`text-sm ${matchTypeFilter === type ? "text-white" : "text-text-secondary"}`}>
-              {type === "all" ? "All Types" : type.charAt(0).toUpperCase() + type.slice(1)}
+              <Text style={{ color: "#a8abb6", fontSize: 10 }}>
+                {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+              </Text>
+            </View>
+          </>
+        }
+        ListEmptyComponent={
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60 }}>
+            <Ionicons name="time-outline" size={48} color="#202632" />
+            <Text style={{ color: "#a8abb6", fontSize: 14, marginTop: 12 }}>
+              No matches saved yet
             </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Start Mode Filter */}
-      <ScrollView horizontal className="mb-3" contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }} showsHorizontalScrollIndicator={false}>
-        {(["all", "auto_teleop", "teleop_only"] as const).map((mode) => (
-          <TouchableOpacity
-            key={mode}
-            onPress={() => setStartModeFilter(mode)}
-            className={`px-3 py-1 rounded-full ${startModeFilter === mode ? "bg-primary" : "bg-surface"}`}
-          >
-            <Text className={`text-sm ${startModeFilter === mode ? "text-white" : "text-text-secondary"}`}>
-              {mode === "all" ? "All Modes" : mode === "auto_teleop" ? "Auto + Teleop" : "Teleop Only"}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {filtered.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Ionicons name="time-outline" size={48} color="#1E293B" />
-          <Text className="text-text-secondary text-sm mt-3">
-            No matches saved yet
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <MatchCard match={item} onDelete={() => handleDelete(item.id)} />
-          )}
-          contentContainerStyle={{ paddingBottom: 40 }}
-        />
-      )}
+          </View>
+        }
+        renderItem={({ item, index }) => (
+          <MatchCard
+            match={item}
+            isFirst={index === 0}
+            onDelete={() => handleDelete(item.id)}
+          />
+        )}
+      />
     </SafeAreaView>
   );
 }
