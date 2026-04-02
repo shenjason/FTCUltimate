@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import { BounceButton } from "../ui/AnimatedPressable";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { SeasonConfig, ModuleConfig } from "../../types/season";
 import type { MatchType, MatchPhase, StartMode } from "../../types/match";
@@ -198,7 +199,7 @@ export function LandscapeMatch({
             className="w-16 flex-col p-1.5 bg-surface-container-low/50 shrink-0 gap-1.5"
             style={{ borderRightWidth: 1, borderColor: "#2A2A2A" }}
           >
-            <TouchableOpacity
+            <BounceButton
               onPress={isPaused ? resume : pause}
               disabled={!matchIsActive}
               className={`flex-[3] flex-col items-center justify-center rounded-lg ${
@@ -215,9 +216,9 @@ export function LandscapeMatch({
               <Text className="text-[8px] font-bold uppercase mt-1.5 tracking-tighter text-secondary">
                 {isPaused ? "Resume" : "Pause"}
               </Text>
-            </TouchableOpacity>
+            </BounceButton>
 
-            <TouchableOpacity
+            <BounceButton
               onPress={handleStartReset}
               disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
               className={`flex-[2] flex-col items-center justify-center rounded-lg bg-surface-container-highest/80 border border-secondary/20 ${
@@ -228,7 +229,7 @@ export function LandscapeMatch({
               <Text className="text-[8px] font-bold uppercase mt-1 tracking-tighter text-secondary">
                 Reset
               </Text>
-            </TouchableOpacity>
+            </BounceButton>
           </View>
 
           {/* Left panel (~25%): Timer + Score */}
@@ -246,14 +247,14 @@ export function LandscapeMatch({
               />
               {/* Start button (only in idle/complete) */}
               {(phase === "idle" || phase === "complete") && (
-                <TouchableOpacity
+                <BounceButton
                   onPress={handleStartReset}
                   className="mt-3 bg-secondary px-6 py-2 rounded-lg"
                 >
                   <Text className="text-on-secondary font-bold text-sm">
                     ▶  Start
                   </Text>
-                </TouchableOpacity>
+                </BounceButton>
               )}
             </View>
 
@@ -418,7 +419,7 @@ export function LandscapeMatch({
             {/* Timer row: Pause | Timer | Reset — inline horizontal */}
             <View className="flex-1 flex-row items-center justify-center gap-3 px-2">
               {/* Pause/Resume button */}
-              <TouchableOpacity
+              <BounceButton
                 onPress={isPaused ? resume : pause}
                 disabled={!matchIsActive}
                 className={`w-14 h-14 rounded-2xl items-center justify-center ${
@@ -432,7 +433,7 @@ export function LandscapeMatch({
                   size={24}
                   color={matchIsActive ? "#fdc003" : "#a8abb6"}
                 />
-              </TouchableOpacity>
+              </BounceButton>
 
               {/* Timer */}
               <View className="items-center">
@@ -444,19 +445,19 @@ export function LandscapeMatch({
                 />
                 {/* Start button (only in idle/complete) */}
                 {(phase === "idle" || phase === "complete") && (
-                  <TouchableOpacity
+                  <BounceButton
                     onPress={handleStartReset}
                     className="mt-2 bg-stitch-secondary px-5 py-1.5 rounded-lg"
                   >
                     <Text className="text-on-stitch-error font-bold text-sm">
                       ▶  Start
                     </Text>
-                  </TouchableOpacity>
+                  </BounceButton>
                 )}
               </View>
 
               {/* Reset button */}
-              <TouchableOpacity
+              <BounceButton
                 onPress={handleStartReset}
                 disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
                 className={`w-14 h-14 rounded-2xl items-center justify-center bg-surface-container-highest/80 border border-secondary/20 ${
@@ -464,7 +465,7 @@ export function LandscapeMatch({
                 }`}
               >
                 <MaterialIcon name="restart_alt" size={22} color="#fdc003" />
-              </TouchableOpacity>
+              </BounceButton>
             </View>
           </View>
 

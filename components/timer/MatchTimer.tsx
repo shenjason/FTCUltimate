@@ -1,6 +1,7 @@
 // components/timer/MatchTimer.tsx
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { BounceButton } from '../ui/AnimatedPressable';
 import Animated, {
   useAnimatedProps,
   withTiming,
@@ -14,6 +15,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useMatchTimer } from '../../hooks/useMatchTimer';
 import type { SeasonConfig } from '../../types/season';
 import type { MatchPhase } from '../../types/match';
+import { FlipTimeDisplay } from './FlipDigit';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -83,9 +85,9 @@ export function MatchTimer({ season }: MatchTimerProps) {
   const renderCenterContent = () => {
     if (phase === 'idle') {
       return (
-        <TouchableOpacity onPress={start} className="bg-[#3B82F6] px-6 py-3 rounded-2xl">
+        <BounceButton onPress={start} className="bg-[#3B82F6] px-6 py-3 rounded-2xl">
           <Text className="text-white font-bold text-lg">START</Text>
-        </TouchableOpacity>
+        </BounceButton>
       );
     }
     if (phase === 'complete') {
@@ -100,7 +102,7 @@ export function MatchTimer({ season }: MatchTimerProps) {
       return (
         <Animated.View style={{ opacity: pulseOpacity }} className="items-center">
           <Text className="text-[#F59E0B] font-bold text-xs">TRANSITION</Text>
-          <Text className="text-[#F59E0B] font-bold text-4xl">{displayTime}</Text>
+          <FlipTimeDisplay displayTime={displayTime} fontSize={36} color="#F59E0B" />
         </Animated.View>
       );
     }
@@ -111,7 +113,7 @@ export function MatchTimer({ season }: MatchTimerProps) {
         <Text className={`font-bold text-xs ${isAuto ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}>
           {isAuto ? 'AUTONOMOUS' : 'TELEOP'}
         </Text>
-        <Text className="text-[#F5F5F5] font-bold text-4xl">{displayTime}</Text>
+        <FlipTimeDisplay displayTime={displayTime} fontSize={36} color="#F5F5F5" />
       </View>
     );
   };
@@ -148,19 +150,19 @@ export function MatchTimer({ season }: MatchTimerProps) {
       {phase !== 'idle' && phase !== 'complete' && (
         <View className="flex-row gap-3 mt-3">
           {phase !== 'pre_auto' && phase !== 'pre_teleop' && (
-            <TouchableOpacity
+            <BounceButton
               onPress={isPaused ? resume : pause}
               className="bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 rounded-xl"
             >
               <Text className="text-[#F5F5F5] text-sm">{isPaused ? 'RESUME' : 'PAUSE'}</Text>
-            </TouchableOpacity>
+            </BounceButton>
           )}
-          <TouchableOpacity
+          <BounceButton
             onPress={handleReset}
             className="bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 rounded-xl"
           >
             <Text className="text-[#9CA3AF] text-sm">RESET</Text>
-          </TouchableOpacity>
+          </BounceButton>
         </View>
       )}
     </View>

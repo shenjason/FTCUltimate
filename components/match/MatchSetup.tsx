@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   TextInput,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { BounceButton } from '../ui/AnimatedPressable';
 import { Ionicons } from '@expo/vector-icons';
 import { SeasonPicker } from '../ui/SeasonPicker';
 import { useHistoryStore } from '../../lib/store';
@@ -125,7 +125,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
           {MATCH_TYPE_CARDS.map((card) => {
             const isSelected = selectedType === card.type;
             return (
-              <TouchableOpacity
+              <BounceButton
                 key={card.type}
                 onPress={() => setSelectedType(card.type)}
                 style={{
@@ -173,7 +173,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
                 >
                   {card.title}
                 </Text>
-              </TouchableOpacity>
+              </BounceButton>
             );
           })}
         </View>
@@ -191,7 +191,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
           {(['auto_teleop', 'teleop_only'] as StartMode[]).map((mode) => {
             const isActive = selectedStartMode === mode;
             return (
-              <TouchableOpacity
+              <BounceButton
                 key={mode}
                 onPress={() => setSelectedStartMode(mode)}
                 style={{
@@ -213,7 +213,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
                 >
                   {mode === 'auto_teleop' ? 'Auto + Teleop' : 'Teleop Only'}
                 </Text>
-              </TouchableOpacity>
+              </BounceButton>
             );
           })}
         </View>
@@ -223,7 +223,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
           <>
             <Text style={LABEL_STYLE}>Alliance</Text>
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 24 }}>
-              <TouchableOpacity
+              <BounceButton
                 onPress={() => setAlliance('blue')}
                 style={{
                   flex: 1,
@@ -246,8 +246,8 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
                 >
                   Blue
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </BounceButton>
+              <BounceButton
                 onPress={() => setAlliance('red')}
                 style={{
                   flex: 1,
@@ -270,13 +270,13 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
                 >
                   Red
                 </Text>
-              </TouchableOpacity>
+              </BounceButton>
             </View>
           </>
         )}
 
         {/* Start button */}
-        <TouchableOpacity
+        <BounceButton
           onPress={handleStart}
           style={{
             backgroundColor: '#84adff',
@@ -297,7 +297,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
           >
             Start Match
           </Text>
-        </TouchableOpacity>
+        </BounceButton>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -1,6 +1,13 @@
 // app/(tabs)/match/index.tsx
 import React, { useState, useEffect } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert, Platform, useWindowDimensions } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  runOnJS,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 const ScreenOrientation = Platform.OS !== "web"
   ? require("expo-screen-orientation")
@@ -25,6 +32,15 @@ export default function MatchScreen() {
 
   const season = getSeasonById(selectedSeasonId);
 
+  // Slide transition animation
+  const { width: screenWidth } = useWindowDimensions();
+  const slideX = useSharedValue(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const slideAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: slideX.value }],
+  }));
+
   // Lock to portrait on initial mount (setup state)
   useEffect(() => {
     ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
@@ -45,15 +61,34 @@ export default function MatchScreen() {
     // All match types use landscape
     await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)?.catch(() => {});
 
+    // Slide new screen in from right
+    slideX.value = screenWidth;
     setScreenState('active');
+    requestAnimationFrame(() => {
+      slideX.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+    });
   };
 
   const handleExit = async () => {
     await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
-    setMatchStarted(false);
-    resetMatch();
-    setAlliance(undefined);
-    setScreenState('setup');
+    // Slide current screen out to right, then swap
+    setIsAnimating(true);
+    slideX.value = withTiming(screenWidth, {
+      duration: 300,
+      easing: Easing.in(Easing.cubic),
+    }, (finished) => {
+      if (finished) {
+        runOnJS(setIsAnimating)(false);
+        runOnJS(setMatchStarted)(false);
+        runOnJS(resetMatch)();
+        runOnJS(setAlliance)(undefined);
+        runOnJS(setScreenState)('setup');
+        slideX.value = 0;
+      }
+    });
   };
 
   const handleMatchComplete = async (result: any) => {
@@ -104,29 +139,35 @@ export default function MatchScreen() {
 
   if (screenState === 'setup') {
     return (
-      <SafeAreaView className="flex-1 bg-[#0F0F0F]">
-        <MatchSetup season={season} onStart={handleStart} />
-      </SafeAreaView>
+      <Animated.View style={[{ flex: 1, backgroundColor: '#0F0F0F' }, slideAnimStyle]}>
+        <SafeAreaView className="flex-1 bg-[#0F0F0F]">
+          <MatchSetup season={season} onStart={handleStart} />
+        </SafeAreaView>
+      </Animated.View>
     );
   }
 
   // active state
   if (matchType === 'timer_only') {
     return (
-      <SafeAreaView className="flex-1 bg-[#0F0F0F]">
-        <TimerOnlyMatch season={season} onExit={handleExit} />
-      </SafeAreaView>
+      <Animated.View style={[{ flex: 1, backgroundColor: '#0F0F0F' }, slideAnimStyle]}>
+        <SafeAreaView className="flex-1 bg-[#0F0F0F]">
+          <TimerOnlyMatch season={season} onExit={handleExit} />
+        </SafeAreaView>
+      </Animated.View>
     );
   }
 
   // solo or full — landscape
   return (
-    <LandscapeMatch
-      season={season}
-      matchType={matchType as 'solo' | 'full'}
-      alliance={alliance ?? "blue"}
-      onExit={handleExit}
-      onMatchComplete={handleMatchComplete}
-    />
+    <Animated.View style={[{ flex: 1 }, slideAnimStyle]}>
+      <LandscapeMatch
+        season={season}
+        matchType={matchType as 'solo' | 'full'}
+        alliance={alliance ?? "blue"}
+        onExit={handleExit}
+        onMatchComplete={handleMatchComplete}
+      />
+    </Animated.View>
   );
 }

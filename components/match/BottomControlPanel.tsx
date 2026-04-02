@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
+import { BounceButton } from "../ui/AnimatedPressable";
 import type { ModuleConfig } from "../../types/season";
 import type { ScoreValue } from "../../types/match";
 import { MaterialIcon } from "../ui/MaterialIcon";
@@ -40,7 +41,7 @@ function renderControls(
     case "boolean":
       return (
         <View className="flex-1 flex-row gap-3 h-full items-center">
-          <TouchableOpacity
+          <BounceButton
             onPress={() => onChange(true)}
             disabled={disabled}
             className={`flex-1 h-16 rounded-xl items-center justify-center ${
@@ -61,8 +62,8 @@ function renderControls(
             >
               Yes
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </BounceButton>
+          <BounceButton
             onPress={() => onChange(false)}
             disabled={disabled}
             className={`flex-1 h-16 rounded-xl items-center justify-center ${
@@ -83,7 +84,7 @@ function renderControls(
             >
               No
             </Text>
-          </TouchableOpacity>
+          </BounceButton>
         </View>
       );
 
@@ -103,14 +104,14 @@ function renderControls(
             </Text>
           </View>
           <View className="flex-row gap-3 h-12">
-            <TouchableOpacity
+            <BounceButton
               onPress={() => onChange(Math.max(count - step, min))}
               disabled={disabled || count <= min}
               className="flex-1 bg-surface-container-highest rounded-xl items-center justify-center active:opacity-70"
             >
               <MaterialIcon name="remove" size={22} color="#e8eaf7" />
-            </TouchableOpacity>
-            <TouchableOpacity
+            </BounceButton>
+            <BounceButton
               onPress={() =>
                 onChange(
                   max !== undefined ? Math.min(count + step, max) : count + step
@@ -124,7 +125,7 @@ function renderControls(
                 size={22}
                 color={alliance === "blue" ? "#002d64" : "#490013"}
               />
-            </TouchableOpacity>
+            </BounceButton>
           </View>
         </View>
       );
@@ -140,7 +141,7 @@ function renderControls(
           {mod.options.map((opt) => {
             const isActive = effectiveValue === opt.id;
             return (
-              <TouchableOpacity
+              <BounceButton
                 key={opt.id}
                 onPress={() => {
                   if ((value as string | null) === opt.id) {
@@ -174,7 +175,7 @@ function renderControls(
                     ({opt.points}pts)
                   </Text>
                 )}
-              </TouchableOpacity>
+              </BounceButton>
             );
           })}
         </View>
@@ -193,7 +194,7 @@ function renderControls(
                   {tier.label}
                 </Text>
                 <View className="flex-row gap-1.5 h-12 w-full">
-                  <TouchableOpacity
+                  <BounceButton
                     onPress={() =>
                       onChange({ ...tierValues, [tier.id]: Math.max(0, tierCount - 1) })
                     }
@@ -201,11 +202,11 @@ function renderControls(
                     className="flex-1 bg-surface-container-highest rounded-xl items-center justify-center"
                   >
                     <MaterialIcon name="remove" size={18} color="#e8eaf7" />
-                  </TouchableOpacity>
+                  </BounceButton>
                   <View className="flex-1 items-center justify-center">
                     <Text className="text-xl font-black text-on-surface">{tierCount}</Text>
                   </View>
-                  <TouchableOpacity
+                  <BounceButton
                     onPress={() =>
                       onChange({ ...tierValues, [tier.id]: tierCount + 1 })
                     }
@@ -217,7 +218,7 @@ function renderControls(
                       size={18}
                       color={alliance === "blue" ? "#002d64" : "#490013"}
                     />
-                  </TouchableOpacity>
+                  </BounceButton>
                 </View>
               </View>
             );
@@ -231,7 +232,7 @@ function renderControls(
       return (
         <View className="flex-1 flex-row flex-wrap gap-2 items-center justify-center">
           {(module as any).items.map((item: any) => (
-            <TouchableOpacity
+            <BounceButton
               key={item.id}
               onPress={() =>
                 onChange({ ...itemValues, [item.id]: !itemValues[item.id] })
@@ -250,7 +251,7 @@ function renderControls(
               >
                 {item.label}
               </Text>
-            </TouchableOpacity>
+            </BounceButton>
           ))}
         </View>
       );
@@ -265,7 +266,7 @@ function renderControls(
               {Array.from({ length: (module as any).cols }).map((_, col) => {
                 const cellId = `${row}_${col}`;
                 return (
-                  <TouchableOpacity
+                  <BounceButton
                     key={cellId}
                     onPress={() =>
                       onChange({ ...cellValues, [cellId]: !cellValues[cellId] })

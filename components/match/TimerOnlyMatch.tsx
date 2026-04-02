@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
+import { BounceButton } from "../ui/AnimatedPressable";
 import type { SeasonConfig } from "../../types/season";
 import { useMatchTimer } from "../../hooks/useMatchTimer";
 import { useMatchStore } from "../../lib/store";
 import { HamburgerMenu } from "./HamburgerMenu";
+import { FlipTimeDisplay } from "../timer/FlipDigit";
 
 interface TimerOnlyMatchProps {
   season: SeasonConfig;
@@ -40,7 +42,7 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
     <View className="flex-1 bg-black flex-row items-center justify-between px-8">
       {/* Left: controls */}
       <View className="items-center gap-3 w-40">
-        <TouchableOpacity
+        <BounceButton
           onPress={handleStartReset}
           className="bg-[#B8860B] px-6 py-2 rounded-full"
         >
@@ -49,7 +51,7 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
               ? `▶ Start ${startMode === "auto_teleop" ? "Auto" : "Teleop"}`
               : "⟳ Reset"}
           </Text>
-        </TouchableOpacity>
+        </BounceButton>
 
         <Text
           className={`font-bold text-sm ${
@@ -62,22 +64,24 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
 
       {/* Center: timer + pause */}
       <View className="items-center flex-1">
-        <Text className="text-white text-[120px] font-black tracking-tight">
-          {displayTime}
-        </Text>
+        <FlipTimeDisplay
+          displayTime={displayTime}
+          fontSize={120}
+          color="#ffffff"
+        />
 
         {isPaused && (
-          <TouchableOpacity onPress={resume}>
+          <BounceButton onPress={resume}>
             <Text className="text-transition text-lg font-bold mt-1">
               PAUSED — tap to resume
             </Text>
-          </TouchableOpacity>
+          </BounceButton>
         )}
 
         {timerStarted && !isPaused && phase !== 'pre_auto' && phase !== 'pre_teleop' && (
-          <TouchableOpacity onPress={pause} className="mt-2">
+          <BounceButton onPress={pause} className="mt-2">
             <Text className="text-text-secondary text-base">tap to pause</Text>
-          </TouchableOpacity>
+          </BounceButton>
         )}
       </View>
 

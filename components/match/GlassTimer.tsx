@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import type { MatchPhase } from "../../types/match";
+import { FlipTimeDisplay } from "../timer/FlipDigit";
 
 interface GlassTimerProps {
   displayTime: string;
@@ -36,14 +37,22 @@ export function GlassTimer({
       }`}
       style={{ backgroundColor: "rgba(32, 38, 50, 0.4)" }}
     >
-      <Text
-        className={`font-bold tracking-tight text-on-surface ${
-          isSolo ? "text-5xl" : "text-5xl"
-        }`}
-        style={{ fontVariant: ["tabular-nums"] }}
-      >
-        {displayTime || "—"}
-      </Text>
+      {displayTime ? (
+        <FlipTimeDisplay
+          displayTime={displayTime}
+          fontSize={isSolo ? 48 : 48}
+          color="#e8eaf7"
+        />
+      ) : (
+        <Text
+          className={`font-bold tracking-tight text-on-surface ${
+            isSolo ? "text-5xl" : "text-5xl"
+          }`}
+          style={{ fontVariant: ["tabular-nums"] }}
+        >
+          —
+        </Text>
+      )}
       <Text
         className={`uppercase font-bold mt-2 ${
           isSolo

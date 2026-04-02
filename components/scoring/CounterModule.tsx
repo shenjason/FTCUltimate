@@ -1,6 +1,7 @@
 // components/scoring/CounterModule.tsx
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
+import { BounceButton } from '../ui/AnimatedPressable';
 import type { CounterModule as CounterModuleConfig } from '../../types/season';
 import { ModuleCard } from '../ui/ModuleCard';
 
@@ -32,28 +33,28 @@ export function CounterModule({ module, value, onChange, disabled, variant, alli
     return (
       <ModuleCard label={module.label} disabled={disabled} variant="compact" alliance={alliance}>
         <View className="flex-row items-center justify-between">
-          <TouchableOpacity
+          <BounceButton
             onPress={decrement}
             disabled={disabled || count <= module.min}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="w-8 h-8 rounded-lg bg-[#0F0F0F] border border-[#2A2A2A] items-center justify-center"
           >
             <Text className="text-[#F5F5F5] text-base font-bold">−</Text>
-          </TouchableOpacity>
+          </BounceButton>
 
           <View className="items-center">
             <Text className="text-[#F5F5F5] text-lg font-bold">{count}</Text>
             <Text className="text-[#9CA3AF] text-[10px]">{count * module.points} pts</Text>
           </View>
 
-          <TouchableOpacity
+          <BounceButton
             onPress={increment}
             disabled={disabled || (module.max !== undefined && count >= module.max)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="w-8 h-8 rounded-lg bg-[#3B82F6] items-center justify-center"
           >
             <Text className="text-white text-base font-bold">+</Text>
-          </TouchableOpacity>
+          </BounceButton>
         </View>
       </ModuleCard>
     );
@@ -62,26 +63,26 @@ export function CounterModule({ module, value, onChange, disabled, variant, alli
   return (
     <ModuleCard label={module.label} description={module.description} disabled={disabled}>
       <View className="flex-row items-center justify-between">
-        <TouchableOpacity
+        <BounceButton
           onPress={decrement}
           disabled={disabled || count <= module.min}
           className="w-14 h-14 rounded-xl bg-[#0F0F0F] border border-[#2A2A2A] items-center justify-center"
         >
           <Text className="text-[#F5F5F5] text-2xl font-bold">−</Text>
-        </TouchableOpacity>
+        </BounceButton>
 
         <View className="items-center">
           <Text className="text-[#F5F5F5] text-3xl font-bold">{count}</Text>
           <Text className="text-[#9CA3AF] text-xs">{count * module.points} pts</Text>
         </View>
 
-        <TouchableOpacity
+        <BounceButton
           onPress={increment}
           disabled={disabled || (module.max !== undefined && count >= module.max)}
           className="w-14 h-14 rounded-xl bg-[#3B82F6] items-center justify-center"
         >
           <Text className="text-white text-2xl font-bold">+</Text>
-        </TouchableOpacity>
+        </BounceButton>
       </View>
     </ModuleCard>
   );
