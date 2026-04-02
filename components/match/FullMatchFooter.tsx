@@ -44,56 +44,85 @@ function CounterZone({
   const isRed = alliance === "red";
   const incrementBg = isRed ? "bg-stitch-error" : "bg-stitch-primary";
   const labelColor = isRed ? "text-stitch-error" : "text-stitch-primary";
-  const displayLabel = `${isRed ? "Red" : "Blue"}: ${label}`;
+  const displayLabel = `${isRed ? "Red" : "Blue"} ${label}`;
 
   const decrement = () => onChange(Math.max(value - step, min));
   const increment = () =>
     onChange(max !== undefined ? Math.min(value + step, max) : value + step);
 
+  // Red: + on far left, count center, − inward (right)
+  // Blue: − inward (left), count center, + on far right
   return (
     <View
-      className={`flex-1 flex-col justify-center px-6 ${
+      className={`flex-1 flex-row items-center px-3 ${
         isRed ? "bg-[#1a0808] border-r border-white/5" : "bg-[#080818]"
       }`}
     >
-      <View
-        className={`flex-row items-center justify-between mb-2 ${
-          isRed ? "" : "flex-row-reverse"
-        }`}
-      >
-        <Text
-          className={`text-[9px] uppercase font-bold tracking-[0.2em] ${labelColor}`}
-        >
-          {displayLabel}
-        </Text>
-        <Text className="text-3xl font-black text-on-surface">
-          {String(value).padStart(2, "0")}
-        </Text>
-      </View>
-      <View
-        className={`flex-row gap-4 h-14 ${isRed ? "" : "flex-row-reverse"}`}
-      >
-        <TouchableOpacity
-          onPress={decrement}
-          disabled={disabled || value <= min}
-          className="flex-1 bg-surface-container-highest rounded-xl items-center justify-center active:opacity-70"
-        >
-          <Text className="text-on-surface text-3xl leading-none">−</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={increment}
-          disabled={disabled || (max !== undefined && value >= max)}
-          className={`flex-[2] ${incrementBg} rounded-xl items-center justify-center active:opacity-70`}
-        >
-          <Text
-            className={`text-3xl leading-none ${
-              isRed ? "text-on-stitch-error" : "text-on-stitch-primary"
-            }`}
+      {isRed ? (
+        <>
+          {/* Red: + button (far left) */}
+          <TouchableOpacity
+            onPress={increment}
+            disabled={disabled || (max !== undefined && value >= max)}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${incrementBg}`}
           >
-            +
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Text className="text-on-stitch-error text-3xl leading-none font-bold">+</Text>
+          </TouchableOpacity>
+
+          {/* Count + label (center) */}
+          <View className="flex-1 items-center justify-center">
+            <Text
+              className={`text-[9px] uppercase font-bold tracking-[0.15em] ${labelColor} mb-0.5`}
+            >
+              {displayLabel}
+            </Text>
+            <Text className="text-4xl font-black text-on-surface leading-none">
+              {String(value).padStart(2, "0")}
+            </Text>
+          </View>
+
+          {/* − button (inward / right) */}
+          <TouchableOpacity
+            onPress={decrement}
+            disabled={disabled || value <= min}
+            className="w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70"
+          >
+            <Text className="text-on-surface text-3xl leading-none font-bold">−</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          {/* Blue: − button (inward / left) */}
+          <TouchableOpacity
+            onPress={decrement}
+            disabled={disabled || value <= min}
+            className="w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70"
+          >
+            <Text className="text-on-surface text-3xl leading-none font-bold">−</Text>
+          </TouchableOpacity>
+
+          {/* Count + label (center) */}
+          <View className="flex-1 items-center justify-center">
+            <Text
+              className={`text-[9px] uppercase font-bold tracking-[0.15em] ${labelColor} mb-0.5`}
+            >
+              {displayLabel}
+            </Text>
+            <Text className="text-4xl font-black text-on-surface leading-none">
+              {String(value).padStart(2, "0")}
+            </Text>
+          </View>
+
+          {/* Blue: + button (far right) */}
+          <TouchableOpacity
+            onPress={increment}
+            disabled={disabled || (max !== undefined && value >= max)}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${incrementBg}`}
+          >
+            <Text className="text-on-stitch-primary text-3xl leading-none font-bold">+</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 }

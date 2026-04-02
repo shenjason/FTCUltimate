@@ -11,9 +11,9 @@ import { BottomControlPanel } from "./BottomControlPanel";
 import { FoulsPanel } from "./FoulsPanel";
 import { GlassTimer } from "./GlassTimer";
 import { AllianceModuleGrid, FOULS_MODULE_ID } from "./AllianceModuleGrid";
-import { MatchActionBar } from "./MatchActionBar";
 import { FullMatchFooter } from "./FullMatchFooter";
 import { ModuleTile } from "./ModuleTile";
+import { MaterialIcon } from "../ui/MaterialIcon";
 
 interface LandscapeMatchProps {
   season: SeasonConfig;
@@ -191,92 +191,121 @@ export function LandscapeMatch({
           canToggleViewingPhase={matchIsActive}
         />
 
-        {/* Content row: main area + action strip (full height) */}
+        {/* Content row: pause/reset strip + timer/score + module grid */}
         <View className="flex-1 flex-row overflow-hidden">
-          {/* Main area: module grid row + footer */}
-          <View className="flex-1 flex-col overflow-hidden">
-            {/* Upper row: left grid (66.6%) + right panel (33.4%) */}
-            <View className="flex-1 flex-row overflow-hidden">
-              {/* Left 66.6%: scrollable 2-col module grid */}
-              <View
-                className="flex-col overflow-hidden border-r"
-                style={{ width: "66.6%", borderColor: "#2A2A2A", backgroundColor: "#0a0e16" }}
-              >
-                <ScrollView
-                  className="flex-1 p-4"
-                  contentContainerStyle={{
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    gap: 12,
-                  }}
-                >
-                  {modules.map((mod) => (
-                    <ModuleTile
-                      key={mod.id}
-                      module={mod}
-                      value={scores[mod.id]}
-                      isSelected={selectedModuleId === mod.id}
-                      onPress={() => setSelectedModuleId(mod.id)}
-                      disabled={disabled}
-                      mode="solo"
-                    />
-                  ))}
-                  {/* Fouls tile */}
-                  <ModuleTile
-                    module={
-                      { id: FOULS_MODULE_ID, label: "Fouls", type: "boolean" } as ModuleConfig
-                    }
-                    value={null}
-                    isSelected={isFoulsSelected}
-                    onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
-                    disabled={disabled}
-                    mode="solo"
-                    foulData={{
-                      minor: alliance === "blue" ? fouls.blueMinor : fouls.redMinor,
-                      major: alliance === "blue" ? fouls.blueMajor : fouls.redMajor,
-                    }}
-                  />
-                </ScrollView>
-              </View>
+          {/* Far-left: vertical Pause + Reset buttons */}
+          <View
+            className="w-16 flex-col p-1.5 bg-surface-container-low/50 shrink-0 gap-1.5"
+            style={{ borderRightWidth: 1, borderColor: "#2A2A2A" }}
+          >
+            <TouchableOpacity
+              onPress={isPaused ? resume : pause}
+              disabled={!matchIsActive}
+              className={`flex-[3] flex-col items-center justify-center rounded-lg ${
+                matchIsActive
+                  ? "bg-secondary-container border border-secondary/20"
+                  : "bg-surface-container opacity-40"
+              }`}
+            >
+              <MaterialIcon
+                name={isPaused ? "play_arrow" : "pause"}
+                size={20}
+                color={matchIsActive ? "#fdc003" : "#a8abb6"}
+              />
+              <Text className="text-[8px] font-bold uppercase mt-1.5 tracking-tighter text-secondary">
+                {isPaused ? "Resume" : "Pause"}
+              </Text>
+            </TouchableOpacity>
 
-              {/* Right 33.4%: timer (top flex-1) + score (bottom h-[100px]) */}
-              <View className="flex-1 flex-col">
-                {/* Top: glass timer */}
-                <View className="flex-1 items-center justify-center px-4">
-                  <GlassTimer
-                    displayTime={displayTime}
-                    phase={phase}
-                    isPaused={isPaused}
-                    variant="solo"
-                  />
-                  {/* Start / Reset button */}
-                  <TouchableOpacity
-                    onPress={handleStartReset}
-                    disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
-                    className="mt-3 bg-secondary px-6 py-2 rounded-lg"
-                  >
-                    <Text className="text-on-secondary font-bold text-sm">
-                      {phase === "idle" || phase === "complete"
-                        ? "▶  Start"
-                        : "⟳  Reset"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+            <TouchableOpacity
+              onPress={handleStartReset}
+              disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
+              className={`flex-[2] flex-col items-center justify-center rounded-lg bg-surface-container-highest/80 border border-secondary/20 ${
+                phase === 'pre_auto' || phase === 'pre_teleop' ? 'opacity-40' : ''
+              }`}
+            >
+              <MaterialIcon name="restart_alt" size={18} color="#fdc003" />
+              <Text className="text-[8px] font-bold uppercase mt-1 tracking-tighter text-secondary">
+                Reset
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-                {/* Bottom: big gold score */}
-                <View
-                  className="h-[100px] items-center justify-center border-t"
-                  style={{ borderColor: "#2A2A2A" }}
+          {/* Left panel (~25%): Timer + Score */}
+          <View
+            className="flex-col"
+            style={{ width: "25%", borderRightWidth: 1, borderColor: "#2A2A2A" }}
+          >
+            {/* Timer */}
+            <View className="flex-1 items-center justify-center px-3">
+              <GlassTimer
+                displayTime={displayTime}
+                phase={phase}
+                isPaused={isPaused}
+                variant="solo"
+              />
+              {/* Start button (only in idle/complete) */}
+              {(phase === "idle" || phase === "complete") && (
+                <TouchableOpacity
+                  onPress={handleStartReset}
+                  className="mt-3 bg-secondary px-6 py-2 rounded-lg"
                 >
-                  <Text
-                    className="font-black text-secondary leading-none tracking-tighter"
-                    style={{ fontSize: 56 }}
-                  >
-                    {blueScore}
+                  <Text className="text-on-secondary font-bold text-sm">
+                    ▶  Start
                   </Text>
-                </View>
-              </View>
+                </TouchableOpacity>
+              )}
             </View>
+
+            {/* Big gold score */}
+            <View className="h-[100px] items-center justify-center">
+              <Text
+                className="font-black text-secondary leading-none tracking-tighter"
+                style={{ fontSize: 56 }}
+              >
+                {blueScore}
+              </Text>
+            </View>
+          </View>
+
+          {/* Right panel (~75%): module grid + footer */}
+          <View className="flex-1 flex-col overflow-hidden">
+            {/* Scrollable 2-col module grid */}
+            <ScrollView
+              className="flex-1 p-4"
+              contentContainerStyle={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 12,
+              }}
+            >
+              {modules.map((mod) => (
+                <ModuleTile
+                  key={mod.id}
+                  module={mod}
+                  value={scores[mod.id]}
+                  isSelected={selectedModuleId === mod.id}
+                  onPress={() => setSelectedModuleId(mod.id)}
+                  disabled={disabled}
+                  mode="solo"
+                />
+              ))}
+              {/* Fouls tile */}
+              <ModuleTile
+                module={
+                  { id: FOULS_MODULE_ID, label: "Fouls", type: "boolean" } as ModuleConfig
+                }
+                value={null}
+                isSelected={isFoulsSelected}
+                onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
+                disabled={disabled}
+                mode="solo"
+                foulData={{
+                  minor: alliance === "blue" ? fouls.blueMinor : fouls.redMinor,
+                  major: alliance === "blue" ? fouls.blueMajor : fouls.redMajor,
+                }}
+              />
+            </ScrollView>
 
             {/* Footer: dynamic module controls */}
             <View
@@ -302,14 +331,6 @@ export function LandscapeMatch({
               )}
             </View>
           </View>
-
-          {/* Action strip: full height, far right */}
-          <MatchActionBar
-            isPaused={isPaused}
-            phase={phase}
-            onPauseResume={isPaused ? resume : pause}
-            onReset={handleStartReset}
-          />
         </View>
 
         {/* Wrong-phase editing vignette */}
@@ -346,115 +367,135 @@ export function LandscapeMatch({
         canToggleViewingPhase={matchIsActive}
       />
 
-      {/* Content row: main area + action strip (full height) */}
-      <View className="flex-1 flex-row overflow-hidden">
-        {/* Main area: alliance columns + footer */}
-        <View className="flex-1 flex-col overflow-hidden">
-          {/* Upper row: Red | Center | Blue */}
-          <View className="flex-1 flex-row overflow-hidden">
-            {/* Red Alliance (fixed 240px) */}
-            <View style={{ width: 240 }}>
-              <AllianceModuleGrid
-                alliance="red"
-                modules={modules}
-                scores={redScores}
-                fouls={fouls}
-                selectedModuleId={selectedModuleId}
-                onSelectModule={setSelectedModuleId}
-                disabled={disabled}
-              />
+      {/* Content row: alliance columns + center + footer */}
+      <View className="flex-1 flex-col overflow-hidden">
+        {/* Upper row: Red | Center | Blue */}
+        <View className="flex-1 flex-row overflow-hidden">
+          {/* Red Alliance (fixed 240px) */}
+          <View style={{ width: 240 }}>
+            <AllianceModuleGrid
+              alliance="red"
+              modules={modules}
+              scores={redScores}
+              fouls={fouls}
+              selectedModuleId={selectedModuleId}
+              onSelectModule={setSelectedModuleId}
+              disabled={disabled}
+            />
+          </View>
+
+          {/* Center: Scores + Timer with inline Pause/Reset */}
+          <View
+            className="flex-1 flex-col items-center overflow-hidden px-2"
+            style={{ backgroundColor: "rgba(15, 19, 29, 0.3)" }}
+          >
+            {/* Scores row */}
+            <View className="w-full flex-row justify-between items-start mt-4 px-2">
+              <View className="items-center">
+                <Text
+                  className="font-black leading-none tracking-tighter text-stitch-error"
+                  style={{ fontSize: 48 }}
+                >
+                  {String(redScore).padStart(3, "0")}
+                </Text>
+                <Text className="text-[8px] uppercase text-stitch-error font-bold tracking-widest mt-1">
+                  Red Score
+                </Text>
+              </View>
+              <View className="items-center">
+                <Text
+                  className="font-black leading-none tracking-tighter text-stitch-primary"
+                  style={{ fontSize: 48 }}
+                >
+                  {String(blueScore).padStart(3, "0")}
+                </Text>
+                <Text className="text-[8px] uppercase text-stitch-primary font-bold tracking-widest mt-1">
+                  Blue Score
+                </Text>
+              </View>
             </View>
 
-            {/* Center: Scores + Timer */}
-            <View
-              className="flex-1 flex-col items-center overflow-hidden px-2"
-              style={{ backgroundColor: "rgba(15, 19, 29, 0.3)" }}
-            >
-              {/* Scores row */}
-              <View className="w-full flex-row justify-between items-start mt-4">
-                <View className="items-center">
-                  <Text
-                    className="font-black leading-none tracking-tighter text-stitch-error"
-                    style={{ fontSize: 40 }}
-                  >
-                    {String(redScore).padStart(3, "0")}
-                  </Text>
-                  <Text className="text-[8px] uppercase text-stitch-error font-bold tracking-widest mt-1">
-                    Red Score
-                  </Text>
-                </View>
-                <View className="items-center">
-                  <Text
-                    className="font-black leading-none tracking-tighter text-stitch-primary"
-                    style={{ fontSize: 40 }}
-                  >
-                    {String(blueScore).padStart(3, "0")}
-                  </Text>
-                  <Text className="text-[8px] uppercase text-stitch-primary font-bold tracking-widest mt-1">
-                    Blue Score
-                  </Text>
-                </View>
-              </View>
+            {/* Timer row: Pause | Timer | Reset — inline horizontal */}
+            <View className="flex-1 flex-row items-center justify-center gap-3 px-2">
+              {/* Pause/Resume button */}
+              <TouchableOpacity
+                onPress={isPaused ? resume : pause}
+                disabled={!matchIsActive}
+                className={`w-14 h-14 rounded-2xl items-center justify-center ${
+                  matchIsActive
+                    ? "bg-secondary-container border border-secondary/20"
+                    : "bg-surface-container opacity-40"
+                }`}
+              >
+                <MaterialIcon
+                  name={isPaused ? "play_arrow" : "pause"}
+                  size={24}
+                  color={matchIsActive ? "#fdc003" : "#a8abb6"}
+                />
+              </TouchableOpacity>
 
-              {/* Timer + Start button centered */}
-              <View className="flex-1 items-center justify-center gap-3">
-                <TouchableOpacity
-                  onPress={handleStartReset}
-                  disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
-                  className="bg-stitch-secondary px-6 py-2 rounded-lg"
-                >
-                  <Text className="text-on-stitch-error font-bold text-base">
-                    {phase === "idle" || phase === "complete"
-                      ? "▶  Start"
-                      : "⟳  Reset"}
-                  </Text>
-                </TouchableOpacity>
+              {/* Timer */}
+              <View className="items-center">
                 <GlassTimer
                   displayTime={displayTime}
                   phase={phase}
                   isPaused={isPaused}
                   variant="full"
                 />
+                {/* Start button (only in idle/complete) */}
+                {(phase === "idle" || phase === "complete") && (
+                  <TouchableOpacity
+                    onPress={handleStartReset}
+                    className="mt-2 bg-stitch-secondary px-5 py-1.5 rounded-lg"
+                  >
+                    <Text className="text-on-stitch-error font-bold text-sm">
+                      ▶  Start
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
-            </View>
 
-            {/* Blue Alliance (fixed 240px) */}
-            <View style={{ width: 240 }}>
-              <AllianceModuleGrid
-                alliance="blue"
-                modules={modules}
-                scores={scores}
-                fouls={fouls}
-                selectedModuleId={selectedModuleId}
-                onSelectModule={setSelectedModuleId}
-                disabled={disabled}
-              />
+              {/* Reset button */}
+              <TouchableOpacity
+                onPress={handleStartReset}
+                disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
+                className={`w-14 h-14 rounded-2xl items-center justify-center bg-surface-container-highest/80 border border-secondary/20 ${
+                  phase === 'pre_auto' || phase === 'pre_teleop' ? 'opacity-40' : ''
+                }`}
+              >
+                <MaterialIcon name="restart_alt" size={22} color="#fdc003" />
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Footer: only spans to the left of action strip */}
-          <FullMatchFooter
-            selectedModule={selectedModule ?? null}
-            isFoulsSelected={isFoulsSelected}
-            redScores={redScores}
-            blueScores={scores}
-            fouls={fouls}
-            onRedChange={(val) =>
-              selectedModule && setRedScore(selectedModule.id, val)
-            }
-            onBlueChange={(val) =>
-              selectedModule && setScore(selectedModule.id, val)
-            }
-            disabled={disabled}
-          />
+          {/* Blue Alliance (fixed 240px) */}
+          <View style={{ width: 240 }}>
+            <AllianceModuleGrid
+              alliance="blue"
+              modules={modules}
+              scores={scores}
+              fouls={fouls}
+              selectedModuleId={selectedModuleId}
+              onSelectModule={setSelectedModuleId}
+              disabled={disabled}
+            />
+          </View>
         </View>
 
-        {/* Action strip: full height on far right */}
-        <MatchActionBar
-          isPaused={isPaused}
-          phase={phase}
-          onPauseResume={isPaused ? resume : pause}
-          onReset={handleStartReset}
+        {/* Footer */}
+        <FullMatchFooter
+          selectedModule={selectedModule ?? null}
+          isFoulsSelected={isFoulsSelected}
+          redScores={redScores}
+          blueScores={scores}
+          fouls={fouls}
+          onRedChange={(val) =>
+            selectedModule && setRedScore(selectedModule.id, val)
+          }
+          onBlueChange={(val) =>
+            selectedModule && setScore(selectedModule.id, val)
+          }
+          disabled={disabled}
         />
       </View>
 
