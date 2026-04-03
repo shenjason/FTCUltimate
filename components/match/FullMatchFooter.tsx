@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import type { ModuleConfig } from "../../types/season";
 import type { ScoreValue, ScoreMap } from "../../types/match";
 import { useMatchStore } from "../../lib/store";
-import FooterModule from "./FooterModule";
+import renderFooter from "./footer";
 import THEME from "../../lib/theme";
 
 interface FoulCounts {
@@ -140,49 +140,24 @@ export function FullMatchFooter({
     );
   }
 
-  // Render selected module controls for both alliances via FooterModule
-  if (selectedModule.type === "counter") {
-    return (
-      <View className="h-36 flex-row border-t border-outline-variant/10">
-        <FooterModule
-          module={selectedModule}
-          value={(redScores[selectedModule.id] as number) ?? 0}
-          onChange={(v) => onRedChange(v)}
-          disabled={disabled}
-          alliance="red"
-          matchType="full"
-        />
-        <FooterModule
-          module={selectedModule}
-          value={(blueScores[selectedModule.id] as number) ?? 0}
-          onChange={(v) => onBlueChange(v)}
-          disabled={disabled}
-          alliance="blue"
-          matchType="full"
-        />
-      </View>
-    );
-  }
-
-  // Fallback for non-counter module types
+  // Render selected module controls for both alliances using per-type components
   return (
     <View className="h-36 flex-row border-t border-outline-variant/10">
-      <FooterModule
-        module={selectedModule}
-        value={redScores[selectedModule.id]}
-        onChange={onRedChange}
-        disabled={disabled}
-        alliance="red"
-        matchType="full"
-      />
-      <FooterModule
-        module={selectedModule}
-        value={blueScores[selectedModule.id]}
-        onChange={onBlueChange}
-        disabled={disabled}
-        alliance="blue"
-        matchType="full"
-      />
+      {renderFooter({
+        module: selectedModule,
+        value: redScores[selectedModule.id],
+        onChange: onRedChange,
+        disabled,
+        alliance: "red",
+      })}
+
+      {renderFooter({
+        module: selectedModule,
+        value: blueScores[selectedModule.id],
+        onChange: onBlueChange,
+        disabled,
+        alliance: "blue",
+      })}
     </View>
   );
 }

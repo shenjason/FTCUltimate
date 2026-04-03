@@ -351,7 +351,6 @@ export function LandscapeMatch({
                   module={selectedModule}
                   value={scores[selectedModule.id]}
                   onChange={(val) => setScore(selectedModule.id, val)}
-                  alliance={alliance}
                   disabled={disabled}
                 />
               ) : (

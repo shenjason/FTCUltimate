@@ -257,78 +257,7 @@ export function MatchSetup({ season, onStart }: MatchSetupProps) {
           })}
         </View>
 
-        {/* Alliance selector — solo only */}
-        {selectedType === "solo" && (
-          <>
-            <Text style={LABEL_STYLE}>Alliance</Text>
-            <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
-              <BounceButton
-                onPress={() => setAlliance("blue")}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  alignItems: "center",
-                  backgroundColor:
-                    alliance === "blue"
-                      ? THEME.colors.primarySoftBg
-                      : THEME.colors.background,
-                  borderWidth: 2,
-                  borderColor:
-                    alliance === "blue" ? THEME.colors.primary : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      alliance === "blue"
-                        ? THEME.colors.primary
-                        : THEME.colors.mutedIcon,
-                    fontWeight: "700",
-                    fontSize: 13,
-                    textTransform: "uppercase",
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  Blue
-                </Text>
-              </BounceButton>
-              <BounceButton
-                onPress={() => setAlliance("red")}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  alignItems: "center",
-                  backgroundColor:
-                    alliance === "red"
-                      ? THEME.colors.autoBadgeBg
-                      : THEME.colors.background,
-                  borderWidth: 2,
-                  borderColor:
-                    alliance === "red"
-                      ? THEME.colors.autoBadgeText
-                      : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      alliance === "red"
-                        ? THEME.colors.autoBadgeText
-                        : THEME.colors.mutedIcon,
-                    fontWeight: "700",
-                    fontSize: 13,
-                    textTransform: "uppercase",
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  Red
-                </Text>
-              </BounceButton>
-            </View>
-          </>
-        )}
+        {/* Alliance is fixed to Blue for solo matches (no selector) */}
 
         {/* Start button */}
         <BounceButton
