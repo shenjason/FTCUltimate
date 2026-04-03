@@ -13,6 +13,7 @@ interface Props {
   disabled: boolean;
   variant?: "default" | "compact";
   alliance?: "red" | "blue";
+  isSolo?: boolean;
 }
 
 export function CounterModule({
@@ -22,10 +23,11 @@ export function CounterModule({
   disabled,
   variant,
   alliance,
+  isSolo,
 }: Props) {
   const count = typeof value === "number" ? value : 0;
   const step = module.step ?? 1;
-  const isCompact = variant === "compact";
+  const isCompact = variant === "compact" || isSolo;
 
   const decrement = () => {
     if (disabled) return;

@@ -11,6 +11,7 @@ interface Props {
   disabled: boolean;
   variant?: "default" | "compact";
   alliance?: "red" | "blue";
+  isSolo?: boolean;
 }
 
 export function TieredCounterModule({
@@ -20,9 +21,10 @@ export function TieredCounterModule({
   disabled,
   variant,
   alliance,
+  isSolo,
 }: Props) {
   const tiers = value ?? {};
-  const isCompact = variant === "compact";
+  const isCompact = variant === "compact" || isSolo;
 
   const adjust = (tierId: string, delta: number) => {
     if (disabled) return;

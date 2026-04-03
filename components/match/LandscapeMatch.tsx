@@ -453,16 +453,15 @@ export function LandscapeMatch({
 
             {/* Timer row: Pause | Timer | Reset — inline horizontal */}
             <View className="flex-1 flex-row items-center justify-center gap-2">
-              {/* Pause/Resume button */}
+              {/* Pause/Resume button (height matched to timer) */}
               <BounceButton
                 onPress={isPaused ? resume : pause}
                 disabled={!matchIsActive}
-                className={`w-12 self-center rounded-2xl items-center justify-center ${
+                className={`self-center rounded-xl items-center justify-center ${
                   matchIsActive
                     ? "bg-secondary-container border border-secondary/20"
                     : "bg-surface-container opacity-40"
-                }`}
-                style={{ aspectRatio: 1 }}
+                } px-6 py-4`}
               >
                 <MaterialIcon
                   name={isPaused ? "play_arrow" : "pause"}
@@ -494,16 +493,15 @@ export function LandscapeMatch({
                 )}
               </View>
 
-              {/* Reset button */}
+              {/* Reset button (height matched to timer) */}
               <BounceButton
                 onPress={handleStartReset}
                 disabled={phase === "pre_auto" || phase === "pre_teleop"}
-                className={`w-12 self-center rounded-2xl items-center justify-center bg-surface-container-highest/80 border border-secondary/20 ${
+                className={`self-center rounded-xl items-center justify-center bg-surface-container-highest/80 border border-secondary/20 ${
                   phase === "pre_auto" || phase === "pre_teleop"
                     ? "opacity-40"
                     : ""
-                }`}
-                style={{ aspectRatio: 1 }}
+                } px-6 py-4`}
               >
                 <MaterialIcon
                   name="restart_alt"

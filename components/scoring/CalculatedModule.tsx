@@ -10,6 +10,7 @@ interface Props {
   disabled: boolean;
   variant?: "default" | "compact";
   alliance?: "red" | "blue";
+  isSolo?: boolean;
 }
 
 export function CalculatedModule({
@@ -18,8 +19,9 @@ export function CalculatedModule({
   disabled,
   variant,
   alliance,
+  isSolo,
 }: Props) {
-  const isCompact = variant === "compact";
+  const isCompact = variant === "compact" || isSolo;
 
   if (isCompact) {
     return (
