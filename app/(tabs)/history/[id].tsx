@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useHistoryStore } from "../../../lib/store";
 import { getSeasons } from "../../../lib/seasonLoader";
+import THEME from "../../../lib/theme";
 import { ModuleRenderer } from "../../../components/scoring/ModuleRenderer";
 import type { ScoreMap, DualScoreMap } from "../../../types/match";
 import { isDualScoreMap } from "../../../types/match";
@@ -22,8 +23,8 @@ export default function MatchDetailScreen() {
 
   if (!match) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0F0F0F] items-center justify-center">
-        <Text className="text-[#9CA3AF]">Match not found</Text>
+      <SafeAreaView className="flex-1 bg-surface-dim items-center justify-center">
+        <Text className="text-on-surface-variant">Match not found</Text>
       </SafeAreaView>
     );
   }
@@ -39,23 +40,30 @@ export default function MatchDetailScreen() {
     : (match.allScores as ScoreMap);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0F0F0F]">
+    <SafeAreaView className="flex-1 bg-surface-dim">
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-[#2A2A2A]">
-        <TouchableOpacity onPress={() => router.replace("/history")} className="mr-3">
-          <Ionicons name="arrow-back" size={22} color="#F5F5F5" />
+      <View className="flex-row items-center px-4 py-3 border-b border-outline-variant/10">
+        <TouchableOpacity
+          onPress={() => router.replace("/history")}
+          className="mr-3"
+        >
+          <Ionicons
+            name="arrow-back"
+            size={22}
+            color={THEME.colors.currentValue}
+          />
         </TouchableOpacity>
         <View className="flex-1">
           <View className="flex-row items-center gap-2">
             <Text
-              className="text-[#F5F5F5] font-bold text-base flex-shrink"
+              className="text-on-surface font-bold text-base flex-shrink"
               numberOfLines={1}
             >
               {season?.name ?? match.seasonId}
             </Text>
             <MatchTypeBadge matchType={match.matchType} />
           </View>
-          <Text className="text-[#9CA3AF] text-xs">
+          <Text className="text-on-surface-variant text-xs">
             {date.toLocaleDateString()} ·{" "}
             {date.toLocaleTimeString([], {
               hour: "2-digit",
@@ -64,25 +72,25 @@ export default function MatchDetailScreen() {
           </Text>
         </View>
         <View className="items-end">
-          <Text className="text-[#F5F5F5] text-2xl font-bold">
+          <Text className="text-on-surface text-2xl font-bold">
             {match.totalScore}
           </Text>
-          <Text className="text-[#9CA3AF] text-xs">pts</Text>
+          <Text className="text-on-surface-variant text-xs">pts</Text>
         </View>
       </View>
 
       {/* Alliance tab bar — only shown for Full mode */}
       {isFull && (
-        <View className="flex-row mx-4 mt-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
+        <View className="flex-row mx-4 mt-3 bg-surface border border-outline-variant rounded-xl p-1">
           <TouchableOpacity
             onPress={() => setActiveTab("blue")}
             className={`flex-1 items-center py-2 rounded-lg ${
-              activeTab === "blue" ? "bg-[#1D4ED8]" : ""
+              activeTab === "blue" ? "bg-stitch-primary" : ""
             }`}
           >
             <Text
               className={`text-xs font-bold tracking-wide ${
-                activeTab === "blue" ? "text-white" : "text-[#6B7280]"
+                activeTab === "blue" ? "text-white" : "text-on-surface-variant"
               }`}
             >
               BLUE
@@ -91,12 +99,12 @@ export default function MatchDetailScreen() {
           <TouchableOpacity
             onPress={() => setActiveTab("red")}
             className={`flex-1 items-center py-2 rounded-lg ${
-              activeTab === "red" ? "bg-[#B91C1C]" : ""
+              activeTab === "red" ? "bg-stitch-error" : ""
             }`}
           >
             <Text
               className={`text-xs font-bold tracking-wide ${
-                activeTab === "red" ? "text-white" : "text-[#6B7280]"
+                activeTab === "red" ? "text-white" : "text-on-surface-variant"
               }`}
             >
               RED
@@ -110,31 +118,31 @@ export default function MatchDetailScreen() {
         contentContainerStyle={{ paddingBottom: 40, paddingTop: 12 }}
       >
         {/* Score breakdown */}
-        <View className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl p-4 mb-4 flex-row justify-around">
+        <View className="bg-surface border border-outline-variant rounded-2xl p-4 mb-4 flex-row justify-around">
           <View className="items-center">
-            <Text className="text-[#EF4444] text-xl font-bold">
+            <Text className="text-auto text-xl font-bold">
               {match.autoScore}
             </Text>
-            <Text className="text-[#9CA3AF] text-xs">Auto</Text>
+            <Text className="text-on-surface-variant text-xs">Auto</Text>
           </View>
-          <View className="w-px bg-[#2A2A2A]" />
+          <View className="w-px bg-outline-variant" />
           <View className="items-center">
-            <Text className="text-[#22C55E] text-xl font-bold">
+            <Text className="text-teleop text-xl font-bold">
               {match.teleopScore}
             </Text>
-            <Text className="text-[#9CA3AF] text-xs">Teleop</Text>
+            <Text className="text-on-surface-variant text-xs">Teleop</Text>
           </View>
-          <View className="w-px bg-[#2A2A2A]" />
+          <View className="w-px bg-outline-variant" />
           <View className="items-center">
-            <Text className="text-[#F5F5F5] text-xl font-bold">
+            <Text className="text-on-surface text-xl font-bold">
               {match.totalScore}
             </Text>
-            <Text className="text-[#9CA3AF] text-xs">Total</Text>
+            <Text className="text-on-surface-variant text-xs">Total</Text>
           </View>
         </View>
 
         {/* Auto modules (read-only) */}
-        <Text className="text-[#EF4444] text-xs font-bold tracking-widest mb-2">
+        <Text className="text-auto text-xs font-bold tracking-widest mb-2">
           ─ AUTONOMOUS
         </Text>
         {(season?.autonomous ?? []).map((module) => (
@@ -148,10 +156,10 @@ export default function MatchDetailScreen() {
           />
         ))}
 
-        <View className="h-px bg-[#2A2A2A] my-4" />
+        <View className="h-px bg-outline-variant my-4" />
 
         {/* Teleop modules (read-only) */}
-        <Text className="text-[#22C55E] text-xs font-bold tracking-widest mb-2">
+        <Text className="text-teleop text-xs font-bold tracking-widest mb-2">
           ─ TELEOP
         </Text>
         {(season?.teleop ?? []).map((module) => (
@@ -165,26 +173,32 @@ export default function MatchDetailScreen() {
           />
         ))}
 
-        <View className="h-px bg-[#2A2A2A] my-4" />
+        <View className="h-px bg-outline-variant my-4" />
 
         {/* Delete match */}
         <TouchableOpacity
           onPress={() =>
-            Alert.alert("Delete Match", "Are you sure? This cannot be undone.", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: async () => {
-                  await deleteMatch(match.id);
-                  router.replace("/history");
+            Alert.alert(
+              "Delete Match",
+              "Are you sure? This cannot be undone.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete",
+                  style: "destructive",
+                  onPress: async () => {
+                    await deleteMatch(match.id);
+                    router.replace("/history");
+                  },
                 },
-              },
-            ])
+              ],
+            )
           }
-          className="bg-[#7F1D1D] border border-[#991B1B] rounded-xl py-3 items-center mb-4"
+          className="bg-error-container border border-error-container rounded-xl py-3 items-center mb-4"
         >
-          <Text className="text-[#FCA5A5] font-bold text-sm">Delete Match</Text>
+          <Text className="text-on-error-container font-bold text-sm">
+            Delete Match
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

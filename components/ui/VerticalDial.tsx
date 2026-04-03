@@ -6,6 +6,7 @@ import React, {
   useLayoutEffect,
 } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import THEME from "../../lib/theme";
 import { WheelPicker } from "react-native-infinite-wheel-picker";
 import * as Haptics from "expo-haptics";
 
@@ -299,8 +300,10 @@ export function VerticalDial({
             }}
             pointerEvents="none"
           >
-            <Text style={{ color: "#ffcc00", fontWeight: "900" }}>—</Text>
-            <Text style={{ color: "#ffcc00", fontSize: 10 }}>
+            <Text style={{ color: THEME.colors.gold, fontWeight: "900" }}>
+              —
+            </Text>
+            <Text style={{ color: THEME.colors.gold, fontSize: 10 }}>
               {`idx:${selectedIndex} len:${data.length}`}
             </Text>
           </View>
@@ -341,12 +344,12 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
     textTransform: "uppercase",
     letterSpacing: 1.5,
-    color: "#9CA3AF",
+    color: THEME.colors.labelMuted,
     marginBottom: 4,
     textAlign: "center",
   },
   track: {
-    backgroundColor: "rgba(42, 42, 42, 0.6)",
+    backgroundColor: THEME.colors.trackBg,
     overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
@@ -369,7 +372,7 @@ export const styles = StyleSheet.create({
   currentValue: {
     fontSize: 36,
     fontWeight: "900",
-    color: "#F5F5F5",
+    color: THEME.colors.currentValue,
     textAlign: "center",
   },
   gradientTop: {
@@ -378,7 +381,7 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: "30%",
-    backgroundColor: "rgba(10, 14, 22, 0.5)",
+    backgroundColor: THEME.colors.gradientOverlay,
   },
   gradientBottom: {
     position: "absolute",
@@ -386,14 +389,14 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: "30%",
-    backgroundColor: "rgba(10, 14, 22, 0.5)",
+    backgroundColor: THEME.colors.gradientOverlay,
   },
   selectedLayoutStyle: {
-    backgroundColor: "#00000026",
+    backgroundColor: THEME.colors.selectedLayoutBg,
     borderRadius: 2,
   },
   containerStyle: {
-    backgroundColor: "#0000001a",
+    backgroundColor: THEME.colors.containerBg,
     width: 160,
   },
 });

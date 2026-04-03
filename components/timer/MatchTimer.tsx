@@ -1,7 +1,7 @@
 // components/timer/MatchTimer.tsx
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { BounceButton } from '../ui/AnimatedPressable';
+import React, { useEffect } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { BounceButton } from "../ui/AnimatedPressable";
 import Animated, {
   useAnimatedProps,
   withTiming,
@@ -10,12 +10,13 @@ import Animated, {
   cancelAnimation,
   useSharedValue,
   type SharedValue,
-} from 'react-native-reanimated';
-import Svg, { Circle } from 'react-native-svg';
-import { useMatchTimer } from '../../hooks/useMatchTimer';
-import type { SeasonConfig } from '../../types/season';
-import type { MatchPhase } from '../../types/match';
-import { FlipTimeDisplay } from './FlipDigit';
+} from "react-native-reanimated";
+import Svg, { Circle } from "react-native-svg";
+import { useMatchTimer } from "../../hooks/useMatchTimer";
+import type { SeasonConfig } from "../../types/season";
+import type { MatchPhase } from "../../types/match";
+import { FlipTimeDisplay } from "./FlipDigit";
+import THEME from "../../lib/theme";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -29,18 +30,26 @@ interface MatchTimerProps {
 }
 
 const PHASE_COLORS: Record<MatchPhase, string> = {
-  idle: '#3B82F6',
-  pre_auto: '#EF4444',
-  auto: '#EF4444',
-  transition: '#F59E0B',
-  pre_teleop: '#22C55E',
-  teleop: '#22C55E',
-  complete: '#3B82F6',
+  idle: THEME.colors.phaseIdle,
+  pre_auto: THEME.colors.phasePreAuto,
+  auto: THEME.colors.phaseAuto,
+  transition: THEME.colors.phaseTransition,
+  pre_teleop: THEME.colors.phasePreTeleop,
+  teleop: THEME.colors.phaseTeleop,
+  complete: THEME.colors.phaseComplete,
 };
 
 export function MatchTimer({ season }: MatchTimerProps) {
-  const { displayTime, phase, isPaused, progressFraction, start, pause, resume, reset } =
-    useMatchTimer(season);
+  const {
+    displayTime,
+    phase,
+    isPaused,
+    progressFraction,
+    start,
+    pause,
+    resume,
+    reset,
+  } = useMatchTimer(season);
 
   // This component owns the SharedValue so Reanimated can drive the ring on the UI thread.
   const progress: SharedValue<number> = useSharedValue(1);
@@ -55,7 +64,7 @@ export function MatchTimer({ season }: MatchTimerProps) {
   const pulseOpacity = useSharedValue(1);
 
   useEffect(() => {
-    if (phase === 'transition') {
+    if (phase === "transition") {
       pulseOpacity.value = withRepeat(
         withSequence(
           withTiming(0.3, { duration: 400 }),
@@ -83,50 +92,98 @@ export function MatchTimer({ season }: MatchTimerProps) {
   const strokeColor = PHASE_COLORS[phase];
 
   const renderCenterContent = () => {
-    if (phase === 'idle') {
+    if (phase === "idle") {
       return (
-        <BounceButton onPress={start} className="bg-[#3B82F6] px-6 py-3 rounded-2xl">
-          <Text className="text-white font-bold text-lg">START</Text>
+        <BounceButton
+          onPress={start}
+          className="px-6 py-3 rounded-2xl"
+          style={{ backgroundColor: THEME.colors.phaseIdle }}
+        >
+          <Text className="text-on-surface font-bold text-[18px]">START</Text>
         </BounceButton>
       );
     }
-    if (phase === 'complete') {
+    if (phase === "complete") {
       return (
         <View className="items-center">
-          <Text className="text-[#22C55E] font-bold text-sm">MATCH</Text>
-          <Text className="text-[#22C55E] font-bold text-sm">COMPLETE</Text>
+          <Text
+            style={{
+              color: THEME.colors.phaseTeleop,
+              fontWeight: "700",
+              fontSize: 12,
+            }}
+          >
+            MATCH
+          </Text>
+          <Text
+            style={{
+              color: THEME.colors.phaseTeleop,
+              fontWeight: "700",
+              fontSize: 12,
+            }}
+          >
+            COMPLETE
+          </Text>
         </View>
       );
     }
-    if (phase === 'transition') {
+    if (phase === "transition") {
       return (
-        <Animated.View style={{ opacity: pulseOpacity }} className="items-center">
-          <Text className="text-[#F59E0B] font-bold text-xs">TRANSITION</Text>
-          <FlipTimeDisplay displayTime={displayTime} fontSize={36} color="#F59E0B" />
+        <Animated.View
+          style={{ opacity: pulseOpacity }}
+          className="items-center"
+        >
+          <Text
+            style={{
+              color: THEME.colors.phaseTransition,
+              fontWeight: "700",
+              fontSize: 12,
+            }}
+          >
+            TRANSITION
+          </Text>
+          <FlipTimeDisplay
+            displayTime={displayTime}
+            fontSize={36}
+            color={THEME.colors.phaseTransition}
+          />
         </Animated.View>
       );
     }
     // pre_auto, pre_teleop, auto, teleop — all share the same label/time layout
-    const isAuto = phase === 'pre_auto' || phase === 'auto';
+    const isAuto = phase === "pre_auto" || phase === "auto";
     return (
       <View className="items-center">
-        <Text className={`font-bold text-xs ${isAuto ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}>
-          {isAuto ? 'AUTONOMOUS' : 'TELEOP'}
+        <Text
+          style={{
+            fontWeight: "700",
+            fontSize: 12,
+            color: isAuto ? THEME.colors.phaseAuto : THEME.colors.phaseTeleop,
+          }}
+        >
+          {isAuto ? "AUTONOMOUS" : "TELEOP"}
         </Text>
-        <FlipTimeDisplay displayTime={displayTime} fontSize={36} color="#F5F5F5" />
+        <FlipTimeDisplay
+          displayTime={displayTime}
+          fontSize={36}
+          color={THEME.colors.currentValue}
+        />
       </View>
     );
   };
 
   return (
     <View className="items-center">
-      <View style={{ width: SIZE, height: SIZE }} className="items-center justify-center">
+      <View
+        style={{ width: SIZE, height: SIZE }}
+        className="items-center justify-center"
+      >
         <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
             r={RADIUS}
-            stroke="#2A2A2A"
+            stroke={THEME.colors.border}
             strokeWidth={STROKE_WIDTH}
             fill="none"
           />
@@ -147,21 +204,23 @@ export function MatchTimer({ season }: MatchTimerProps) {
         {renderCenterContent()}
       </View>
 
-      {phase !== 'idle' && phase !== 'complete' && (
+      {phase !== "idle" && phase !== "complete" && (
         <View className="flex-row gap-3 mt-3">
-          {phase !== 'pre_auto' && phase !== 'pre_teleop' && (
+          {phase !== "pre_auto" && phase !== "pre_teleop" && (
             <BounceButton
               onPress={isPaused ? resume : pause}
-              className="bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 rounded-xl"
+              className="bg-surface border border-outline-variant px-4 py-2 rounded-xl"
             >
-              <Text className="text-[#F5F5F5] text-sm">{isPaused ? 'RESUME' : 'PAUSE'}</Text>
+              <Text className="text-on-surface text-sm">
+                {isPaused ? "RESUME" : "PAUSE"}
+              </Text>
             </BounceButton>
           )}
           <BounceButton
             onPress={handleReset}
-            className="bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 rounded-xl"
+            className="bg-surface border border-outline-variant px-4 py-2 rounded-xl"
           >
-            <Text className="text-[#9CA3AF] text-sm">RESET</Text>
+            <Text className="text-on-surface-variant text-sm">RESET</Text>
           </BounceButton>
         </View>
       )}

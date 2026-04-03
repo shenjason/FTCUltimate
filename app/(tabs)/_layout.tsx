@@ -6,10 +6,11 @@ import { Platform } from "react-native";
 const ScreenOrientation =
   Platform.OS !== "web" ? require("expo-screen-orientation") : null;
 import { useMatchStore } from "../../lib/store";
+import THEME from "../../lib/theme";
 
 const TAB_BAR_STYLE_VISIBLE = {
-  backgroundColor: "#0a0e16",
-  borderTopColor: "#202632",
+  backgroundColor: THEME.colors.background,
+  borderTopColor: THEME.colors.tabBarBorder,
   borderTopWidth: 1,
   height: 64,
 } as const;
@@ -42,7 +43,10 @@ export default function TabLayout() {
   }, []);
 
   const isLandscapeMatch =
-    matchStarted && (matchType === "solo" || matchType === "full" || matchType === "timer_only");
+    matchStarted &&
+    (matchType === "solo" ||
+      matchType === "full" ||
+      matchType === "timer_only");
 
   return (
     <Tabs
@@ -51,9 +55,9 @@ export default function TabLayout() {
         tabBarStyle: isLandscapeMatch
           ? { display: "none" }
           : TAB_BAR_STYLE_VISIBLE,
-        tabBarActiveTintColor: "#84adff",
+        tabBarActiveTintColor: THEME.colors.primary,
         tabBarInactiveTintColor: "rgba(232,234,247,0.5)",
-        tabBarActiveBackgroundColor: "#202632",
+        tabBarActiveBackgroundColor: THEME.colors.tabBarActiveBg,
         tabBarItemStyle: TAB_ITEM_STYLE,
         tabBarLabelStyle: {
           fontSize: 10,

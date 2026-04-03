@@ -1,34 +1,39 @@
 // app/(tabs)/match/index.tsx
-import React, { useState, useEffect } from 'react';
-import { Alert, Platform, useWindowDimensions } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { Alert, Platform, useWindowDimensions } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
   runOnJS,
-} from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
-const ScreenOrientation = Platform.OS !== "web"
-  ? require("expo-screen-orientation")
-  : null;
-import * as Haptics from 'expo-haptics';
-import { useSeasonStore, useMatchStore, useHistoryStore } from '../../../lib/store';
-import { getSeasonById } from '../../../lib/seasonLoader';
-import { MatchSetup } from '../../../components/match/MatchSetup';
-import { TimerOnlyMatch } from '../../../components/match/TimerOnlyMatch';
-import { LandscapeMatch } from '../../../components/match/LandscapeMatch';
-import type { ScoreMap, MatchType, StartMode } from '../../../types/match';
+} from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import THEME from "../../../lib/theme";
+const ScreenOrientation =
+  Platform.OS !== "web" ? require("expo-screen-orientation") : null;
+import * as Haptics from "expo-haptics";
+import {
+  useSeasonStore,
+  useMatchStore,
+  useHistoryStore,
+} from "../../../lib/store";
+import { getSeasonById } from "../../../lib/seasonLoader";
+import { MatchSetup } from "../../../components/match/MatchSetup";
+import { TimerOnlyMatch } from "../../../components/match/TimerOnlyMatch";
+import { LandscapeMatch } from "../../../components/match/LandscapeMatch";
+import type { ScoreMap, MatchType, StartMode } from "../../../types/match";
 
-type ScreenState = 'setup' | 'active';
+type ScreenState = "setup" | "active";
 
 export default function MatchScreen() {
   const { selectedSeasonId } = useSeasonStore();
-  const { matchType, setMatchType, setMatchStarted, resetMatch } = useMatchStore();
+  const { matchType, setMatchType, setMatchStarted, resetMatch } =
+    useMatchStore();
   const { saveMatch } = useHistoryStore();
 
-  const [screenState, setScreenState] = useState<ScreenState>('setup');
-  const [alliance, setAlliance] = useState<'red' | 'blue' | undefined>();
+  const [screenState, setScreenState] = useState<ScreenState>("setup");
+  const [alliance, setAlliance] = useState<"red" | "blue" | undefined>();
 
   const season = getSeasonById(selectedSeasonId);
 
@@ -43,27 +48,31 @@ export default function MatchScreen() {
 
   // Lock to portrait on initial mount (setup state)
   useEffect(() => {
-    ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
+    ScreenOrientation?.lockAsync(
+      ScreenOrientation.OrientationLock.PORTRAIT_UP,
+    )?.catch(() => {});
   }, []);
 
   const handleStart = async (
     type: MatchType,
     matchName: string,
-    selectedAlliance: 'red' | 'blue',
+    selectedAlliance: "red" | "blue",
     startMode: StartMode,
   ) => {
     useMatchStore.getState().setStartMode(startMode);
     useMatchStore.getState().setMatchName(matchName);
     setMatchType(type);
-    setAlliance(type === 'full' ? undefined : selectedAlliance);
+    setAlliance(type === "full" ? undefined : selectedAlliance);
     setMatchStarted(true);
 
     // All match types use landscape
-    await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)?.catch(() => {});
+    await ScreenOrientation?.lockAsync(
+      ScreenOrientation.OrientationLock.LANDSCAPE,
+    )?.catch(() => {});
 
     // Slide new screen in from right
     slideX.value = screenWidth;
-    setScreenState('active');
+    setScreenState("active");
     requestAnimationFrame(() => {
       slideX.value = withTiming(0, {
         duration: 300,
@@ -73,22 +82,28 @@ export default function MatchScreen() {
   };
 
   const handleExit = async () => {
-    await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)?.catch(() => {});
+    await ScreenOrientation?.lockAsync(
+      ScreenOrientation.OrientationLock.PORTRAIT_UP,
+    )?.catch(() => {});
     // Slide current screen out to right, then swap
     setIsAnimating(true);
-    slideX.value = withTiming(screenWidth, {
-      duration: 300,
-      easing: Easing.in(Easing.cubic),
-    }, (finished) => {
-      if (finished) {
-        runOnJS(setIsAnimating)(false);
-        runOnJS(setMatchStarted)(false);
-        runOnJS(resetMatch)();
-        runOnJS(setAlliance)(undefined);
-        runOnJS(setScreenState)('setup');
-        slideX.value = 0;
-      }
-    });
+    slideX.value = withTiming(
+      screenWidth,
+      {
+        duration: 300,
+        easing: Easing.in(Easing.cubic),
+      },
+      (finished) => {
+        if (finished) {
+          runOnJS(setIsAnimating)(false);
+          runOnJS(setMatchStarted)(false);
+          runOnJS(resetMatch)();
+          runOnJS(setAlliance)(undefined);
+          runOnJS(setScreenState)("setup");
+          slideX.value = 0;
+        }
+      },
+    );
   };
 
   const handleMatchComplete = async (result: any) => {
@@ -97,7 +112,7 @@ export default function MatchScreen() {
     let teleopScore: number;
     let allScores: ScoreMap | { blue: ScoreMap; red: ScoreMap };
 
-    if (matchType === 'solo') {
+    if (matchType === "solo") {
       totalScore = result.totalScore ?? 0;
       autoScore = result.autoScore ?? 0;
       teleopScore = result.teleopScore ?? 0;
@@ -130,17 +145,22 @@ export default function MatchScreen() {
         matchType,
       });
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Match Saved', `Total: ${totalScore} pts`);
+      Alert.alert("Match Saved", `Total: ${totalScore} pts`);
     } catch (err) {
-      console.error('Failed to save match:', err);
-      Alert.alert('Save Failed', 'Could not save match. Please try again.');
+      console.error("Failed to save match:", err);
+      Alert.alert("Save Failed", "Could not save match. Please try again.");
     }
   };
 
-  if (screenState === 'setup') {
+  if (screenState === "setup") {
     return (
-      <Animated.View style={[{ flex: 1, backgroundColor: '#0F0F0F' }, slideAnimStyle]}>
-        <SafeAreaView className="flex-1 bg-[#0F0F0F]">
+      <Animated.View
+        style={[
+          { flex: 1, backgroundColor: THEME.colors.background },
+          slideAnimStyle,
+        ]}
+      >
+        <SafeAreaView className="flex-1 bg-surface-dim">
           <MatchSetup season={season} onStart={handleStart} />
         </SafeAreaView>
       </Animated.View>
@@ -148,10 +168,15 @@ export default function MatchScreen() {
   }
 
   // active state
-  if (matchType === 'timer_only') {
+  if (matchType === "timer_only") {
     return (
-      <Animated.View style={[{ flex: 1, backgroundColor: '#0F0F0F' }, slideAnimStyle]}>
-        <SafeAreaView className="flex-1 bg-[#0F0F0F]">
+      <Animated.View
+        style={[
+          { flex: 1, backgroundColor: THEME.colors.background },
+          slideAnimStyle,
+        ]}
+      >
+        <SafeAreaView className="flex-1 bg-surface-dim">
           <TimerOnlyMatch season={season} onExit={handleExit} />
         </SafeAreaView>
       </Animated.View>
@@ -163,7 +188,7 @@ export default function MatchScreen() {
     <Animated.View style={[{ flex: 1 }, slideAnimStyle]}>
       <LandscapeMatch
         season={season}
-        matchType={matchType as 'solo' | 'full'}
+        matchType={matchType as "solo" | "full"}
         alliance={alliance ?? "blue"}
         onExit={handleExit}
         onMatchComplete={handleMatchComplete}

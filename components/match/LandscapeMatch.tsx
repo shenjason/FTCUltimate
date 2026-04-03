@@ -14,13 +14,14 @@ import { useMatchStore } from "../../lib/store";
 import { useMatchTimer } from "../../hooks/useMatchTimer";
 import { computeDualScore, computeScore } from "../../lib/scoreEngine";
 import { LandscapeHeader } from "./LandscapeHeader";
-import { BottomControlPanel } from "./BottomControlPanel";
+import { SoloMatchFooter } from "./SoloMatchFooter";
 import { FoulsPanel } from "./FoulsPanel";
 import { GlassTimer } from "./GlassTimer";
 import { AllianceModuleGrid, FOULS_MODULE_ID } from "./AllianceModuleGrid";
 import { FullMatchFooter } from "./FullMatchFooter";
 import { ModuleTile } from "./ModuleTile";
 import { MaterialIcon } from "../ui/MaterialIcon";
+import THEME from "../../lib/theme";
 
 interface LandscapeMatchProps {
   season: SeasonConfig;
@@ -190,7 +191,7 @@ export function LandscapeMatch({
     return (
       <SafeAreaView
         className="flex-1 flex-col"
-        style={{ backgroundColor: "#0a0e16" }}
+        style={{ backgroundColor: THEME.colors.background }}
         edges={["left", "right"]}
       >
         <LandscapeHeader
@@ -211,7 +212,7 @@ export function LandscapeMatch({
           {/* Far-left: vertical Pause + Reset buttons */}
           <View
             className="w-16 flex-col p-1.5 bg-surface-container-low/50 shrink-0 gap-1.5"
-            style={{ borderRightWidth: 1, borderColor: "#2A2A2A" }}
+            style={{ borderRightWidth: 1, borderColor: THEME.colors.border }}
           >
             <BounceButton
               onPress={isPaused ? resume : pause}
@@ -225,7 +226,9 @@ export function LandscapeMatch({
               <MaterialIcon
                 name={isPaused ? "play_arrow" : "pause"}
                 size={20}
-                color={matchIsActive ? "#fdc003" : "#a8abb6"}
+                color={
+                  matchIsActive ? THEME.colors.gold : THEME.colors.mutedIcon
+                }
               />
               <Text className="text-[8px] font-bold uppercase mt-1.5 tracking-tighter text-secondary">
                 {isPaused ? "Resume" : "Pause"}
@@ -241,7 +244,11 @@ export function LandscapeMatch({
                   : ""
               }`}
             >
-              <MaterialIcon name="restart_alt" size={18} color="#fdc003" />
+              <MaterialIcon
+                name="restart_alt"
+                size={18}
+                color={THEME.colors.gold}
+              />
               <Text className="text-[8px] font-bold uppercase mt-1 tracking-tighter text-secondary">
                 Reset
               </Text>
@@ -254,7 +261,7 @@ export function LandscapeMatch({
             style={{
               width: "25%",
               borderRightWidth: 1,
-              borderColor: "#2A2A2A",
+              borderColor: THEME.colors.border,
             }}
           >
             {/* Timer */}
@@ -335,12 +342,12 @@ export function LandscapeMatch({
             {/* Footer: dynamic module controls */}
             <View
               className="h-[100px] shrink-0 border-t bg-surface-container-low flex-row items-stretch px-4"
-              style={{ borderColor: "#2A2A2A" }}
+              style={{ borderColor: THEME.colors.border }}
             >
               {isFoulsSelected ? (
                 <FoulsPanel alliance={alliance} disabled={disabled} />
               ) : selectedModule ? (
-                <BottomControlPanel
+                <SoloMatchFooter
                   module={selectedModule}
                   value={scores[selectedModule.id]}
                   onChange={(val) => setScore(selectedModule.id, val)}
@@ -380,7 +387,7 @@ export function LandscapeMatch({
   return (
     <SafeAreaView
       className="flex-1 flex-col"
-      style={{ backgroundColor: "#0a0e16" }}
+      style={{ backgroundColor: THEME.colors.background }}
       edges={["left", "right"]}
     >
       <LandscapeHeader
@@ -460,7 +467,9 @@ export function LandscapeMatch({
                 <MaterialIcon
                   name={isPaused ? "play_arrow" : "pause"}
                   size={24}
-                  color={matchIsActive ? "#fdc003" : "#a8abb6"}
+                  color={
+                    matchIsActive ? THEME.colors.gold : THEME.colors.mutedIcon
+                  }
                 />
               </BounceButton>
 
@@ -496,7 +505,11 @@ export function LandscapeMatch({
                 }`}
                 style={{ aspectRatio: 1 }}
               >
-                <MaterialIcon name="restart_alt" size={22} color="#fdc003" />
+                <MaterialIcon
+                  name="restart_alt"
+                  size={22}
+                  color={THEME.colors.gold}
+                />
               </BounceButton>
             </View>
           </View>

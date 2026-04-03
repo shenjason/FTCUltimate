@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import type { ModuleConfig } from "../../types/season";
 import type { ScoreValue } from "../../types/match";
 import { MaterialIcon } from "../ui/MaterialIcon";
+import THEME from "../../lib/theme";
 
 // Maps module label keywords to Material Symbols icon names
 function iconForModule(module: ModuleConfig): string {
@@ -12,7 +13,11 @@ function iconForModule(module: ModuleConfig): string {
   const label = module.label.toLowerCase();
   if (label.includes("sample")) return "category";
   if (label.includes("specimen")) return "precision_manufacturing";
-  if (label.includes("park") || label.includes("climb") || label.includes("hang"))
+  if (
+    label.includes("park") ||
+    label.includes("climb") ||
+    label.includes("hang")
+  )
     return "rocket_launch";
   if (label.includes("foul")) return "warning";
   if (label.includes("grid")) return "grid_view";
@@ -39,7 +44,7 @@ function formatValue(module: ModuleConfig, score: ScoreValue): string {
       const effectiveScore = score ?? module.defaultValue ?? null;
       if (!effectiveScore) return "—";
       // Find the option label for the selected id
-      const opt = module.options.find(o => o.id === effectiveScore);
+      const opt = module.options.find((o) => o.id === effectiveScore);
       return opt ? opt.label : String(effectiveScore);
     }
     case "multi_boolean": {
@@ -94,20 +99,20 @@ export function ModuleTile({
   if (mode === "red") {
     selectedBg = "bg-error";
     selectedTextColor = "text-on-error";
-    selectedIconColor = "#490013";
+    selectedIconColor = THEME.colors.redIcon;
   } else if (mode === "blue") {
     selectedBg = "bg-primary";
     selectedTextColor = "text-on-primary";
-    selectedIconColor = "#002d64";
+    selectedIconColor = THEME.colors.blueIcon;
   } else {
     // solo: white
     selectedBg = "bg-on-surface";
     selectedTextColor = "text-surface";
-    selectedIconColor = "#0a0e16";
+    selectedIconColor = THEME.colors.background;
   }
 
   const containerCls = isSelected
-    ? `${selectedBg} border border-white/20`
+    ? `${selectedBg} border border-outline-variant/20`
     : "bg-surface-container-highest/50 border border-outline-variant/10";
 
   const labelCls = isSelected
@@ -118,7 +123,7 @@ export function ModuleTile({
     ? `font-bold text-2xl leading-none ${selectedTextColor}`
     : "font-bold text-2xl leading-none text-on-surface";
 
-  const iconColor = isSelected ? selectedIconColor : "#a8abb6";
+  const iconColor = isSelected ? selectedIconColor : THEME.colors.mutedIcon;
   const alignCls = alignEnd ? "items-end" : "items-start";
 
   return (
@@ -128,12 +133,18 @@ export function ModuleTile({
       style={{ width: "47%", overflow: "hidden" }}
       className={`p-2.5 rounded-lg active:scale-95 ${containerCls} ${alignCls}`}
     >
-      <View className={`flex-row items-center gap-1.5 mb-1 ${alignEnd ? "flex-row-reverse" : ""}`}>
+      <View
+        className={`flex-row items-center gap-1.5 mb-1 ${alignEnd ? "flex-row-reverse" : ""}`}
+      >
         <MaterialIcon name={icon} size={14} color={iconColor} />
-        <Text numberOfLines={1} className={labelCls}>{module.label}</Text>
+        <Text numberOfLines={1} className={labelCls}>
+          {module.label}
+        </Text>
       </View>
       {foulData ? (
-        <View className={`flex-row gap-3 ${alignEnd ? "flex-row-reverse" : ""}`}>
+        <View
+          className={`flex-row gap-3 ${alignEnd ? "flex-row-reverse" : ""}`}
+        >
           <View className={alignEnd ? "items-end" : "items-start"}>
             <Text className="text-[7px] uppercase font-bold text-secondary leading-none">
               Min
@@ -142,7 +153,9 @@ export function ModuleTile({
               {foulData.minor}
             </Text>
           </View>
-          <View className={`${alignEnd ? "border-r pr-2 items-end" : "border-l pl-2 items-start"} border-outline-variant/30`}>
+          <View
+            className={`${alignEnd ? "border-r pr-2 items-end" : "border-l pl-2 items-start"} border-outline-variant/30`}
+          >
             <Text className="text-[7px] uppercase font-bold text-error leading-none">
               Maj
             </Text>

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import type { MatchPhase } from "../../types/match";
 import { MaterialIcon } from "../ui/MaterialIcon";
+import THEME from "../../lib/theme";
 
 interface MatchActionBarProps {
   isPaused: boolean;
@@ -21,10 +22,7 @@ export function MatchActionBar({
   const isActive = ACTIVE_PHASES.includes(phase);
 
   return (
-    <View
-      className="w-16 border-l border-outline-variant/10 flex-col p-1.5 bg-surface-container-low/50 shrink-0 gap-1.5"
-      style={{ borderColor: "#2A2A2A" }}
-    >
+    <View className="w-16 border-l border-outline-variant/10 flex-col p-1.5 bg-surface-container-low/50 shrink-0 gap-1.5">
       <TouchableOpacity
         onPress={onPauseResume}
         disabled={!isActive}
@@ -37,7 +35,7 @@ export function MatchActionBar({
         <MaterialIcon
           name={isPaused ? "play_arrow" : "pause"}
           size={20}
-          color={isActive ? "#fdc003" : "#a8abb6"}
+          color={isActive ? THEME.colors.gold : THEME.colors.mutedIcon}
         />
         <Text className="text-[8px] font-bold uppercase mt-1.5 tracking-tighter text-secondary">
           {isPaused ? "Resume" : "Pause"}
@@ -46,12 +44,12 @@ export function MatchActionBar({
 
       <TouchableOpacity
         onPress={onReset}
-        disabled={phase === 'pre_auto' || phase === 'pre_teleop'}
+        disabled={phase === "pre_auto" || phase === "pre_teleop"}
         className={`flex-[2] flex-col items-center justify-center rounded-lg bg-surface-container-highest/80 border border-secondary/20 ${
-          phase === 'pre_auto' || phase === 'pre_teleop' ? 'opacity-40' : ''
+          phase === "pre_auto" || phase === "pre_teleop" ? "opacity-40" : ""
         }`}
       >
-        <MaterialIcon name="restart_alt" size={18} color="#fdc003" />
+        <MaterialIcon name="restart_alt" size={18} color={THEME.colors.gold} />
         <Text className="text-[8px] font-bold uppercase mt-1 tracking-tighter text-secondary">
           Reset
         </Text>

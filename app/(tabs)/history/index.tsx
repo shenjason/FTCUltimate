@@ -1,11 +1,19 @@
 // app/(tabs)/history/index.tsx
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useHistoryStore } from "../../../lib/store";
 import { getSeasons } from "../../../lib/seasonLoader";
+import THEME from "../../../lib/theme";
 import type { SavedMatch } from "../../../types/match";
 import { pushUnsyncedMatches, getUnsyncedCount } from "../../../lib/sync";
 import { exportMatchesCSV } from "../../../lib/csvExport";
@@ -27,23 +35,26 @@ function MatchCard({
   const season = seasons.find((s) => s.id === match.seasonId);
   const date = new Date(match.timestamp);
   const seasonDisplayName = season ? stripSuffix(season.name) : match.seasonId;
-  const dateStr = `${date.toLocaleDateString()} · ${date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
+  const dateStr = `${date.toLocaleDateString()} · ${date.toLocaleTimeString(
+    [],
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  )}`;
 
   return (
     <TouchableOpacity
       onPress={() => router.push(`/history/${match.id}`)}
       style={{
-        backgroundColor: "#151a24",
+        backgroundColor: THEME.colors.moduleBg,
         borderRadius: 12,
         padding: 20,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         borderLeftWidth: 4,
-        borderLeftColor: isFirst ? "#84adff" : "transparent",
+        borderLeftColor: isFirst ? THEME.colors.primary : "transparent",
         marginBottom: 12,
       }}
     >
@@ -51,17 +62,27 @@ function MatchCard({
       <View style={{ flex: 1, gap: 6 }}>
         <View>
           <Text
-            style={{ color: "#e8eaf7", fontSize: 16, fontWeight: "700" }}
+            style={{
+              color: THEME.colors.brightIcon,
+              fontSize: 16,
+              fontWeight: "700",
+            }}
             numberOfLines={1}
           >
             {match.matchName ?? "Untitled Match"}{" "}
-            <Text style={{ color: "#a8abb6", fontSize: 12, fontWeight: "400" }}>
+            <Text
+              style={{
+                color: THEME.colors.mutedIcon,
+                fontSize: 12,
+                fontWeight: "400",
+              }}
+            >
               {dateStr}
             </Text>
           </Text>
           <Text
             style={{
-              color: "#84adff",
+              color: THEME.colors.primary,
               fontSize: 10,
               fontWeight: "700",
               letterSpacing: 1.2,
@@ -75,25 +96,37 @@ function MatchCard({
         <View style={{ flexDirection: "row", gap: 8 }}>
           <View
             style={{
-              backgroundColor: "rgba(167,1,56,0.2)",
+              backgroundColor: THEME.colors.autoBadgeBg,
               borderRadius: 4,
               paddingHorizontal: 8,
               paddingVertical: 2,
             }}
           >
-            <Text style={{ color: "#ff6e84", fontSize: 10, fontWeight: "700" }}>
+            <Text
+              style={{
+                color: THEME.colors.autoBadgeText,
+                fontSize: 10,
+                fontWeight: "700",
+              }}
+            >
               AUTO {match.autoScore}
             </Text>
           </View>
           <View
             style={{
-              backgroundColor: "rgba(161,250,255,0.1)",
+              backgroundColor: THEME.colors.teleopBadgeBg,
               borderRadius: 4,
               paddingHorizontal: 8,
               paddingVertical: 2,
             }}
           >
-            <Text style={{ color: "#a1faff", fontSize: 10, fontWeight: "700" }}>
+            <Text
+              style={{
+                color: THEME.colors.teleopBadgeText,
+                fontSize: 10,
+                fontWeight: "700",
+              }}
+            >
               TELEOP {match.teleopScore}
             </Text>
           </View>
@@ -106,7 +139,7 @@ function MatchCard({
         <View style={{ flexDirection: "row", alignItems: "baseline" }}>
           <Text
             style={{
-              color: "#e8eaf7",
+              color: THEME.colors.brightIcon,
               fontSize: 30,
               fontWeight: "900",
               fontStyle: "italic",
@@ -115,7 +148,14 @@ function MatchCard({
           >
             {match.totalScore}
           </Text>
-          <Text style={{ color: "#a8abb6", fontSize: 10, fontWeight: "700", marginLeft: 3 }}>
+          <Text
+            style={{
+              color: THEME.colors.mutedIcon,
+              fontSize: 10,
+              fontWeight: "700",
+              marginLeft: 3,
+            }}
+          >
             pts
           </Text>
         </View>
@@ -127,7 +167,7 @@ function MatchCard({
         style={{ position: "absolute", top: 10, right: 10, padding: 4 }}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Ionicons name="trash-outline" size={14} color="#444852" />
+        <Ionicons name="trash-outline" size={14} color={THEME.colors.border} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -136,8 +176,12 @@ function MatchCard({
 export default function HistoryScreen() {
   const { matches, loadMatches, deleteMatch } = useHistoryStore();
   const [filterSeasonId, setFilterSeasonId] = useState<string | null>(null);
-  const [matchTypeFilter, setMatchTypeFilter] = useState<"all" | "solo" | "full">("all");
-  const [startModeFilter, setStartModeFilter] = useState<"all" | "auto_teleop" | "teleop_only">("all");
+  const [matchTypeFilter, setMatchTypeFilter] = useState<
+    "all" | "solo" | "full"
+  >("all");
+  const [startModeFilter, setStartModeFilter] = useState<
+    "all" | "auto_teleop" | "teleop_only"
+  >("all");
   const [unsyncedCount, setUnsyncedCount] = React.useState(0);
   const [syncing, setSyncing] = React.useState(false);
   const seasons = getSeasons();
@@ -152,25 +196,33 @@ export default function HistoryScreen() {
 
   const filtered = matches.filter((m) => {
     if (filterSeasonId && m.seasonId !== filterSeasonId) return false;
-    if (matchTypeFilter !== "all" && m.matchType !== matchTypeFilter) return false;
-    if (startModeFilter !== "all" && m.startMode !== startModeFilter) return false;
+    if (matchTypeFilter !== "all" && m.matchType !== matchTypeFilter)
+      return false;
+    if (startModeFilter !== "all" && m.startMode !== startModeFilter)
+      return false;
     return true;
   });
 
   const last10 = filtered.slice(0, 10);
   const avgScore =
     last10.length > 0
-      ? Math.round(last10.reduce((sum, m) => sum + m.totalScore, 0) / last10.length)
+      ? Math.round(
+          last10.reduce((sum, m) => sum + m.totalScore, 0) / last10.length,
+        )
       : 0;
   const bestMatch =
     filtered.length > 0 ? Math.max(...filtered.map((m) => m.totalScore)) : 0;
   const avgAuto =
     last10.length > 0
-      ? Math.round(last10.reduce((sum, m) => sum + m.autoScore, 0) / last10.length)
+      ? Math.round(
+          last10.reduce((sum, m) => sum + m.autoScore, 0) / last10.length,
+        )
       : 0;
   const avgTeleop =
     last10.length > 0
-      ? Math.round(last10.reduce((sum, m) => sum + m.teleopScore, 0) / last10.length)
+      ? Math.round(
+          last10.reduce((sum, m) => sum + m.teleopScore, 0) / last10.length,
+        )
       : 0;
 
   const handleSync = async () => {
@@ -180,7 +232,10 @@ export default function HistoryScreen() {
     setUnsyncedCount(await getUnsyncedCount());
 
     if (result.errors.length > 0) {
-      Alert.alert("Sync Partial", `Pushed ${result.pushed} matches.\n${result.errors.length} failed.`);
+      Alert.alert(
+        "Sync Partial",
+        `Pushed ${result.pushed} matches.\n${result.errors.length} failed.`,
+      );
     } else {
       Alert.alert("Synced", `${result.pushed} matches pushed to cloud.`);
     }
@@ -208,13 +263,15 @@ export default function HistoryScreen() {
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 50,
-        backgroundColor: active ? "#84adff" : "#202632",
+        backgroundColor: active
+          ? THEME.colors.primary
+          : THEME.colors.tabBarActiveBg,
         marginRight: 8,
       }}
     >
       <Text
         style={{
-          color: active ? "#002d64" : "#a8abb6",
+          color: active ? THEME.colors.blueIcon : THEME.colors.mutedIcon,
           fontSize: 11,
           fontWeight: "700",
           letterSpacing: 0.8,
@@ -227,7 +284,7 @@ export default function HistoryScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#0a0e16" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: THEME.colors.background }}>
       {/* Header */}
       <View
         style={{
@@ -238,10 +295,15 @@ export default function HistoryScreen() {
           paddingBottom: 12,
         }}
       >
-        <Ionicons name="time" size={20} color="#84adff" style={{ marginRight: 10 }} />
+        <Ionicons
+          name="time"
+          size={20}
+          color={THEME.colors.primary}
+          style={{ marginRight: 10 }}
+        />
         <Text
           style={{
-            color: "#84adff",
+            color: THEME.colors.primary,
             fontSize: 20,
             fontWeight: "700",
             letterSpacing: -0.5,
@@ -259,7 +321,9 @@ export default function HistoryScreen() {
           <Ionicons
             name={syncing ? "sync" : "cloud-upload-outline"}
             size={20}
-            color={unsyncedCount > 0 ? "#84adff" : "#444852"}
+            color={
+              unsyncedCount > 0 ? THEME.colors.primary : THEME.colors.border
+            }
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -270,7 +334,11 @@ export default function HistoryScreen() {
           <Ionicons
             name="download-outline"
             size={20}
-            color={filtered.length > 0 ? "#a1faff" : "#444852"}
+            color={
+              filtered.length > 0
+                ? THEME.colors.teleopBadgeText
+                : THEME.colors.border
+            }
           />
         </TouchableOpacity>
       </View>
@@ -286,7 +354,7 @@ export default function HistoryScreen() {
             {filtered.length > 0 && (
               <View
                 style={{
-                  backgroundColor: "#0f131d",
+                  backgroundColor: THEME.colors.background,
                   borderRadius: 12,
                   padding: 20,
                   marginBottom: 20,
@@ -303,7 +371,7 @@ export default function HistoryScreen() {
                 >
                   <Text
                     style={{
-                      color: "#a8abb6",
+                      color: THEME.colors.mutedIcon,
                       fontSize: 10,
                       fontWeight: "700",
                       letterSpacing: 1.5,
@@ -322,7 +390,7 @@ export default function HistoryScreen() {
                   >
                     <Text
                       style={{
-                        color: "#84adff",
+                        color: THEME.colors.primary,
                         fontSize: 9,
                         fontWeight: "700",
                         letterSpacing: 1,
@@ -335,12 +403,18 @@ export default function HistoryScreen() {
                 </View>
                 <View style={{ flexDirection: "row" }}>
                   <View style={{ flex: 1, alignItems: "flex-start" }}>
-                    <Text style={{ color: "#e8eaf7", fontSize: 30, fontWeight: "700" }}>
+                    <Text
+                      style={{
+                        color: THEME.colors.brightIcon,
+                        fontSize: 30,
+                        fontWeight: "700",
+                      }}
+                    >
                       {avgScore}
                     </Text>
                     <Text
                       style={{
-                        color: "#a8abb6",
+                        color: THEME.colors.mutedIcon,
                         fontSize: 10,
                         fontWeight: "700",
                         letterSpacing: 1,
@@ -359,12 +433,18 @@ export default function HistoryScreen() {
                       paddingLeft: 16,
                     }}
                   >
-                    <Text style={{ color: "#e8eaf7", fontSize: 30, fontWeight: "700" }}>
+                    <Text
+                      style={{
+                        color: THEME.colors.brightIcon,
+                        fontSize: 30,
+                        fontWeight: "700",
+                      }}
+                    >
                       {bestMatch}
                     </Text>
                     <Text
                       style={{
-                        color: "#a8abb6",
+                        color: THEME.colors.mutedIcon,
                         fontSize: 10,
                         fontWeight: "700",
                         letterSpacing: 1,
@@ -383,12 +463,18 @@ export default function HistoryScreen() {
                       paddingLeft: 16,
                     }}
                   >
-                    <Text style={{ color: "#ff6e84", fontSize: 30, fontWeight: "700" }}>
+                    <Text
+                      style={{
+                        color: THEME.colors.autoBadgeText,
+                        fontSize: 30,
+                        fontWeight: "700",
+                      }}
+                    >
                       {avgAuto}
                     </Text>
                     <Text
                       style={{
-                        color: "rgba(255,110,132,0.7)",
+                        color: THEME.colors.autoBadgeLabel,
                         fontSize: 10,
                         fontWeight: "700",
                         letterSpacing: 1,
@@ -407,12 +493,18 @@ export default function HistoryScreen() {
                       paddingLeft: 16,
                     }}
                   >
-                    <Text style={{ color: "#a1faff", fontSize: 30, fontWeight: "700" }}>
+                    <Text
+                      style={{
+                        color: THEME.colors.teleopBadgeText,
+                        fontSize: 30,
+                        fontWeight: "700",
+                      }}
+                    >
                       {avgTeleop}
                     </Text>
                     <Text
                       style={{
-                        color: "rgba(161,250,255,0.7)",
+                        color: THEME.colors.teleopBadgeLabel,
                         fontSize: 10,
                         fontWeight: "700",
                         letterSpacing: 1,
@@ -428,10 +520,7 @@ export default function HistoryScreen() {
 
             {/* Filters */}
             <View style={{ gap: 8, marginBottom: 20 }}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-              >
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <FilterPill
                   label="All Seasons"
                   active={filterSeasonId === null}
@@ -451,7 +540,13 @@ export default function HistoryScreen() {
                 {(["all", "solo", "full"] as const).map((type) => (
                   <FilterPill
                     key={type}
-                    label={type === "all" ? "All Types" : type === "solo" ? "Solo" : "Full"}
+                    label={
+                      type === "all"
+                        ? "All Types"
+                        : type === "solo"
+                          ? "Solo"
+                          : "Full"
+                    }
                     active={matchTypeFilter === type}
                     onPress={() => setMatchTypeFilter(type)}
                   />
@@ -459,20 +554,22 @@ export default function HistoryScreen() {
               </ScrollView>
 
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {(["all", "auto_teleop", "teleop_only"] as const).map((mode) => (
-                  <FilterPill
-                    key={mode}
-                    label={
-                      mode === "all"
-                        ? "All Modes"
-                        : mode === "auto_teleop"
-                        ? "Auto + Teleop"
-                        : "Teleop Only"
-                    }
-                    active={startModeFilter === mode}
-                    onPress={() => setStartModeFilter(mode)}
-                  />
-                ))}
+                {(["all", "auto_teleop", "teleop_only"] as const).map(
+                  (mode) => (
+                    <FilterPill
+                      key={mode}
+                      label={
+                        mode === "all"
+                          ? "All Modes"
+                          : mode === "auto_teleop"
+                            ? "Auto + Teleop"
+                            : "Teleop Only"
+                      }
+                      active={startModeFilter === mode}
+                      onPress={() => setStartModeFilter(mode)}
+                    />
+                  ),
+                )}
               </ScrollView>
             </View>
 
@@ -497,16 +594,33 @@ export default function HistoryScreen() {
               >
                 Verified Logs
               </Text>
-              <Text style={{ color: "#a8abb6", fontSize: 10 }}>
+              <Text style={{ color: THEME.colors.mutedIcon, fontSize: 10 }}>
                 {filtered.length} result{filtered.length !== 1 ? "s" : ""}
               </Text>
             </View>
           </>
         }
         ListEmptyComponent={
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60 }}>
-            <Ionicons name="time-outline" size={48} color="#202632" />
-            <Text style={{ color: "#a8abb6", fontSize: 14, marginTop: 12 }}>
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingTop: 60,
+            }}
+          >
+            <Ionicons
+              name="time-outline"
+              size={48}
+              color={THEME.colors.tabBarActiveBg}
+            />
+            <Text
+              style={{
+                color: THEME.colors.mutedIcon,
+                fontSize: 14,
+                marginTop: 12,
+              }}
+            >
               No matches saved yet
             </Text>
           </View>

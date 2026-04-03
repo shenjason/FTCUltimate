@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
+import THEME from "../../lib/theme";
 import type { MatchPhase } from "../../types/match";
 import { FlipTimeDisplay } from "../timer/FlipDigit";
 
@@ -30,18 +31,16 @@ export function GlassTimer({
 
   return (
     <View
-      className={`border border-white/5 items-center shadow-2xl ${
-        isSolo
-          ? "rounded-2xl px-6 py-5 w-full"
-          : "rounded-xl px-8 py-4"
+      className={`border border-outline-variant/10 items-center shadow-2xl ${
+        isSolo ? "rounded-2xl px-6 py-5 w-full" : "rounded-xl px-8 py-4"
       }`}
-      style={{ backgroundColor: "rgba(32, 38, 50, 0.4)" }}
+      style={{ backgroundColor: THEME.colors.gradientOverlay }}
     >
       {displayTime ? (
         <FlipTimeDisplay
           displayTime={displayTime}
           fontSize={isSolo ? 48 : 48}
-          color="#e8eaf7"
+          color={THEME.colors.brightIcon}
         />
       ) : (
         <Text

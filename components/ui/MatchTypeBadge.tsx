@@ -9,8 +9,8 @@ export function MatchTypeBadge({ matchType }: { matchType?: MatchType }) {
   }
   if (type === "full") {
     return (
-      <View className="bg-[#78350F] border border-[#D97706] px-2 py-0.5 rounded-full">
-        <Text className="text-[#FCD34D] text-[10px] font-bold tracking-wide">
+      <View className="bg-secondary-container border border-secondary px-2 py-0.5 rounded-full">
+        <Text className="text-secondary text-[10px] font-bold tracking-wide">
           FULL
         </Text>
       </View>
@@ -18,8 +18,8 @@ export function MatchTypeBadge({ matchType }: { matchType?: MatchType }) {
   }
   // solo (default) — neutral gray-blue
   return (
-    <View className="bg-[#1E293B] border border-[#334155] px-2 py-0.5 rounded-full">
-      <Text className="text-[#94A3B8] text-[10px] font-bold tracking-wide">
+    <View className="bg-surface-container border border-surface-container-high px-2 py-0.5 rounded-full">
+      <Text className="text-on-surface-variant text-[10px] font-bold tracking-wide">
         SOLO
       </Text>
     </View>

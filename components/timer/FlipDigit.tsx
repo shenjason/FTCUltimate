@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from "react";
+import { View, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withSequence,
   Easing,
-} from 'react-native-reanimated';
+  runOnJS,
+} from "react-native-reanimated";
 
 interface FlipDigitProps {
   digit: string;
@@ -17,28 +17,48 @@ interface FlipDigitProps {
 const ANIM_DURATION = 150;
 
 function FlipDigitCell({ digit, fontSize, color }: FlipDigitProps) {
-  const prevDigit = useRef(digit);
+  const [currentDigit, setCurrentDigit] = useState(digit);
   const translateY = useSharedValue(0);
   const opacity = useSharedValue(1);
 
   const height = fontSize * 1.2;
 
   useEffect(() => {
-    if (prevDigit.current !== digit) {
-      prevDigit.current = digit;
-      // Old digit slides up and fades; new digit slides in from below
-      translateY.value = withSequence(
-        withTiming(-height * 0.4, { duration: ANIM_DURATION, easing: Easing.out(Easing.quad) }),
-        withTiming(height * 0.4, { duration: 0 }),
-        withTiming(0, { duration: ANIM_DURATION, easing: Easing.out(Easing.quad) }),
-      );
-      opacity.value = withSequence(
-        withTiming(0, { duration: ANIM_DURATION, easing: Easing.out(Easing.quad) }),
-        withTiming(0, { duration: 0 }),
-        withTiming(1, { duration: ANIM_DURATION, easing: Easing.out(Easing.quad) }),
-      );
-    }
-  }, [digit]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (currentDigit === digit) return;
+    // capture the primitive target to avoid referencing mutable refs inside the worklet
+    const targetDigit = digit;
+
+    // animate old digit out
+    translateY.value = withTiming(
+      -height * 0.4,
+      { duration: ANIM_DURATION, easing: Easing.out(Easing.quad) },
+      (finished) => {
+        if (!finished) return;
+        // swap to new digit on JS thread using the captured primitive
+        runOnJS(setCurrentDigit)(targetDigit);
+        // jump new digit in from below then animate into place
+        translateY.value = height * 0.4;
+        translateY.value = withTiming(0, {
+          duration: ANIM_DURATION,
+          easing: Easing.out(Easing.quad),
+        });
+      },
+    );
+
+    // fade sequence
+    opacity.value = withTiming(
+      0,
+      { duration: ANIM_DURATION, easing: Easing.out(Easing.quad) },
+      (finished) => {
+        if (!finished) return;
+        opacity.value = withTiming(1, {
+          duration: ANIM_DURATION,
+          easing: Easing.out(Easing.quad),
+        });
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [digit]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -52,15 +72,15 @@ function FlipDigitCell({ digit, fontSize, color }: FlipDigitProps) {
           {
             fontSize,
             color,
-            fontWeight: '900',
-            fontVariant: ['tabular-nums'],
-            textAlign: 'center',
+            fontWeight: "900",
+            fontVariant: ["tabular-nums"],
+            textAlign: "center",
             lineHeight: height,
           },
           animatedStyle,
         ]}
       >
-        {digit}
+        {currentDigit}
       </Animated.Text>
     </View>
   );
@@ -72,22 +92,26 @@ interface FlipTimeDisplayProps {
   color: string;
 }
 
-export function FlipTimeDisplay({ displayTime, fontSize, color }: FlipTimeDisplayProps) {
-  const chars = displayTime.split('');
+export function FlipTimeDisplay({
+  displayTime,
+  fontSize,
+  color,
+}: FlipTimeDisplayProps) {
+  const chars = displayTime.split("");
 
   return (
     <View style={styles.row}>
       {chars.map((char, index) => {
-        if (char === ':') {
+        if (char === ":") {
           return (
             <Animated.Text
               key={`colon-${index}`}
               style={{
                 fontSize,
                 color,
-                fontWeight: '900',
+                fontWeight: "900",
                 lineHeight: fontSize * 1.2,
-                textAlign: 'center',
+                textAlign: "center",
               }}
             >
               :
@@ -109,13 +133,13 @@ export function FlipTimeDisplay({ displayTime, fontSize, color }: FlipTimeDispla
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   digitContainer: {
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

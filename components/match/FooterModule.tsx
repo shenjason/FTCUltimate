@@ -1,41 +1,29 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { BounceButton } from "../ui/AnimatedPressable";
 import type { ModuleConfig } from "../../types/season";
 import type { ScoreValue } from "../../types/match";
+import { BounceButton } from "../ui/AnimatedPressable";
 import { MaterialIcon } from "../ui/MaterialIcon";
 import { VerticalDial } from "../ui/VerticalDial";
-import { styles } from "../ui/VerticalDial";
+import THEME from "../../lib/theme";
 
-interface BottomControlPanelProps {
+interface FooterModuleProps {
   module: ModuleConfig;
   value: ScoreValue;
-  onChange: (value: ScoreValue) => void;
-  alliance: "blue" | "red";
+  onChange: (v: ScoreValue) => void;
   disabled?: boolean;
+  alliance?: "red" | "blue";
+  matchType?: "solo" | "full";
 }
 
-export function BottomControlPanel({
+export function FooterModule({
   module,
   value,
   onChange,
-  alliance,
   disabled = false,
-}: BottomControlPanelProps) {
-  return (
-    <View className="flex-1 flex-row items-center px-4 gap-2">
-      {renderControls(module, value, onChange, disabled, alliance)}
-    </View>
-  );
-}
-
-function renderControls(
-  module: ModuleConfig,
-  value: ScoreValue,
-  onChange: (value: ScoreValue) => void,
-  disabled: boolean,
-  alliance: "blue" | "red",
-) {
+  alliance = "blue",
+  matchType = "full",
+}: FooterModuleProps) {
   const accentBg = alliance === "blue" ? "bg-primary" : "bg-error";
   const accentText = alliance === "blue" ? "text-on-primary" : "text-on-error";
 
@@ -58,9 +46,9 @@ function renderControls(
               color={
                 value === true
                   ? alliance === "blue"
-                    ? "#002d64"
-                    : "#490013"
-                  : "#a8abb6"
+                    ? THEME.colors.blueIcon
+                    : THEME.colors.redIcon
+                  : THEME.colors.mutedIcon
               }
             />
             <Text
@@ -86,9 +74,9 @@ function renderControls(
               color={
                 value !== true
                   ? alliance === "blue"
-                    ? "#002d64"
-                    : "#490013"
-                  : "#a8abb6"
+                    ? THEME.colors.blueIcon
+                    : THEME.colors.redIcon
+                  : THEME.colors.mutedIcon
               }
             />
             <Text
@@ -107,63 +95,104 @@ function renderControls(
       const min = (module as any).min ?? 0;
       const max = (module as any).max;
       const step = (module as any).step ?? 1;
-      let selectedIndex = 0;
-      const initialData = [];
-      for (let i = min; i <= max; i += step) {
-        initialData.push(i * step);
-      }
-      return (
-        <View className="flex-1 flex-col justify-center">
-          <Text className="text-[9px] uppercase font-bold tracking-[0.2em] text-on-surface-variant mb-1">
-            {module.label}
-          </Text>
-          <View className="flex-row gap-3 items-center h-[110px]">
-            <BounceButton
-              onPress={() => onChange(Math.max(count - step, min))}
-              disabled={disabled || count <= min}
-              className="flex-1 h-12 bg-surface-container-highest rounded-xl items-center justify-center active:opacity-70"
-            >
-              <MaterialIcon name="remove" size={22} color="#e8eaf7" />
-            </BounceButton>
-            {/* <VerticalDial
-              value={count}
-              min={min}
-              max={max}
-              step={step}
-              onChange={(v) => onChange(v)}
-              disabled={disabled}
-              height={76}
-              width={70}
-            /> */}
-            <VerticalDial
-              value={count}
-              min={min}
-              max={max}
-              step={step}
-              onChange={(v) => onChange(v)}
-              disabled={disabled}
-              height={110}
-              width={160}
-            />
 
-            <BounceButton
-              onPress={() =>
-                onChange(
-                  max !== undefined
-                    ? Math.min(count + step, max)
-                    : count + step,
-                )
-              }
-              disabled={disabled || (max !== undefined && count >= max)}
-              className={`flex-[2] h-12 ${accentBg} rounded-xl items-center justify-center active:opacity-70`}
-            >
-              <MaterialIcon
-                name="add"
-                size={22}
-                color={alliance === "blue" ? "#002d64" : "#490013"}
-              />
-            </BounceButton>
-          </View>
+      const decrement = () => onChange(Math.max(count - step, min));
+      const increment = () =>
+        onChange(
+          max !== undefined ? Math.min(count + step, max) : count + step,
+        );
+
+      const isRed = alliance === "red";
+
+      return (
+        <View
+          className={`flex-1 flex-row items-center px-3 ${
+            isRed
+              ? THEME.classes.footerRedBg + " border-r border-white/5"
+              : THEME.classes.footerBlueBg
+          }`}
+        >
+          {isRed ? (
+            <>
+              <BounceButton
+                onPress={increment}
+                disabled={disabled || (max !== undefined && count >= max)}
+                className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg}`}
+              >
+                <Text className="text-on-stitch-error text-3xl leading-none font-bold">
+                  +
+                </Text>
+              </BounceButton>
+
+              <View className="flex-1 items-center justify-center">
+                <Text
+                  className={`text-[9px] uppercase font-bold tracking-[0.15em] ${isRed ? "text-stitch-error" : "text-stitch-primary"} mb-1`}
+                >
+                  {`${isRed ? "Red" : "Blue"} ${module.label}`}
+                </Text>
+                <VerticalDial
+                  value={count}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(v) => onChange(v)}
+                  disabled={disabled}
+                  height={110}
+                  width={160}
+                />
+              </View>
+
+              <BounceButton
+                onPress={decrement}
+                disabled={disabled || count <= min}
+                className="w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70"
+              >
+                <Text className="text-on-surface text-3xl leading-none font-bold">
+                  −
+                </Text>
+              </BounceButton>
+            </>
+          ) : (
+            <>
+              <BounceButton
+                onPress={decrement}
+                disabled={disabled || count <= min}
+                className="w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70"
+              >
+                <Text className="text-on-surface text-3xl leading-none font-bold">
+                  −
+                </Text>
+              </BounceButton>
+
+              <View className="flex-1 items-center justify-center">
+                <Text
+                  className={`text-[9px] uppercase font-bold tracking-[0.15em] ${isRed ? "text-stitch-error" : "text-stitch-primary"} mb-1`}
+                >
+                  {`${isRed ? "Red" : "Blue"} ${module.label}`}
+                </Text>
+                <VerticalDial
+                  value={count}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(v) => onChange(v)}
+                  disabled={disabled}
+                  height={110}
+                  width={160}
+                />
+              </View>
+
+              <BounceButton
+                onPress={increment}
+                disabled={disabled || (max !== undefined && count >= max)}
+                className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg}`}
+              >
+                <Text className="text-on-stitch-primary text-3xl leading-none font-bold">
+                  +
+                </Text>
+              </BounceButton>
+            </>
+          )}
         </View>
       );
     }
@@ -182,7 +211,6 @@ function renderControls(
                 key={opt.id}
                 onPress={() => {
                   if ((value as string | null) === opt.id) {
-                    // Deselect → cycle back to defaultValue (not null)
                     onChange(defaultValue);
                   } else {
                     onChange(opt.id);
@@ -194,26 +222,15 @@ function renderControls(
                     ? "bg-secondary border-2 border-white/20 shadow-lg"
                     : "bg-surface-container-highest/40 border border-outline-variant/10"
                 }`}
-                style={
-                  isActive
-                    ? { transform: [{ scale: 1.05 }], zIndex: 10 }
-                    : undefined
-                }
               >
                 <Text
-                  className={`text-[8px] font-black uppercase leading-none text-center tracking-tight ${
-                    isActive ? "text-on-secondary" : "text-on-surface-variant"
-                  }`}
+                  className={`text-[8px] font-black uppercase leading-none text-center tracking-tight ${isActive ? "text-on-secondary" : "text-on-surface-variant"}`}
                 >
                   {opt.label}
                 </Text>
                 {opt.points != null && (
                   <Text
-                    className={`text-[7px] ${
-                      isActive
-                        ? "text-on-secondary opacity-80"
-                        : "text-on-surface-variant opacity-70"
-                    }`}
+                    className={`text-[7px] ${isActive ? "text-on-secondary opacity-80" : "text-on-surface-variant opacity-70"}`}
                   >
                     ({opt.points}pts)
                   </Text>
@@ -247,7 +264,11 @@ function renderControls(
                     disabled={disabled || tierCount <= 0}
                     className="flex-1 bg-surface-container-highest rounded-xl items-center justify-center"
                   >
-                    <MaterialIcon name="remove" size={18} color="#e8eaf7" />
+                    <MaterialIcon
+                      name="remove"
+                      size={18}
+                      color={THEME.colors.brightIcon}
+                    />
                   </BounceButton>
                   <View className="flex-1 items-center justify-center">
                     <Text className="text-xl font-black text-on-surface">
@@ -264,7 +285,11 @@ function renderControls(
                     <MaterialIcon
                       name="add"
                       size={18}
-                      color={alliance === "blue" ? "#002d64" : "#490013"}
+                      color={
+                        alliance === "blue"
+                          ? THEME.colors.blueIcon
+                          : THEME.colors.redIcon
+                      }
                     />
                   </BounceButton>
                 </View>
@@ -293,9 +318,7 @@ function renderControls(
               }`}
             >
               <Text
-                className={`text-[8px] font-black uppercase ${
-                  itemValues[item.id] ? accentText : "text-on-surface-variant"
-                }`}
+                className={`text-[8px] font-black uppercase ${itemValues[item.id] ? accentText : "text-on-surface-variant"}`}
               >
                 {item.label}
               </Text>
@@ -320,11 +343,7 @@ function renderControls(
                       onChange({ ...cellValues, [cellId]: !cellValues[cellId] })
                     }
                     disabled={disabled}
-                    className={`w-9 h-9 rounded-lg ${
-                      cellValues[cellId]
-                        ? accentBg
-                        : "bg-surface-container-highest/40 border border-outline-variant/10"
-                    }`}
+                    className={`w-9 h-9 rounded-lg ${cellValues[cellId] ? accentBg : "bg-surface-container-highest/40 border border-outline-variant/10"}`}
                   >
                     <View />
                   </BounceButton>
@@ -347,3 +366,5 @@ function renderControls(
       return null;
   }
 }
+
+export default FooterModule;

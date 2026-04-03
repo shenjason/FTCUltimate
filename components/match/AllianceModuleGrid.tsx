@@ -3,6 +3,7 @@ import { View, Text, ScrollView } from "react-native";
 import type { ModuleConfig } from "../../types/season";
 import type { ScoreMap } from "../../types/match";
 import { ModuleTile } from "./ModuleTile";
+import THEME from "../../lib/theme";
 
 export const FOULS_MODULE_ID = "__fouls__";
 
@@ -39,7 +40,9 @@ export function AllianceModuleGrid({
     : "border-b border-stitch-primary/20 bg-stitch-primary/5";
   const headerColor = isRed ? "text-stitch-error" : "text-stitch-primary";
   const headerLabel = isRed ? "Red Alliance" : "Blue Alliance";
-  const containerBg = isRed ? "bg-[#1a0808]" : "bg-[#080818]";
+  const containerBg = isRed
+    ? THEME.classes.footerRedBg
+    : THEME.classes.footerBlueBg;
 
   const minorCount = isRed ? fouls.redMinor : fouls.blueMinor;
   const majorCount = isRed ? fouls.redMajor : fouls.blueMajor;
@@ -57,7 +60,11 @@ export function AllianceModuleGrid({
       </View>
       <ScrollView
         className="flex-1 p-2"
-        contentContainerStyle={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
+        contentContainerStyle={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 6,
+        }}
       >
         {modules.map((mod) => (
           <ModuleTile
@@ -74,7 +81,13 @@ export function AllianceModuleGrid({
 
         {/* Fouls tile */}
         <ModuleTile
-          module={{ id: FOULS_MODULE_ID, label: "Fouls", type: "boolean" } as ModuleConfig}
+          module={
+            {
+              id: FOULS_MODULE_ID,
+              label: "Fouls",
+              type: "boolean",
+            } as ModuleConfig
+          }
           value={null}
           isSelected={selectedModuleId === FOULS_MODULE_ID}
           onPress={() => onSelectModule(FOULS_MODULE_ID)}

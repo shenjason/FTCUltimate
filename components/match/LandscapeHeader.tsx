@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import type { MatchPhase, StartMode } from "../../types/match";
 import { HamburgerMenu } from "./HamburgerMenu";
 import { MaterialIcon } from "../ui/MaterialIcon";
+import THEME from "../../lib/theme";
 
 interface LandscapeHeaderProps {
   phase: MatchPhase;
@@ -12,8 +13,8 @@ interface LandscapeHeaderProps {
   startMode: StartMode;
   onToggleStartMode: () => void;
   canChangeStartMode: boolean;
-  viewingPhase: 'auto' | 'teleop';
-  onSetViewingPhase: (p: 'auto' | 'teleop') => void;
+  viewingPhase: "auto" | "teleop";
+  onSetViewingPhase: (p: "auto" | "teleop") => void;
   canToggleViewingPhase: boolean;
 }
 
@@ -30,41 +31,46 @@ export function LandscapeHeader({
   canToggleViewingPhase,
 }: LandscapeHeaderProps) {
   return (
-    <View
-      className="flex-row items-center justify-between px-4 h-10 border-b border-outline-variant/10 bg-surface shrink-0"
-      style={{ borderColor: "#2A2A2A" }}
-    >
+    <View className="flex-row items-center justify-between px-4 h-10 border-b border-outline-variant/10 bg-surface shrink-0">
       {/* Left: Back arrow */}
       <TouchableOpacity
         onPress={onExit}
         className="p-1 rounded-lg active:bg-surface-container-highest"
       >
-        <MaterialIcon name="arrow_back" size={20} color="#84adff" />
+        <MaterialIcon
+          name="arrow_back"
+          size={20}
+          color={THEME.colors.primary}
+        />
       </TouchableOpacity>
 
       {/* Center: AUTO/TELEOP pill toggle (now interactive) */}
       <View className="flex-row bg-surface-container rounded-full p-0.5 border border-outline-variant/30">
         <TouchableOpacity
-          onPress={() => onSetViewingPhase('auto')}
+          onPress={() => onSetViewingPhase("auto")}
           disabled={!canToggleViewingPhase}
-          className={`px-3 py-1 rounded-full ${viewingPhase === 'auto' ? "bg-stitch-primary" : ""}`}
+          className={`px-3 py-1 rounded-full ${viewingPhase === "auto" ? "bg-stitch-primary" : ""}`}
         >
           <Text
             className={`text-[9px] font-bold uppercase tracking-widest ${
-              viewingPhase === 'auto' ? "text-on-stitch-primary" : "text-on-surface-variant"
+              viewingPhase === "auto"
+                ? "text-on-stitch-primary"
+                : "text-on-surface-variant"
             }`}
           >
             Auto
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => onSetViewingPhase('teleop')}
+          onPress={() => onSetViewingPhase("teleop")}
           disabled={!canToggleViewingPhase}
-          className={`px-3 py-1 rounded-full ${viewingPhase === 'teleop' ? "bg-stitch-primary" : ""}`}
+          className={`px-3 py-1 rounded-full ${viewingPhase === "teleop" ? "bg-stitch-primary" : ""}`}
         >
           <Text
             className={`text-[9px] font-bold uppercase tracking-widest ${
-              viewingPhase === 'teleop' ? "text-on-stitch-primary" : "text-on-surface-variant"
+              viewingPhase === "teleop"
+                ? "text-on-stitch-primary"
+                : "text-on-surface-variant"
             }`}
           >
             Teleop
@@ -75,7 +81,7 @@ export function LandscapeHeader({
       {/* Right: Start mode indicator + Hamburger menu */}
       <View className="flex-row items-center gap-3">
         <Text className="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">
-          {startMode === 'auto_teleop' ? 'AUTO+TELEOP' : 'TELEOP ONLY'}
+          {startMode === "auto_teleop" ? "AUTO+TELEOP" : "TELEOP ONLY"}
         </Text>
         <HamburgerMenu
           onExit={onExit}

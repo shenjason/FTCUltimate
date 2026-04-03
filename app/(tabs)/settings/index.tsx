@@ -3,6 +3,7 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import THEME from "../../../lib/theme";
 
 type SettingsRow = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -18,24 +19,43 @@ const SETTINGS_ROWS: SettingsRow[] = [
 
 export default function SettingsScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-[#0a0e16]">
+    <SafeAreaView className="flex-1 bg-surface-dim">
       <View className="flex-row items-center px-6 pt-4 pb-2 gap-3">
-        <Ionicons name="settings" size={22} color="#84adff" />
+        <Ionicons name="settings" size={22} color={THEME.colors.primary} />
         <Text
-          style={{ color: "#84adff", fontSize: 20, fontWeight: "700", letterSpacing: -0.5, textTransform: "uppercase" }}
+          style={{
+            color: THEME.colors.primary,
+            fontSize: 20,
+            fontWeight: "700",
+            letterSpacing: -0.5,
+            textTransform: "uppercase",
+          }}
         >
           Settings
         </Text>
       </View>
 
-      <ScrollView className="flex-1 px-4 mt-4" contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        className="flex-1 px-4 mt-4"
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         <View
-          style={{ backgroundColor: "#0f131d", borderRadius: 12, overflow: "hidden" }}
+          style={{
+            backgroundColor: THEME.colors.background,
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
         >
           {SETTINGS_ROWS.map((row, index) => (
             <React.Fragment key={row.label}>
               {index > 0 && (
-                <View style={{ height: 1, backgroundColor: "#202632", marginLeft: 52 }} />
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: THEME.colors.tabBarActiveBg,
+                    marginLeft: 52,
+                  }}
+                />
               )}
               <TouchableOpacity
                 style={{
@@ -51,22 +71,37 @@ export default function SettingsScreen() {
                     width: 36,
                     height: 36,
                     borderRadius: 8,
-                    backgroundColor: "#202632",
+                    backgroundColor: THEME.colors.tabBarActiveBg,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Ionicons name={row.icon} size={18} color="#84adff" />
+                  <Ionicons
+                    name={row.icon}
+                    size={18}
+                    color={THEME.colors.primary}
+                  />
                 </View>
                 <Text
-                  style={{ flex: 1, color: "#e8eaf7", fontSize: 15, fontWeight: "500" }}
+                  style={{
+                    flex: 1,
+                    color: THEME.colors.brightIcon,
+                    fontSize: 15,
+                    fontWeight: "500",
+                  }}
                 >
                   {row.label}
                 </Text>
                 {row.value && (
-                  <Text style={{ color: "#a8abb6", fontSize: 14 }}>{row.value}</Text>
+                  <Text style={{ color: THEME.colors.mutedIcon, fontSize: 14 }}>
+                    {row.value}
+                  </Text>
                 )}
-                <Ionicons name="chevron-forward" size={16} color="#444852" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={THEME.colors.border}
+                />
               </TouchableOpacity>
             </React.Fragment>
           ))}

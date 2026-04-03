@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
+import THEME from "../../lib/theme";
 import { BounceButton } from "../ui/AnimatedPressable";
 import type { SeasonConfig } from "../../types/season";
 import { useMatchTimer } from "../../hooks/useMatchTimer";
@@ -13,15 +14,8 @@ interface TimerOnlyMatchProps {
 }
 
 export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
-  const {
-    displayTime,
-    phase,
-    isPaused,
-    start,
-    pause,
-    resume,
-    reset,
-  } = useMatchTimer(season);
+  const { displayTime, phase, isPaused, start, pause, resume, reset } =
+    useMatchTimer(season);
 
   const { startMode, setStartMode } = useMatchStore();
   const timerStarted = phase !== "idle" && phase !== "complete";
@@ -39,14 +33,14 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
   };
 
   return (
-    <View className="flex-1 bg-black flex-row items-center justify-between px-8">
+    <View className="flex-1 bg-surface-dim flex-row items-center justify-between px-8">
       {/* Left: controls */}
       <View className="items-center gap-3 w-40">
         <BounceButton
           onPress={handleStartReset}
-          className="bg-[#B8860B] px-6 py-2 rounded-full"
+          className="bg-stitch-secondary px-6 py-2 rounded-full"
         >
-          <Text className="text-white font-bold text-base">
+          <Text className="text-on-surface font-bold text-base">
             {phase === "idle" || phase === "complete"
               ? `▶ Start ${startMode === "auto_teleop" ? "Auto" : "Teleop"}`
               : "⟳ Reset"}
@@ -67,7 +61,7 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
         <FlipTimeDisplay
           displayTime={displayTime}
           fontSize={120}
-          color="#ffffff"
+          color={THEME.colors.currentValue}
         />
 
         {isPaused && (
@@ -78,11 +72,16 @@ export function TimerOnlyMatch({ season, onExit }: TimerOnlyMatchProps) {
           </BounceButton>
         )}
 
-        {timerStarted && !isPaused && phase !== 'pre_auto' && phase !== 'pre_teleop' && (
-          <BounceButton onPress={pause} className="mt-2">
-            <Text className="text-text-secondary text-base">tap to pause</Text>
-          </BounceButton>
-        )}
+        {timerStarted &&
+          !isPaused &&
+          phase !== "pre_auto" &&
+          phase !== "pre_teleop" && (
+            <BounceButton onPress={pause} className="mt-2">
+              <Text className="text-text-secondary text-base">
+                tap to pause
+              </Text>
+            </BounceButton>
+          )}
       </View>
 
       {/* Right: hamburger menu */}

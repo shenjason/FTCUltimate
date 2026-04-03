@@ -1,6 +1,7 @@
 // components/ui/ModuleCard.tsx
 import React from "react";
 import { View, Text } from "react-native";
+import THEME from "../../lib/theme";
 
 interface ModuleCardProps {
   label: string;
@@ -24,19 +25,21 @@ export function ModuleCard({
   // Alliance tinting is intentionally scoped to the card container (border + background) only.
   // Interactive elements (buttons, etc.) inside modules are NOT tinted — this was not requested
   // and would conflict with their fixed blue/neutral color semantics.
-  const borderColor =
-    isCompact && alliance === "blue"
-      ? "#1E3A5F"
-      : isCompact && alliance === "red"
-        ? "#5F1E1E"
-        : "#2A2A2A";
+  const borderColor = isCompact
+    ? alliance === "blue"
+      ? THEME.colors.moduleCompactBlueBorder
+      : alliance === "red"
+        ? THEME.colors.moduleCompactRedBorder
+        : THEME.colors.border
+    : THEME.colors.border;
 
-  const bgColor =
-    isCompact && alliance === "blue"
-      ? "#0A1628"
-      : isCompact && alliance === "red"
-        ? "#280A0A"
-        : "#1A1A1A";
+  const bgColor = isCompact
+    ? alliance === "blue"
+      ? THEME.colors.moduleCompactBlueBg
+      : alliance === "red"
+        ? THEME.colors.moduleCompactRedBg
+        : THEME.colors.moduleBg
+    : THEME.colors.moduleBg;
 
   return (
     <View
@@ -44,12 +47,12 @@ export function ModuleCard({
       className={`border ${isCompact ? "rounded-xl p-2 mb-2" : "rounded-2xl p-4 mb-3"} ${disabled ? "opacity-40" : ""}`}
     >
       <Text
-        className={`text-[#F5F5F5] font-semibold ${isCompact ? "text-xs mb-1" : "text-base mb-1"}`}
+        className={`text-text-primary font-semibold ${isCompact ? "text-xs mb-1" : "text-base mb-1"}`}
       >
         {label}
       </Text>
       {!isCompact && description ? (
-        <Text className="text-[#9CA3AF] text-xs mb-2">{description}</Text>
+        <Text className="text-text-secondary text-xs mb-2">{description}</Text>
       ) : null}
       {children}
     </View>

@@ -1,12 +1,13 @@
 // components/match/AlliancePanel.tsx
-import React from 'react';
-import { View, ScrollView } from 'react-native';
-import { ModuleRenderer } from '../scoring/ModuleRenderer';
-import type { SeasonConfig } from '../../types/season';
-import type { ScoreMap, ScoreValue, MatchPhase } from '../../types/match';
+import React from "react";
+import { View, ScrollView } from "react-native";
+import { ModuleRenderer } from "../scoring/ModuleRenderer";
+import THEME from "../../lib/theme";
+import type { SeasonConfig } from "../../types/season";
+import type { ScoreMap, ScoreValue, MatchPhase } from "../../types/match";
 
 interface AlliancePanelProps {
-  alliance: 'red' | 'blue';
+  alliance: "red" | "blue";
   season: SeasonConfig;
   scores: ScoreMap;
   onChangeScore: (moduleId: string, value: ScoreValue) => void;
@@ -19,9 +20,9 @@ interface AlliancePanelProps {
  * auto/transition → show autonomous modules
  * teleop/complete → show teleop modules
  */
-function resolveModulePeriod(phase: MatchPhase): 'auto' | 'teleop' | null {
-  if (phase === 'auto' || phase === 'transition') return 'auto';
-  if (phase === 'teleop' || phase === 'complete') return 'teleop';
+function resolveModulePeriod(phase: MatchPhase): "auto" | "teleop" | null {
+  if (phase === "auto" || phase === "transition") return "auto";
+  if (phase === "teleop" || phase === "complete") return "teleop";
   return null; // idle — nothing to show
 }
 
@@ -35,13 +36,16 @@ export function AlliancePanel({
 }: AlliancePanelProps) {
   const modulePeriod = resolveModulePeriod(currentPhase);
 
-  const bgColor = alliance === 'blue' ? 'bg-[#050D1A]' : 'bg-[#1A0505]';
+  const bgColor =
+    alliance === "blue"
+      ? THEME.classes.footerBlueBg
+      : THEME.classes.footerRedBg;
 
   // Select the right module list based on phase
   const modules =
-    modulePeriod === 'auto'
+    modulePeriod === "auto"
       ? season.autonomous
-      : modulePeriod === 'teleop'
+      : modulePeriod === "teleop"
         ? season.teleop
         : [];
 
@@ -60,7 +64,7 @@ export function AlliancePanel({
             scores={scores}
             onChangeScore={onChangeScore}
             disabled={disabled}
-            period={modulePeriod ?? 'auto'}
+            period={modulePeriod ?? "auto"}
             variant="compact"
             alliance={alliance}
           />
