@@ -13,7 +13,6 @@ interface Props {
   disabled: boolean;
   variant?: "default" | "compact";
   alliance?: "red" | "blue";
-  isSolo?: boolean;
 }
 
 export function GridModule({
@@ -25,11 +24,10 @@ export function GridModule({
   disabled,
   variant,
   alliance,
-  isSolo,
 }: Props) {
   const cells = value ?? {};
   const bvs = bonusValues ?? {};
-  const isCompact = variant === "compact" || isSolo;
+  const isCompact = variant === "compact";
 
   const toggleCell = (row: number, col: number) => {
     if (disabled) return;

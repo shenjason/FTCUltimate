@@ -4,12 +4,6 @@ import type { ModuleConfig } from "../../types/season";
 import type { ScoreValue, ScoreMap } from "../../types/match";
 import { useMatchStore } from "../../lib/store";
 import FooterModule from "./FooterModule";
-import BooleanFooter from "./cases/BooleanFooter";
-import CounterFooter from "./cases/CounterFooter";
-import SelectorFooter from "./cases/SelectorFooter";
-import MultiBooleanFooter from "./cases/MultiBooleanFooter";
-import GridFooter from "./cases/GridFooter";
-import CalculatedFooter from "./cases/CalculatedFooter";
 import THEME from "../../lib/theme";
 
 interface FoulCounts {
@@ -147,7 +141,30 @@ export function FullMatchFooter({
   }
 
   // Render selected module controls for both alliances via FooterModule
-  // Render selected module controls for both alliances via FooterModule
+  if (selectedModule.type === "counter") {
+    return (
+      <View className="h-36 flex-row border-t border-outline-variant/10">
+        <FooterModule
+          module={selectedModule}
+          value={(redScores[selectedModule.id] as number) ?? 0}
+          onChange={(v) => onRedChange(v)}
+          disabled={disabled}
+          alliance="red"
+          matchType="full"
+        />
+        <FooterModule
+          module={selectedModule}
+          value={(blueScores[selectedModule.id] as number) ?? 0}
+          onChange={(v) => onBlueChange(v)}
+          disabled={disabled}
+          alliance="blue"
+          matchType="full"
+        />
+      </View>
+    );
+  }
+
+  // Fallback for non-counter module types
   return (
     <View className="h-36 flex-row border-t border-outline-variant/10">
       <FooterModule

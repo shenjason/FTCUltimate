@@ -11,7 +11,6 @@ interface Props {
   disabled: boolean;
   variant?: "default" | "compact";
   alliance?: "red" | "blue";
-  isSolo?: boolean;
 }
 
 export function MultiBooleanModule({
@@ -21,10 +20,9 @@ export function MultiBooleanModule({
   disabled,
   variant,
   alliance,
-  isSolo,
 }: Props) {
   const vals = value ?? {};
-  const isCompact = variant === "compact" || isSolo;
+  const isCompact = variant === "compact";
 
   const toggle = (itemId: string) => {
     if (disabled) return;

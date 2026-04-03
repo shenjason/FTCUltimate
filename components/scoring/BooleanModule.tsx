@@ -11,7 +11,6 @@ interface Props {
   disabled: boolean;
   variant?: "default" | "compact";
   alliance?: "red" | "blue";
-  isSolo?: boolean;
 }
 
 export function BooleanModule({
@@ -21,10 +20,9 @@ export function BooleanModule({
   disabled,
   variant,
   alliance,
-  isSolo,
 }: Props) {
   const active = value === true;
-  const isCompact = variant === "compact" || isSolo;
+  const isCompact = variant === "compact";
 
   if (isCompact) {
     return (

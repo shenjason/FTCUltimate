@@ -11,7 +11,6 @@ interface Props {
   disabled: boolean;
   variant?: "default" | "compact";
   alliance?: "red" | "blue";
-  isSolo?: boolean;
 }
 
 export function SelectorModule({
@@ -21,9 +20,8 @@ export function SelectorModule({
   disabled,
   variant,
   alliance,
-  isSolo,
 }: Props) {
-  const isCompact = variant === "compact" || isSolo;
+  const isCompact = variant === "compact";
 
   if (isCompact) {
     return (
