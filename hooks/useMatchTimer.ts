@@ -173,6 +173,9 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
     if (phase !== 'idle' && phase !== 'complete') return;
 
     const startMode = useMatchStore.getState().startMode;
+    // Ensure UI shows the countdown immediately (start at COUNTDOWN_DURATION)
+    setDisplayTime(formatTime(COUNTDOWN_DURATION));
+    setProgressFraction(1);
     setPhase(startMode === 'teleop_only' ? 'pre_teleop' : 'pre_auto');
   }, [phase, setPhase]);
 

@@ -30,6 +30,9 @@ export default function CounterFooter({
   const increment = () =>
     onChange(max !== undefined ? Math.min(count + step, max) : count + step);
 
+  const decDisabled = disabled || count <= min;
+  const incDisabled = disabled || (max !== undefined && count >= max);
+
   const isRed = alliance === "red";
   const isNeutral = alliance == null;
 
@@ -50,8 +53,8 @@ export default function CounterFooter({
         <>
           <BounceButton
             onPress={increment}
-            disabled={disabled || (max !== undefined && count >= max)}
-            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg}`}
+            disabled={incDisabled}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg} ${incDisabled ? 'opacity-40' : ''}`}
           >
             <Text className="text-on-stitch-error text-3xl leading-none font-bold">
               +
@@ -78,8 +81,8 @@ export default function CounterFooter({
 
           <BounceButton
             onPress={decrement}
-            disabled={disabled || count <= min}
-            className="w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70"
+            disabled={decDisabled}
+            className={`w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70 ${decDisabled ? 'opacity-40' : ''}`}
           >
             <Text className="text-on-surface text-3xl leading-none font-bold">
               −
@@ -90,8 +93,8 @@ export default function CounterFooter({
         <>
           <BounceButton
             onPress={decrement}
-            disabled={disabled || count <= min}
-            className="w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70"
+            disabled={decDisabled}
+            className={`w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70 ${decDisabled ? 'opacity-40' : ''}`}
           >
             <Text className="text-on-surface text-3xl leading-none font-bold">
               −
@@ -118,8 +121,8 @@ export default function CounterFooter({
 
           <BounceButton
             onPress={increment}
-            disabled={disabled || (max !== undefined && count >= max)}
-            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg}`}
+            disabled={incDisabled}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg} ${incDisabled ? 'opacity-40' : ''}`}
           >
             <Text className="text-on-stitch-primary text-3xl leading-none font-bold">
               +

@@ -175,7 +175,7 @@ export const useMatchStore = create<MatchState>((set) => ({
       redUndoStack: [],
       redRedoStack: [],
       matchType: state.matchType, // preserve matchType
-      selectedModuleId: null,
+      // preserve selectedModuleId so UI selection doesn't jump on reset
       fouls: { redMinor: 0, redMajor: 0, blueMinor: 0, blueMajor: 0 },
     })),
 

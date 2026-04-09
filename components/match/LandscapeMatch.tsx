@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -80,7 +80,8 @@ export function LandscapeMatch({
   );
 
   // Auto-sync viewingPhase when the real game phase transitions
-  useEffect(() => {
+  // useLayoutEffect ensures viewingPhase is updated before paint
+  useLayoutEffect(() => {
     setViewingPhase(canonicalPhase(phase, startMode));
   }, [phase, startMode]);
 
@@ -104,6 +105,15 @@ export function LandscapeMatch({
     phase === "pre_teleop";
   const isWrongPhase =
     matchIsActive && viewingPhase !== canonicalPhase(phase, startMode);
+
+  if (__DEV__) {
+    // Debugging aid: watch for transient wrong-phase states during transitions
+    // eslint-disable-next-line no-console
+    console.log(
+      "[LandscapeMatch]",
+      { phase, viewingPhase, canonical: canonicalPhase(phase, startMode), isWrongPhase },
+    );
+  }
 
   const disabled =
     phase === "complete" || phase === "pre_auto" || phase === "pre_teleop";
@@ -171,19 +181,22 @@ export function LandscapeMatch({
     setStartMode(startMode === "auto_teleop" ? "teleop_only" : "auto_teleop");
   };
 
-  const handleStartReset = () => {
-    if (phase === "idle" || phase === "complete") {
-      if (justResetRef.current) return;
-      completeFiredRef.current = false;
-      start();
-    } else {
-      justResetRef.current = true;
-      if (justResetTimerRef.current) clearTimeout(justResetTimerRef.current);
-      justResetTimerRef.current = setTimeout(() => {
-        justResetRef.current = false;
-      }, 300);
-      reset();
-    }
+  const handleStart = () => {
+    if (justResetRef.current) return;
+    completeFiredRef.current = false;
+    start();
+  };
+
+  const handleReset = () => {
+    // When not started (idle), Reset should be inert.
+    if (phase === "idle") return;
+
+    justResetRef.current = true;
+    if (justResetTimerRef.current) clearTimeout(justResetTimerRef.current);
+    justResetTimerRef.current = setTimeout(() => {
+      justResetRef.current = false;
+    }, 300);
+    reset();
   };
 
   // ─── Solo Layout ───────────────────────────────────────────────────────────
@@ -236,10 +249,12 @@ export function LandscapeMatch({
             </BounceButton>
 
             <BounceButton
-              onPress={handleStartReset}
-              disabled={phase === "pre_auto" || phase === "pre_teleop"}
+              onPress={handleReset}
+              disabled={
+                phase === "idle" || phase === "pre_auto" || phase === "pre_teleop"
+              }
               className={`flex-[2] flex-col items-center justify-center rounded-lg bg-surface-container-highest/80 border border-secondary/20 ${
-                phase === "pre_auto" || phase === "pre_teleop"
+                phase === "idle" || phase === "pre_auto" || phase === "pre_teleop"
                   ? "opacity-40"
                   : ""
               }`}
@@ -275,7 +290,7 @@ export function LandscapeMatch({
               {/* Start button (only in idle/complete) */}
               {(phase === "idle" || phase === "complete") && (
                 <BounceButton
-                  onPress={handleStartReset}
+                  onPress={handleStart}
                   className="mt-3 bg-secondary px-6 py-2 rounded-lg"
                 >
                   <Text className="text-on-secondary font-bold text-sm">
@@ -483,7 +498,7 @@ export function LandscapeMatch({
                 {/* Start button (only in idle/complete) */}
                 {(phase === "idle" || phase === "complete") && (
                   <BounceButton
-                    onPress={handleStartReset}
+                    onPress={handleStart}
                     className="mt-2 bg-stitch-secondary px-5 py-1.5 rounded-lg"
                   >
                     <Text className="text-on-stitch-error font-bold text-sm">
@@ -495,10 +510,12 @@ export function LandscapeMatch({
 
               {/* Reset button */}
               <BounceButton
-                onPress={handleStartReset}
-                disabled={phase === "pre_auto" || phase === "pre_teleop"}
+                onPress={handleReset}
+                disabled={
+                  phase === "idle" || phase === "pre_auto" || phase === "pre_teleop"
+                }
                 className={`w-12 self-center rounded-2xl items-center justify-center bg-surface-container-highest/80 border border-secondary/20 ${
-                  phase === "pre_auto" || phase === "pre_teleop"
+                  phase === "idle" || phase === "pre_auto" || phase === "pre_teleop"
                     ? "opacity-40"
                     : ""
                 }`}

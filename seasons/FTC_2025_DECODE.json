@@ -6,7 +6,7 @@
   "provisional": true,
   "timerDuration": {
     "autonomous": 30,
-    "transition": 7,
+    "transition": 8,
     "teleop": 120
   },
   "autonomous": [
