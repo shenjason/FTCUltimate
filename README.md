@@ -7,17 +7,17 @@ A React Native + Expo app for FTC practice match logging and scouting.
 ## Screenshots
 
 <p float="left">
-  <img src="../readmeimgs/Newmatch.jpg" width="220" />
+  <img src="readmeimgs/Newmatch.jpg" width="220" />
   &nbsp;&nbsp;
-  <img src="../readmeimgs/History.jpg" width="220" />
+  <img src="readmeimgs/History.jpg" width="220" />
 </p>
 
 <p>
-  <img src="../readmeimgs/TimerOnly.jpg" width="460" />
+  <img src="readmeimgs/TimerOnly.jpg" width="460" />
 </p>
 
 <p>
-  <img src="../readmeimgs/FullMatch.jpg" width="460" />
+  <img src="readmeimgs/FullMatch.jpg" width="460" />
 </p>
 
 ## Features
