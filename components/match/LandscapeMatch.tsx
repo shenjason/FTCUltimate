@@ -109,10 +109,12 @@ export function LandscapeMatch({
   if (__DEV__) {
     // Debugging aid: watch for transient wrong-phase states during transitions
     // eslint-disable-next-line no-console
-    console.log(
-      "[LandscapeMatch]",
-      { phase, viewingPhase, canonical: canonicalPhase(phase, startMode), isWrongPhase },
-    );
+    console.log("[LandscapeMatch]", {
+      phase,
+      viewingPhase,
+      canonical: canonicalPhase(phase, startMode),
+      isWrongPhase,
+    });
   }
 
   const disabled =
@@ -251,10 +253,14 @@ export function LandscapeMatch({
             <BounceButton
               onPress={handleReset}
               disabled={
-                phase === "idle" || phase === "pre_auto" || phase === "pre_teleop"
+                phase === "idle" ||
+                phase === "pre_auto" ||
+                phase === "pre_teleop"
               }
               className={`flex-[2] flex-col items-center justify-center rounded-lg bg-surface-container-highest/80 border border-secondary/20 ${
-                phase === "idle" || phase === "pre_auto" || phase === "pre_teleop"
+                phase === "idle" ||
+                phase === "pre_auto" ||
+                phase === "pre_teleop"
                   ? "opacity-40"
                   : ""
               }`}
@@ -512,10 +518,14 @@ export function LandscapeMatch({
               <BounceButton
                 onPress={handleReset}
                 disabled={
-                  phase === "idle" || phase === "pre_auto" || phase === "pre_teleop"
+                  phase === "idle" ||
+                  phase === "pre_auto" ||
+                  phase === "pre_teleop"
                 }
                 className={`w-12 self-center rounded-2xl items-center justify-center bg-surface-container-highest/80 border border-secondary/20 ${
-                  phase === "idle" || phase === "pre_auto" || phase === "pre_teleop"
+                  phase === "idle" ||
+                  phase === "pre_auto" ||
+                  phase === "pre_teleop"
                     ? "opacity-40"
                     : ""
                 }`}

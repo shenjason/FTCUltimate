@@ -54,7 +54,7 @@ export default function CounterFooter({
           <BounceButton
             onPress={increment}
             disabled={incDisabled}
-            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg} ${incDisabled ? 'opacity-40' : ''}`}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg} ${incDisabled ? "opacity-40" : ""}`}
           >
             <Text className="text-on-stitch-error text-3xl leading-none font-bold">
               +
@@ -82,7 +82,7 @@ export default function CounterFooter({
           <BounceButton
             onPress={decrement}
             disabled={decDisabled}
-            className={`w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70 ${decDisabled ? 'opacity-40' : ''}`}
+            className={`w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70 ${decDisabled ? "opacity-40" : ""}`}
           >
             <Text className="text-on-surface text-3xl leading-none font-bold">
               −
@@ -94,7 +94,7 @@ export default function CounterFooter({
           <BounceButton
             onPress={decrement}
             disabled={decDisabled}
-            className={`w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70 ${decDisabled ? 'opacity-40' : ''}`}
+            className={`w-14 h-14 rounded-full bg-surface-container-highest items-center justify-center active:opacity-70 ${decDisabled ? "opacity-40" : ""}`}
           >
             <Text className="text-on-surface text-3xl leading-none font-bold">
               −
@@ -122,7 +122,7 @@ export default function CounterFooter({
           <BounceButton
             onPress={increment}
             disabled={incDisabled}
-            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg} ${incDisabled ? 'opacity-40' : ''}`}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${accentBg} ${incDisabled ? "opacity-40" : ""}`}
           >
             <Text className="text-on-stitch-primary text-3xl leading-none font-bold">
               +
