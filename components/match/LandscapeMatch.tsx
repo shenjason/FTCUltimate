@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -164,13 +164,14 @@ export function LandscapeMatch({
     }
   }, [phase]);
 
-  // Compute current scores
-  const blueScore = isSolo
-    ? computeScore(season, scores).total
-    : computeDualScore(season, scores, redScores, fouls).blue.total;
-  const redScore = isSolo
-    ? 0
-    : computeDualScore(season, scores, redScores, fouls).red.total;
+  // Compute current scores (memoized to avoid recomputing on every timer tick)
+  const { blueScore, redScore } = useMemo(() => {
+    if (isSolo) {
+      return { blueScore: computeScore(season, scores).total, redScore: 0 };
+    }
+    const dual = computeDualScore(season, scores, redScores, fouls);
+    return { blueScore: dual.blue.total, redScore: dual.red.total };
+  }, [isSolo, season, scores, redScores, fouls]);
 
   const selectedModule = modules.find((m) => m.id === selectedModuleId);
   const isFoulsSelected = selectedModuleId === FOULS_MODULE_ID;
@@ -319,45 +320,86 @@ export function LandscapeMatch({
 
           {/* Right panel (~75%): module grid + footer */}
           <View className="flex-1 flex-col overflow-hidden">
-            {/* Scrollable 2-col module grid */}
-            <ScrollView
-              className="flex-1 p-4"
-              contentContainerStyle={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: 12,
-              }}
-            >
-              {modules.map((mod) => (
+            {/* Scrollable 2-col module grid — both phases pre-rendered to avoid mounting lag on transition */}
+            <ScrollView className="flex-1 p-4">
+              {/* Auto modules */}
+              <View
+                style={{
+                  display: effectiveViewingPhase === "auto" ? "flex" : "none",
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: 12,
+                }}
+              >
+                {season.autonomous.map((mod) => (
+                  <ModuleTile
+                    key={mod.id}
+                    module={mod}
+                    value={scores[mod.id]}
+                    isSelected={selectedModuleId === mod.id}
+                    onPress={() => setSelectedModuleId(mod.id)}
+                    disabled={disabled}
+                    mode="solo"
+                  />
+                ))}
                 <ModuleTile
-                  key={mod.id}
-                  module={mod}
-                  value={scores[mod.id]}
-                  isSelected={selectedModuleId === mod.id}
-                  onPress={() => setSelectedModuleId(mod.id)}
+                  module={
+                    {
+                      id: FOULS_MODULE_ID,
+                      label: "Fouls",
+                      type: "boolean",
+                    } as ModuleConfig
+                  }
+                  value={null}
+                  isSelected={isFoulsSelected}
+                  onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
                   disabled={disabled}
                   mode="solo"
+                  foulData={{
+                    minor: alliance === "blue" ? fouls.blueMinor : fouls.redMinor,
+                    major: alliance === "blue" ? fouls.blueMajor : fouls.redMajor,
+                  }}
                 />
-              ))}
-              {/* Fouls tile */}
-              <ModuleTile
-                module={
-                  {
-                    id: FOULS_MODULE_ID,
-                    label: "Fouls",
-                    type: "boolean",
-                  } as ModuleConfig
-                }
-                value={null}
-                isSelected={isFoulsSelected}
-                onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
-                disabled={disabled}
-                mode="solo"
-                foulData={{
-                  minor: alliance === "blue" ? fouls.blueMinor : fouls.redMinor,
-                  major: alliance === "blue" ? fouls.blueMajor : fouls.redMajor,
+              </View>
+              {/* Teleop modules — mounted from match start to eliminate transition lag */}
+              <View
+                style={{
+                  display: effectiveViewingPhase === "teleop" ? "flex" : "none",
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: 12,
                 }}
-              />
+              >
+                {season.teleop.map((mod) => (
+                  <ModuleTile
+                    key={mod.id}
+                    module={mod}
+                    value={scores[mod.id]}
+                    isSelected={selectedModuleId === mod.id}
+                    onPress={() => setSelectedModuleId(mod.id)}
+                    disabled={disabled}
+                    mode="solo"
+                  />
+                ))}
+                <ModuleTile
+                  module={
+                    {
+                      id: FOULS_MODULE_ID,
+                      label: "Fouls",
+                      type: "boolean",
+                    } as ModuleConfig
+                  }
+                  value={null}
+                  isSelected={isFoulsSelected}
+                  onPress={() => setSelectedModuleId(FOULS_MODULE_ID)}
+                  disabled={disabled}
+                  mode="solo"
+                  foulData={{
+                    minor: alliance === "blue" ? fouls.blueMinor : fouls.redMinor,
+                    major: alliance === "blue" ? fouls.blueMajor : fouls.redMajor,
+                  }}
+                />
+              </View>
             </ScrollView>
 
             {/* Footer: dynamic module controls */}
@@ -427,17 +469,30 @@ export function LandscapeMatch({
       <View className="flex-1 flex-col overflow-hidden">
         {/* Upper row: Red | Center | Blue */}
         <View className="flex-1 flex-row overflow-hidden">
-          {/* Red Alliance (fixed 240px) */}
+          {/* Red Alliance (fixed 240px) — both phases pre-rendered to avoid mounting lag */}
           <View style={{ width: 240 }}>
-            <AllianceModuleGrid
-              alliance="red"
-              modules={modules}
-              scores={redScores}
-              fouls={fouls}
-              selectedModuleId={selectedModuleId}
-              onSelectModule={setSelectedModuleId}
-              disabled={disabled}
-            />
+            <View style={[StyleSheet.absoluteFillObject, { display: effectiveViewingPhase === "auto" ? "flex" : "none" }]}>
+              <AllianceModuleGrid
+                alliance="red"
+                modules={season.autonomous}
+                scores={redScores}
+                fouls={fouls}
+                selectedModuleId={selectedModuleId}
+                onSelectModule={setSelectedModuleId}
+                disabled={disabled}
+              />
+            </View>
+            <View style={[StyleSheet.absoluteFillObject, { display: effectiveViewingPhase === "teleop" ? "flex" : "none" }]}>
+              <AllianceModuleGrid
+                alliance="red"
+                modules={season.teleop}
+                scores={redScores}
+                fouls={fouls}
+                selectedModuleId={selectedModuleId}
+                onSelectModule={setSelectedModuleId}
+                disabled={disabled}
+              />
+            </View>
           </View>
 
           {/* Center: Scores + Timer with inline Pause/Reset */}
@@ -540,17 +595,30 @@ export function LandscapeMatch({
             </View>
           </View>
 
-          {/* Blue Alliance (fixed 240px) */}
+          {/* Blue Alliance (fixed 240px) — both phases pre-rendered to avoid mounting lag */}
           <View style={{ width: 240 }}>
-            <AllianceModuleGrid
-              alliance="blue"
-              modules={modules}
-              scores={scores}
-              fouls={fouls}
-              selectedModuleId={selectedModuleId}
-              onSelectModule={setSelectedModuleId}
-              disabled={disabled}
-            />
+            <View style={[StyleSheet.absoluteFillObject, { display: effectiveViewingPhase === "auto" ? "flex" : "none" }]}>
+              <AllianceModuleGrid
+                alliance="blue"
+                modules={season.autonomous}
+                scores={scores}
+                fouls={fouls}
+                selectedModuleId={selectedModuleId}
+                onSelectModule={setSelectedModuleId}
+                disabled={disabled}
+              />
+            </View>
+            <View style={[StyleSheet.absoluteFillObject, { display: effectiveViewingPhase === "teleop" ? "flex" : "none" }]}>
+              <AllianceModuleGrid
+                alliance="blue"
+                modules={season.teleop}
+                scores={scores}
+                fouls={fouls}
+                selectedModuleId={selectedModuleId}
+                onSelectModule={setSelectedModuleId}
+                disabled={disabled}
+              />
+            </View>
           </View>
         </View>
 

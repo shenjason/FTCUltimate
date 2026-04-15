@@ -79,7 +79,7 @@ interface ModuleTileProps {
   alignEnd?: boolean;
 }
 
-export function ModuleTile({
+export const ModuleTile = React.memo(function ModuleTile({
   module,
   value,
   isSelected,
@@ -169,6 +169,6 @@ export function ModuleTile({
       )}
     </TouchableOpacity>
   );
-}
+});
 
 export { iconForModule, formatValue };

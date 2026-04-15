@@ -24,7 +24,7 @@ interface AllianceModuleGridProps {
   disabled: boolean;
 }
 
-export function AllianceModuleGrid({
+export const AllianceModuleGrid = React.memo(function AllianceModuleGrid({
   alliance,
   modules,
   scores,
@@ -99,4 +99,4 @@ export function AllianceModuleGrid({
       </ScrollView>
     </View>
   );
-}
+});

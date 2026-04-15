@@ -5,7 +5,7 @@ import { useMatchStore } from "../lib/store";
 import type { MatchPhase } from "../types/match";
 import type { SeasonConfig } from "../types/season";
 
-const TICK_INTERVAL_MS = 200; // Update 5x/sec for smooth display, drift-proof
+const TICK_INTERVAL_MS = 200; // 5 ticks/sec — polling frequency only; timing is wall-clock
 const COUNTDOWN_DURATION = 3;
 
 const formatTime = (seconds: number): string => {
@@ -29,29 +29,29 @@ export interface UseMatchTimerResult {
 export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
   const { phase, setPhase, setElapsed, resetMatch } = useMatchStore();
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const phaseStartRef = useRef<number>(0); // Date.now() when current phase started
-  const pauseOffsetRef = useRef<number>(0); // accumulated paused time in ms
-  const pauseStartRef = useRef<number>(0); // Date.now() when pause began
+  const intervalRef       = useRef<ReturnType<typeof setInterval> | null>(null);
+  const phaseStartTimeRef = useRef<number>(0);  // Date.now() when current phase started
+  const pausedMsRef       = useRef<number>(0);  // accumulated paused milliseconds
+  const pauseStartRef     = useRef<number>(0);  // Date.now() when paused; 0 = not paused
 
-  // Keep phaseRef in sync so interval callback never closes over a stale phase
+  // Keep phaseRef in sync so interval callbacks never close over a stale phase
   const phaseRef = useRef<MatchPhase>(phase);
 
   const { autonomous, transition, teleop } = season.timerDuration;
 
-  const [displayTime, setDisplayTime] = useState<string>("");
-  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [displayTime, setDisplayTime]           = useState<string>("");
+  const [isPaused, setIsPaused]                 = useState<boolean>(false);
   const [progressFraction, setProgressFraction] = useState<number>(1);
 
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
 
-  const getElapsedSeconds = useCallback((): number => {
-    if (phaseStartRef.current === 0) return 0;
-    const now = Date.now();
-    const rawElapsed = now - phaseStartRef.current - pauseOffsetRef.current;
-    return Math.floor(Math.max(0, rawElapsed) / 1000);
+  // Returns wall-clock elapsed seconds since phase start, excluding paused time.
+  // Returns null when currently paused — callers should bail out immediately.
+  const getElapsed = useCallback((): number | null => {
+    if (pauseStartRef.current > 0) return null;
+    return (Date.now() - phaseStartTimeRef.current - pausedMsRef.current) / 1000;
   }, []);
 
   const clearTimer = useCallback(() => {
@@ -62,8 +62,9 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
   }, []);
 
   const startPhaseTimer = useCallback((phaseDuration: number) => {
-    phaseStartRef.current = Date.now();
-    pauseOffsetRef.current = 0;
+    phaseStartTimeRef.current = Date.now();
+    pausedMsRef.current = 0;
+    pauseStartRef.current = 0;
     setDisplayTime(formatTime(phaseDuration));
     setProgressFraction(1);
   }, []);
@@ -87,25 +88,20 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
       startPhaseTimer(duration);
 
       intervalRef.current = setInterval(() => {
-        if (pauseStartRef.current > 0) return;
+        const elapsedSec = getElapsed();
+        if (elapsedSec === null) return;
 
-        const elapsed = getElapsedSeconds();
-        const remaining = duration - elapsed;
+        const remaining = duration - elapsedSec;
 
         if (remaining <= 0) {
           clearTimer();
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           setProgressFraction(0);
-
-          if (phaseRef.current === "pre_auto") {
-            setPhase("auto");
-          } else if (phaseRef.current === "pre_teleop") {
-            setPhase("teleop");
-          }
+          setPhase(phaseRef.current === "pre_auto" ? "auto" : "teleop");
           return;
         }
 
-        setDisplayTime(formatTime(remaining));
+        setDisplayTime(formatTime(Math.ceil(remaining)));
         setProgressFraction(remaining / duration);
       }, TICK_INTERVAL_MS);
 
@@ -114,49 +110,40 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
 
     // Active match phases
     const duration =
-      phase === "auto"
-        ? autonomous
-        : phase === "transition"
-          ? transition
-          : teleop;
+      phase === "auto" ? autonomous : phase === "transition" ? transition : teleop;
 
     startPhaseTimer(duration);
 
     intervalRef.current = setInterval(() => {
-      // Skip tick if paused
-      if (pauseStartRef.current > 0) return;
+      const elapsedSec = getElapsed();
+      if (elapsedSec === null) return;
 
-      const elapsed = getElapsedSeconds();
-      const remaining = duration - elapsed;
+      const remaining = duration - elapsedSec;
 
-      setElapsed(elapsed);
+      setElapsed(Math.floor(elapsedSec));
 
       if (remaining <= 0) {
         clearTimer();
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         setProgressFraction(0);
 
-        // Use phaseRef.current to avoid stale closure
         if (phaseRef.current === "auto") {
           setPhase("transition");
         } else if (phaseRef.current === "transition") {
-          setPhase("teleop"); // pre_teleop only fires from start() in teleop_only mode, not after transition
+          setPhase("teleop");
         } else if (phaseRef.current === "teleop") {
           setPhase("complete");
         }
         return;
       }
 
-      // Update display; use phaseRef.current for accuracy
-      setDisplayTime(formatTime(remaining));
-
+      setDisplayTime(formatTime(Math.ceil(remaining)));
       setProgressFraction(remaining / duration);
     }, TICK_INTERVAL_MS);
 
     return () => clearTimer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, autonomous, transition, teleop]); // Re-runs when phase or season durations change;
-  // refs (clearTimer, getElapsedSeconds, startPhaseTimer, setPhase, setElapsed) are stable across renders.
+  }, [phase, autonomous, transition, teleop]);
 
   // Show initial time in idle based on startMode
   useEffect(() => {
@@ -172,17 +159,14 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
 
   const start = useCallback(() => {
     if (phase !== "idle" && phase !== "complete") return;
-
     const startMode = useMatchStore.getState().startMode;
-    // Ensure UI shows the countdown immediately (start at COUNTDOWN_DURATION)
     setDisplayTime(formatTime(COUNTDOWN_DURATION));
     setProgressFraction(1);
     setPhase(startMode === "teleop_only" ? "pre_teleop" : "pre_auto");
   }, [phase, setPhase]);
 
   const pause = useCallback(() => {
-    if (phaseRef.current === "pre_auto" || phaseRef.current === "pre_teleop")
-      return; // no pause during countdown
+    if (phaseRef.current === "pre_auto" || phaseRef.current === "pre_teleop") return;
     if (pauseStartRef.current > 0) return; // already paused
     pauseStartRef.current = Date.now();
     setIsPaused(true);
@@ -190,16 +174,15 @@ export function useMatchTimer(season: SeasonConfig): UseMatchTimerResult {
 
   const resume = useCallback(() => {
     if (pauseStartRef.current === 0) return; // not paused
-    pauseOffsetRef.current += Date.now() - pauseStartRef.current;
+    pausedMsRef.current += Date.now() - pauseStartRef.current;
     pauseStartRef.current = 0;
     setIsPaused(false);
   }, []);
 
   const reset = useCallback(() => {
     clearTimer();
-    // MatchTimer owns the progress SharedValue and calls cancelAnimation before reset().
-    phaseStartRef.current = 0;
-    pauseOffsetRef.current = 0;
+    phaseStartTimeRef.current = 0;
+    pausedMsRef.current = 0;
     pauseStartRef.current = 0;
     setIsPaused(false);
     setProgressFraction(1);
